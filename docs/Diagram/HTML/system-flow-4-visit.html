@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heritage explore page, visit map and recognition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75; --color-accent: #bf4520;
+      --font-sans: 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1140px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 1140px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">System flow 4/5 · Hanoi Lens</p>
+    <h1>Heritage explore page, visit map and recognition</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1140 1540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-flow-4-visit-title system-flow-4-visit-desc">
+        <title id="system-flow-4-visit-title">Heritage explore page, visit map and recognition</title>
+        <desc id="system-flow-4-visit-desc">System flow for the on-site part of a journey: the heritage explore page after unlock or resume, the visit map, photo upload with optional landmark recognition that returns UNKNOWN below threshold, Historical RAG scoped to the identified landmark, pausing, and finishing the visit.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<rect x="96" y="40" width="684" height="312" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="108" y="58" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">ENTER</text>
+<rect x="296" y="372" width="816" height="484" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="308" y="390" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">VISIT</text>
+<rect x="520" y="856" width="504" height="552" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="532" y="874" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">RECOGNITION AND AI</text>
+<path d="M 200 120 L 200 296 Q 200 304 208 304 L 520 304" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 120 L 640 168" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 216 L 640 276" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 332 L 640 404" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 760 432 L 908 432" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 460 L 640 536" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 700 460 L 700 488 Q 700 496 708 496 L 872 496 Q 880 496 880 504 L 880 536" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 584 L 640 648" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 880 584 L 880 648" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 696 L 640 764" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 556 800 L 484 800" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 836 L 640 888" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 936 L 640 988" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 724 1024 L 800 1024" fill="none" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<path d="M 880 1048 L 880 1112" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 1060 L 640 1112" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 1160 L 640 1216" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 640 1264 L 640 1316" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 556 1352 L 408 1352 Q 400 1352 400 1344 L 400 824" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 724 1352 L 836 1352" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="648" y="362" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="662.3" y="371" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">MAP</text>
+<rect x="791.8" y="412" width="84.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="834" y="421" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">FINISH VISIT</text>
+<rect x="648" y="506" width="72" height="12" rx="2" fill="#f5f5f5"/>
+<text x="684" y="515" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">TAKE PHOTO</text>
+<rect x="799.5" y="476" width="41" height="12" rx="2" fill="#f5f5f5"/>
+<text x="820" y="485" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">PAUSE</text>
+<rect x="508.8" y="780" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="520" y="789" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="648" y="856" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="662.3" y="865" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="750.8" y="1004" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="762" y="1013" fill="#bf4520" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="648" y="1080" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="662.3" y="1089" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="648" y="1182" width="47.2" height="12" rx="2" fill="#f5f5f5"/>
+<text x="671.6" y="1191" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">ASK AI</text>
+<rect x="463.7" y="1332" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="478" y="1341" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">MAP</text>
+<rect x="737.8" y="1332" width="84.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="780" y="1341" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">EXPLORE SITE</text>
+<rect x="116" y="72" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="200" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Heritage detail loaded</text>
+<text x="200" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">arrived · 3/5</text>
+<rect x="540" y="72" width="200" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="640" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Explore Hanoi (home)</text>
+<text x="640" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">resume trip · 2/5</text>
+<rect x="560" y="168" width="160" height="48" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="640" y="196" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Set journey ACTIVE</text>
+<rect x="520" y="276" width="240" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="302" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Render heritage explore page</text>
+<text x="640" y="316" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">history · landmarks</text>
+<rect x="520" y="404" width="240" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="430" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Render visit map</text>
+<text x="640" y="444" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">live position on device only</text>
+<rect x="908" y="408" width="184" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="1000" y="430" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load stamp collection</text>
+<text x="1000" y="444" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">finish visit · 5/5</text>
+<rect x="560" y="536" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="564" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Capture photo</text>
+<rect x="800" y="536" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="880" y="558" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Set journey PAUSED</text>
+<text x="880" y="572" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">save progress</text>
+<rect x="552" y="648" width="176" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="670" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Presigned upload</text>
+<text x="640" y="684" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">validate · save to journey</text>
+<rect x="796" y="648" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="880" y="670" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Explore Hanoi (home)</text>
+<text x="880" y="684" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 2/5</text>
+<rect x="316" y="776" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="400" y="798" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Visit map</text>
+<text x="400" y="812" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">next action</text>
+<polygon points="640,764 724,800 640,836 556,800" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="797" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Identification</text>
+<text x="640" y="811" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">requested?</text>
+<rect x="560" y="888" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="916" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Landmark classifier</text>
+<polygon points="640,988 724,1024 640,1060 556,1024" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="1021" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Confidence above</text>
+<text x="640" y="1035" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">threshold?</text>
+<rect x="800" y="1000" width="160" height="48" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="880" y="1022" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show UNKNOWN</text>
+<text x="880" y="1036" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">no landmark selected</text>
+<rect x="796" y="1112" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="880" y="1134" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Visit map</text>
+<text x="880" y="1148" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">next action</text>
+<rect x="560" y="1112" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="1134" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show landmark info</text>
+<text x="640" y="1148" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">set RAG context</text>
+<rect x="540" y="1216" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="1238" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Historical RAG</text>
+<text x="640" y="1252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">scoped to landmark · citations</text>
+<polygon points="640,1316 724,1352 640,1388 556,1352" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="1356" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Where next?</text>
+<rect x="836" y="1328" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="920" y="1350" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Heritage explore page</text>
+<text x="920" y="1364" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see above</text>
+<line x1="40" y1="1488" x2="1100" y2="1488" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="1504" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+<rect x="40" y="1516" width="24" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="72" y="1526" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+<polygon points="128,1522 140,1516 152,1522 140,1528" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="160" y="1526" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Decision</text>
+<rect x="236" y="1516" width="24" height="12" rx="2" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/><text x="268" y="1526" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Jump to another step or diagram</text>
+<line x1="459" y1="1522" x2="483" y2="1522" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/><text x="491" y="1526" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Fixed after review</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

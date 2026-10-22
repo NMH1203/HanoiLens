@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanoi Lens database</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75; --color-accent: #bf4520;
+      --font-sans: 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1520px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 1520px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Data model · Hanoi Lens</p>
+    <h1>Hanoi Lens database</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1520 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="hanoi-lens-db-title hanoi-lens-db-desc">
+        <title id="hanoi-lens-db-title">Hanoi Lens database</title>
+        <desc id="hanoi-lens-db-desc">Entity-relationship diagram of the 17 Hanoi Lens tables grouped into places and content, users and journeys, photos and recaps, and stamps and rewards, with journeys as the central table.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<rect x="26" y="107" width="768" height="380" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="38" y="125" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">PLACES AND CONTENT</text>
+<rect x="830" y="114" width="554" height="373" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="842" y="132" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">USERS AND JOURNEYS</text>
+<rect x="696" y="547" width="808" height="367" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="708" y="565" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">PHOTOS, RECOGNITION AND RECAPS</text>
+<rect x="26" y="554" width="508" height="353" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="38" y="572" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">STAMPS AND REWARDS</text>
+<path d="M 306 200 L 254 200" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 370 247 L 370 373" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 450 247 L 450 302 Q 450 310 458 310 L 662 310 Q 670 310 670 318 L 670 373" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 306 420 L 254 420" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 514 200 L 866 200" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1156 180 L 1074 180" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 970 254 L 970 373" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 774 420 L 850 420" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1074 230 L 1102 230 Q 1110 230 1110 238 L 1110 579" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1222 640 L 1276 640" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1110 701 L 1110 786" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 998 640 L 924 640" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 820 786 L 820 680" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 254 640 L 306 640" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 254 840 L 306 840" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<rect x="282" y="180" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="288" y="189" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="266" y="180" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="272" y="189" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="378" y="259" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="384" y="268" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="378" y="349" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="384" y="358" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="458" y="259" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="464" y="268" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="678" y="349" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="684" y="358" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="282" y="400" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="288" y="409" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="266" y="400" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="272" y="409" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="526" y="180" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="532" y="189" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="842" y="180" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="848" y="189" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="1132" y="160" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1138" y="169" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="1086" y="160" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1092" y="169" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="978" y="266" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="984" y="275" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="978" y="349" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="984" y="358" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="786" y="400" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="792" y="409" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="826" y="400" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="832" y="409" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="1086" y="210" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1092" y="219" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="1118" y="555" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1124" y="564" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="1234" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1240" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="1252" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1258" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="1118" y="713" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1124" y="722" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="1118" y="762" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1124" y="771" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="974" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="980" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="936" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="942" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="828" y="762" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="834" y="771" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="828" y="692" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="834" y="701" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="266" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="272" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="282" y="620" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="288" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="266" y="820" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="272" y="829" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">1</text>
+<rect x="282" y="820" width="12" height="12" rx="2" fill="#f5f5f5"/>
+<text x="288" y="829" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">N</text>
+<rect x="46" y="139" width="208" height="122" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="54" y="147" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="71" y="156" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="96" y="158" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">CULTURAL_EVENTS</text>
+<line x1="46" y1="167" x2="254" y2="167" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="58" y="183" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="58" y="197" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id  optional</text>
+<text x="58" y="211" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">title</text>
+<text x="58" y="225" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">starts_at, ends_at</text>
+<text x="58" y="239" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">venue, source_url</text>
+<text x="58" y="253" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">status  PENDING_REVIEW…</text>
+<rect x="306" y="153" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="314" y="161" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="331" y="170" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="356" y="172" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">DESTINATIONS</text>
+<line x1="306" y1="181" x2="514" y2="181" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="318" y="197" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="318" y="211" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">name, district</text>
+<text x="318" y="225" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">cultural_content</text>
+<text x="318" y="239" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">boundary  PostGIS</text>
+<rect x="46" y="373" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="54" y="381" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="71" y="390" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="96" y="392" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">REFERENCE_IMAGES</text>
+<line x1="46" y1="401" x2="254" y2="401" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="58" y="417" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="58" y="431" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ artifact_id  optional</text>
+<text x="58" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id  optional</text>
+<text x="58" y="459" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">object_key</text>
+<rect x="306" y="373" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="314" y="381" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="331" y="390" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="356" y="392" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">ARTIFACTS</text>
+<line x1="306" y1="401" x2="514" y2="401" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="318" y="417" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="318" y="431" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id</text>
+<text x="318" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">name, description</text>
+<text x="318" y="459" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">recognition_label</text>
+<rect x="566" y="373" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="574" y="381" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="591" y="390" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="616" y="392" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">LANDMARKS</text>
+<line x1="566" y1="401" x2="774" y2="401" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="578" y="417" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="578" y="431" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id</text>
+<text x="578" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">name</text>
+<text x="578" y="459" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">position  PostGIS</text>
+<rect x="866" y="146" width="208" height="108" rx="6" fill="#ffffff" stroke="#bf4520" stroke-width="1"/>
+<path d="M 866.5 174 V 152 Q 866.5 146.5 872 146.5 H 1068 Q 1073.5 146.5 1073.5 152 V 174 Z" fill="#bf4520" fill-opacity="0.08"/>
+<rect x="874" y="154" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="891" y="163" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="916" y="165" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">JOURNEYS</text>
+<line x1="866" y1="174" x2="1074" y2="174" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="878" y="190" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="878" y="204" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="878" y="218" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id</text>
+<text x="878" y="232" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">status  ACTIVE · PAUSED · ENDED</text>
+<text x="878" y="246" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">started_at, ended_at</text>
+<rect x="1156" y="160" width="208" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1164" y="168" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="1181" y="177" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="1206" y="179" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">USERS</text>
+<line x1="1156" y1="188" x2="1364" y2="188" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="1168" y="204" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="1168" y="218" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">email</text>
+<text x="1168" y="232" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">default_location_precision</text>
+<rect x="850" y="373" width="240" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="858" y="381" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="875" y="390" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="900" y="392" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">JOURNEY_LANDMARK_VISITS</text>
+<line x1="850" y1="401" x2="1090" y2="401" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="862" y="417" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="862" y="431" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ journey_id</text>
+<text x="862" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ landmark_id</text>
+<text x="862" y="459" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">visited_at</text>
+<rect x="716" y="600" width="208" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="724" y="608" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="741" y="617" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="766" y="619" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">RECAP_PHOTOS</text>
+<line x1="716" y1="628" x2="924" y2="628" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="728" y="644" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ recap_id</text>
+<text x="728" y="658" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ photo_id</text>
+<text x="728" y="672" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">position</text>
+<rect x="998" y="579" width="224" height="122" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1006" y="587" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="1023" y="596" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="1048" y="598" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">PHOTOS</text>
+<line x1="998" y1="607" x2="1222" y2="607" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="1010" y="623" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="1010" y="637" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="1010" y="651" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ journey_id</text>
+<text x="1010" y="665" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">object_key  original, immutable</text>
+<text x="1010" y="679" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">captured_at</text>
+<text x="1010" y="693" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">edit_recipe</text>
+<rect x="1276" y="593" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1284" y="601" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="1301" y="610" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="1326" y="612" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">PHOTO_EXPORTS</text>
+<line x1="1276" y1="621" x2="1484" y2="621" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="1288" y="637" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="1288" y="651" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ photo_id</text>
+<text x="1288" y="665" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">stamp_style, label</text>
+<text x="1288" y="679" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">location_precision</text>
+<rect x="716" y="786" width="208" height="108" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="724" y="794" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="741" y="803" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="766" y="805" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">RECAPS</text>
+<line x1="716" y1="814" x2="924" y2="814" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="728" y="830" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="728" y="844" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="728" y="858" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ journey_id  optional</text>
+<text x="728" y="872" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">type  JOURNEY · MONTHLY</text>
+<text x="728" y="886" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">period</text>
+<rect x="998" y="786" width="224" height="108" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="1006" y="794" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="1023" y="803" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="1048" y="805" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">RECOGNITION_RESULTS</text>
+<line x1="998" y1="814" x2="1222" y2="814" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="1010" y="830" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="1010" y="844" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ photo_id</text>
+<text x="1010" y="858" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ artifact_id  optional</text>
+<text x="1010" y="872" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">confidence</text>
+<text x="1010" y="886" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">confirms_presence</text>
+<rect x="46" y="600" width="208" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="54" y="608" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="71" y="617" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="96" y="619" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">STAMPS</text>
+<line x1="46" y1="628" x2="254" y2="628" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="58" y="644" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="58" y="658" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ destination_id</text>
+<text x="58" y="672" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">name</text>
+<rect x="306" y="586" width="208" height="108" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="314" y="594" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="331" y="603" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="356" y="605" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">USER_STAMPS</text>
+<line x1="306" y1="614" x2="514" y2="614" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="318" y="630" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="318" y="644" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="318" y="658" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ stamp_id</text>
+<text x="318" y="672" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ journey_id</text>
+<text x="318" y="686" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">awarded_at</text>
+<rect x="46" y="800" width="208" height="80" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="54" y="808" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="71" y="817" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="96" y="819" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">REWARDS</text>
+<line x1="46" y1="828" x2="254" y2="828" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="58" y="844" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="58" y="858" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">name</text>
+<text x="58" y="872" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">required_stamps</text>
+<rect x="306" y="793" width="208" height="94" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="314" y="801" width="34" height="12" rx="2" fill="none" stroke="#4f5d75" stroke-width="0.8"/><text x="331" y="810" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TABLE</text>
+<text x="356" y="812" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">USER_REWARDS</text>
+<line x1="306" y1="821" x2="514" y2="821" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="318" y="837" fill="#2d3142" font-size="9" font-family="'Geist Mono', monospace"># id</text>
+<text x="318" y="851" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ user_id</text>
+<text x="318" y="865" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ reward_id</text>
+<text x="318" y="879" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">status  UNLOCKED · REDEEMED</text>
+<line x1="40" y1="948" x2="1480" y2="948" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="964" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+<rect x="40" y="976" width="24" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="72" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Table · # primary key · → foreign key</text>
+<line x1="293" y1="982" x2="317" y2="982" stroke="#4f5d75" stroke-width="1.2"/><text x="325" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Relationship · 1 one · N many</text>
+<rect x="506" y="976" width="24" height="12" rx="2" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/><text x="538" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Central table</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

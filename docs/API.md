@@ -240,7 +240,7 @@ Lists destinations ordered by distance from a point.
 
 ### `GET /destinations/{destinationId}`
 
-Returns full destination details, including cultural content, public geofence presentation, photography prompts, opening guidance, and the availability of the historical RAG assistant. The client always shows the assistant entry point and editorial photography tips on the destination page; using either remains optional.
+Returns full destination details, including cultural content, public geofence presentation, opening information, and the availability of the historical RAG assistant. The client uses it for the heritage preview (which always shows the assistant entry point; asking remains optional) and for the on-site heritage explore page.
 
 **Response `200`**
 
@@ -262,14 +262,6 @@ Returns full destination details, including cultural content, public geofence pr
       "center": { "latitude": 21.028511, "longitude": 105.835536 },
       "radiusMeters": 250
     },
-    "photoPrompts": [
-      {
-        "id": "prm_symmetry",
-        "title": "Frame the central axis",
-        "technique": "SYMMETRY",
-        "prompt": "Stand on the central path and align the gate with the frame."
-      }
-    ],
     "aiFeatures": {
       "historicalRagAvailable": true,
       "landmarkRecognitionAvailable": true
@@ -285,7 +277,7 @@ Lists published landmarks in the destination. Ordering is editorial, not a requi
 
 ### `GET /landmarks/{landmarkId}`
 
-Returns cultural information, photography prompts, and the parent destination for one landmark.
+Returns cultural information and the parent destination for one landmark. The client uses it for the landmark info screen after a `RECOGNIZED` result.
 
 ### `POST /destinations/{destinationId}/arrival-checks`
 
@@ -695,11 +687,7 @@ The backend must reject a request that attempts to include location detail beyon
 
 ## 11. Landmark recognition and historical RAG
 
-### `GET /destinations/{destinationId}/prompts`
-
-Returns static editorial photography prompts. It does not analyze live camera frames. Optional query parameters are `landmarkId`, `technique`, and `timeOfDay`.
-
-The destination page exposes these prompts and the historical RAG entry point by default. If AI inference is unavailable, static cultural content and photography prompts remain usable and the client reports the assistant as temporarily unavailable.
+The heritage preview exposes the historical RAG entry point by default. On site, the visit map has no direct AI entry: the client opens the chat from the landmark info screen after a `RECOGNIZED` result. If AI inference is unavailable, static cultural content remains usable and the client reports the assistant as temporarily unavailable.
 
 ### `POST /ai/recognize-landmark`
 
@@ -729,7 +717,10 @@ When confidence is below the configured threshold, `landmarkId` is `null` and `r
 
 ### `POST /ai/qa`
 
-Runs Model 2, the historical RAG capability, for a cultural question scoped to a destination or landmark. Authentication is required and rate limits apply. The endpoint must also work when `landmarkId` was selected by the user or inferred from the active destination instead of Model 1.
+Runs Model 2, the historical RAG capability, for a cultural question. Authentication is required and rate limits apply. Two scopes:
+
+- **Heritage preview (before travel):** `destinationId` only; `landmarkId` is omitted. Must work without any vision result.
+- **On site (from landmark info):** `destinationId` plus the `landmarkId` returned by a `RECOGNIZED` result of `POST /ai/recognize-landmark`. Retrieval is filtered by that landmark. An `UNKNOWN` result never leads here.
 
 **Request**
 
@@ -860,7 +851,6 @@ The first backend increment should implement these endpoints before advanced edi
 - `GET /destinations/nearby`
 - `GET /destinations/{destinationId}`
 - `GET /destinations/{destinationId}/landmarks`
-- `GET /destinations/{destinationId}/prompts`
 - `POST /destinations/{destinationId}/arrival-checks`
 - `GET /events`
 - `GET /events/{eventId}`
