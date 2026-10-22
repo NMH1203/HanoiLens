@@ -12,9 +12,9 @@
 Instead of prescribing fixed tour routes or rigid checklists, the application offers an open-ended experience:
 - **Presence-based arrival recognition (Privacy-First Geofencing):** The application only detects whether the user is inside or outside a destination area (zone presence). It does not track continuous movements or require knowing/storing exact coordinates, ensuring complete comfort and user privacy.
 - **Account-based journeys:** Users sign in or sign up before exploring, so journeys, unlocked heritages, photos, and rewards are kept in their account.
-- **Self-marked heritages & GPS unlock:** Users preview a heritage and mark it if they want to go; the app never prescribes routes. When GPS confirms arrival, the heritage is unlocked immediately and a visit map of the heritage area shows the user's live position so they can move around, explore, and take photos. Unlocking every marked heritage earns an in-app Journey Stamp badge and a random gift from that heritage site.
+- **Self-marked heritages & GPS unlock:** Users preview a heritage and mark it if they want to go; the app never prescribes routes. When GPS confirms arrival, the heritage is unlocked immediately and its **heritage explore page** (history, landmarks) opens; from there a visit map of the heritage area shows the user's live position so they can move around, explore, and take photos. Unlocking every marked heritage earns an in-app Journey Stamp badge and a random gift from that heritage site.
 - **Cultural event discovery:** Collects and displays ongoing and upcoming events from approved official sources using deterministic, source-specific parsers and administrator review.
-- **Landmark recognition & historical Q&A:** Users can optionally photograph a scene or structure on site to identify what it is (image classification), then ask a grounded RAG system about it and get answers with verified citations.
+- **Landmark recognition & historical Q&A:** Users can optionally photograph a scene or structure on site to identify what it is (image classification), then, from the landmark info page, ask a grounded RAG system about that landmark and get answers with verified citations.
 - **Journey albums and personalized recaps:** Automatically organizes photos, visited locations, timestamps, and exploration progress into private journey albums with customizable location stamps, weather overlays, and destination-based or monthly recaps, allowing users to rediscover Hanoi through their own lens.
 - **Privacy-aware design:** Operates strictly on an area-presence model; users are completely free from location tracking and retain full control over how location names are displayed on exported photos.
 
@@ -63,9 +63,9 @@ The Hanoi Lens journey consists of five interconnected phases:
 
 1. **Discover & Mark:** Browse destinations and upcoming cultural events (also together on the map), preview a heritage, and mark it if the user wants to go.
 2. **Arrive & Unlock:** Walk into a destination's geographic zone where GPS geofencing automatically registers the arrival and unlocks the heritage.
-3. **Unlock & Explore:** Arrival unlocks the heritage. A visit map of the heritage area shows the user's live position; users move around, read its history, take photos, and optionally identify what they photographed and ask the AI assistant.
+3. **Unlock & Explore:** Arrival unlocks the heritage and opens its heritage explore page (history, landmarks). The visit map of the heritage area shows the user's live position; users move around, take photos, and optionally identify what they photographed. When a landmark is identified, its landmark info page opens and the user can chat with the AI assistant about it, then return to the visit map or the heritage explore page.
 4. **Capture & Edit:** Take photos, optionally recognize supported landmarks, and perform non-destructive image edits.
-5. **Remember & Reward:** Save progress to the travel journal (journey albums), attach customizable location and weather stamps, view destination or monthly recaps, and collect a Journey Stamp badge and a random gift once every marked heritage is unlocked.
+5. **Remember & Reward:** When finishing a visit, view the stamp collection, then collect a Journey Stamp badge and a random gift once every marked heritage is unlocked. Save progress to the travel journal (journey albums), attach customizable location and weather stamps, and view destination or monthly recaps.
 
 Users choose and mark heritages themselves; the app never prescribes routes or sequential stops. Users can stop at any time. Unlocking every marked heritage is an optional goal that earns a reward.
 
@@ -75,16 +75,18 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 
 ### 6.1 Destination discovery (Location-Based Services)
 - Browse Hanoi's landmarks, heritage monuments, museums, cultural spaces, and scenic spots.
-- Filter destinations by proximity to current location, district, thematic interest, or recommended shooting hours.
-- View detailed destination cards with cultural background and optimal visiting/lighting windows.
-- Always show the historical RAG assistant entry point and curated tips for angle, composition, lighting, and suitable shooting time on each destination page.
-- Support continuing paused or unfinished exploration sessions.
+- The app has two explore pages: **Explore Hanoi (home)**, the app-wide page after sign-in (map, heritages, events, travel journal, resume trip), and the **heritage explore page** of the heritage the user is at (§6.2).
+- Filter destinations by proximity to current location, district, or thematic interest.
+- View detailed destination cards with cultural background and visiting windows.
+- Always show the historical RAG assistant entry point on each heritage preview.
+- Support continuing paused or unfinished exploration sessions from Explore Hanoi (home); resuming reopens the heritage explore page.
 - Show heritages and cultural events together on the map; choosing a point opens the heritage preview or the event detail.
 - Each heritage page works as a preview. If the user wants to go, the heritage is marked in the current trip. The app does not recommend which heritages to mark.
 
 ### 6.2 GPS-based destination detection (GPS Geofencing)
 - Monitor destination boundaries solely to detect arrival and presence (binary zone check: inside/outside).
-- Keep cultural content, Historical RAG access, and photography prompts visible before travel; geofence entry confirms arrival and immediately unlocks the marked heritage.
+- Keep cultural content and Historical RAG access visible before travel; geofence entry confirms arrival and immediately unlocks the marked heritage.
+- After unlocking, open the heritage explore page (history and landmarks of that heritage); from it the user opens the visit map. Pausing the trip returns to Explore Hanoi (home).
 - After arrival, show a visit map of the heritage area with the user's live position, computed on the device only; positions inside the heritage are not sent to or stored on the server.
 - **Privacy-by-Design:** Does not track continuous GPS trails or store exact coordinates; once presence is confirmed, raw location data is not retained.
 - Eliminate physical QR codes or NFC tag requirements for check-ins, allowing hands-free outdoor exploration.
@@ -94,14 +96,15 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 - Concise, high-value narratives covering history, architecture, symbolism, and cultural significance.
 - **Interactive Historical Q&A (Domain RAG):** In-depth historical chat powered by a domain-specific RAG pipeline and fine-tuned LLM, strictly grounded in verified historical records of Hanoi heritage sites.
 - **Visual Landmark & Relic Recognition:** Fine-tuned Vision model identifies architectural structures and artifacts directly from user photos, immediately focusing the RAG context.
-- Information, Historical RAG access, and photography prompts are available on the destination page before travel and remain contextual after arrival.
-- The assistant entry point remains visible on the destination page, while asking a question is optional and non-intrusive.
+- Before travel, information and Historical RAG access are available on the heritage preview.
+- On site, the AI chat is reached from the landmark info page after a photo is identified, and is scoped to that landmark. After chatting, the user returns to the visit map or the heritage explore page.
+- Asking a question is always optional and non-intrusive.
 
 ### 6.4 Photo capture & landmark recognition
 - Capture or select a photo using the native Android camera flow.
 - Submit the image to the landmark classification model and return a supported `landmarkId` with confidence.
 - Return `UNKNOWN` below the configured confidence threshold instead of silently selecting a landmark.
-- Recognition is optional and does not affect unlocking: it tells the user what the photographed scene or structure is and supplies the `landmarkId` as context for Historical RAG questions.
+- Recognition is optional and does not affect unlocking: it tells the user what the photographed scene or structure is, opens the landmark info page, and supplies the `landmarkId` as context for Historical RAG questions. `UNKNOWN` returns the user to the visit map.
 - Real-time composition overlays, lighting analysis, and camera-position guidance are outside the project scope.
 
 ### 6.5 Digital image processing & non-destructive editing
@@ -133,6 +136,8 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 - Travel journal view: choose a past trip, see its details and photos, and download photos to the device.
 
 ### 6.11 Heritage rewards
+- Finishing a visit first shows the user's stamp collection, then checks whether every marked heritage is unlocked.
+- If the user continues exploring, they stay on the heritage explore page; otherwise the trip ends and the travel journal is updated.
 - When every heritage marked in a trip is unlocked, the user collects an in-app Journey Stamp badge and a random gift from that heritage site.
 - Rewards are a bonus for finished journeys; exploring, capturing, and saving memories never require them.
 
@@ -150,9 +155,12 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 
 ## 7. Primary navigation structure
 
-- **Explore:** Destination discovery, thematic collections, nearby recommendations, and best shooting times.
+- **Explore Hanoi (home):** Destination discovery, thematic collections, nearby recommendations, travel journal, and resuming a paused trip.
+- **Heritage explore page:** Page of the unlocked heritage (history, landmarks), shown after arrival and when resuming; opens the visit map.
 - **Map:** Interactive map showing heritages and cultural events together, plus user location and destination geofences.
-- **Visit map:** Map of the heritage area shown after arrival, with the user's live position for moving around, reading history, and taking photos.
+- **Visit map:** Map of the heritage area, opened from the heritage explore page, with the user's live position for moving around and taking photos.
+- **Landmark info:** Shown after a photo is identified; the only on-site entry to the AI chat for that landmark.
+- **Stamp collection:** Shown when finishing a visit, before the reward check.
 - **Camera:** Photo capture, landmark-recognition submission, and quick-edit interface without real-time guidance overlays.
 - **Events:** Aggregated stream of ongoing and upcoming cultural events across Hanoi with venue linking.
 - **Travel journal (Album):** Past trips, photo collections and downloads, journey stamp exports, earned badges, and destination/monthly recaps.
@@ -169,7 +177,7 @@ The detailed flow is in `docs/flows/user-flow.md` and `docs/Diagram/HanoiLens.md
 Open Hanoi Lens -> Sign in / Sign up (landing page after sign up)
      │
      ▼
-Explore page ──> Travel journal / Map (heritages + events) / Heritages / Events
+Explore Hanoi (home) ──> Travel journal / Map (heritages + events) / Heritages / Events / Resume trip
      │
      ├──> Event linked to a heritage ──> continue as heritage
      ├──> Event without heritage ──> Event memory page -> Take photo -> Save memory
@@ -181,19 +189,28 @@ Heritage preview -> Want to go? -> Mark heritage in trip
 Optional directions -> Arrive -> GPS confirms arrival -> Unlock heritage
      │
      ▼
-Visit map (area map + live position)
-     ├──> Move around / Read history
-     └──> Take photo -> (optional) Identify it -> Chat with AI
+Heritage explore page (history, landmarks)   <── also opened when resuming a paused trip
      │
-     ├──> Go to another heritage -> Map
+     ▼
+Visit map (area map + live position)
+     ├──> Move around
+     ├──> Take photo -> (optional) Identified?
+     │        ├── No / UNKNOWN ──> Visit map
+     │        └── Yes ──> Landmark info -> Chat with AI -> Visit map or Heritage explore page
+     ├──> Pause ──> Explore Hanoi (home)
+     ▼
+Finish here -> Stamp collection
+     │
      ▼
 All marked heritages unlocked? ── Yes ──> Journey Stamp badge + random gift
      │
      ▼
-Continue exploring? ── No ──> Save progress -> Update travel journal
+Continue exploring? ── Yes ──> Heritage explore page
+     │
+     No ──> Save progress -> Update travel journal
      │
      ▼
-Travel journal: past trip -> details & photos -> download -> Explore page or End
+Travel journal: past trip -> details & photos -> download -> Explore Hanoi (home) or End
 ```
 
 ---
@@ -228,7 +245,7 @@ Destination
   ├── areaMap (visit map of the heritage area)
   ├── culturalInformation (history, architecture, significance)
   ├── recognitionLabel (identifier used by the vision model)
-  └── visitingWindows (golden hour, opening times)
+  └── visitingWindows (opening times)
 
 CulturalEvent
   ├── id, title, description
@@ -277,7 +294,7 @@ The project delivers the 8 concrete deliverables stated in the proposal:
 
 1. **Mobile Application:** A responsive mobile application that enables users to freely discover Hanoi's landmarks, heritage sites, and scenic locations.
 2. **GPS-Based Destination Detection:** Automated geofence detection that recognizes arrival and displays location-relevant cultural insights.
-3. **Landmark Recognition, Historical RAG & Photo Tips:** Two AI capabilities classify supported landmarks and provide source-grounded historical answers, while curated prompts suggest composition, lighting, angle, and timing.
+3. **Landmark Recognition & Historical RAG:** Two AI capabilities classify supported landmarks and provide source-grounded historical answers.
 4. **Cultural Event Discovery:** An aggregated feed presenting ongoing and upcoming cultural activities, exhibitions, and festivals across Hanoi.
 5. **Journey Albums:** Structured digital albums preserving user photos, visited locations, timestamps, and exploration progress.
 6. **Customizable Journey Stamps & Watermarks:** Flexible location names, timestamps, weather overlays, and commemorative stamps on exported photos.
@@ -294,9 +311,9 @@ The initial Minimum Viable Product (MVP) validates the entire end-to-end explora
 - Android Native client implemented with Java and XML layouts.
 - Interactive destination browsing and map overview.
 - Detailed pilot destination (e.g., Văn Miếu – Quốc Tử Giám / Hoàn Kiếm area) with full content and landmarks.
-- Always-visible historical RAG access and curated photography tips on destination pages, with a static fallback when AI is unavailable.
+- Always-visible historical RAG access on heritage previews, with a static fallback when AI is unavailable.
 - Simulated and live GPS geofence arrival checks.
-- Cultural cards, Historical RAG access, and curated photography tips available from the destination page before and after arrival.
+- Cultural cards and Historical RAG access on the heritage preview before travel; on site, the heritage explore page (history, landmarks) and AI chat from landmark info after identification.
 - Photo capture/upload and landmark image classification with an `UNKNOWN` confidence fallback.
 - In-browser digital image processing: crop, straighten, brightness, contrast, and color filters.
 - Photo watermarking engine supporting customizable Journey Stamps (Minimal, Postcard, Heritage).

@@ -1,0 +1,51 @@
+// Tables and purposes from the Google Doc "Hanoi_Lens" § DB; fields from ARCHITECTURE §10 / BRIEF §10 where they exist.
+module.exports = {
+  slug: 'hanoi-lens-db', width: 1520, height: 1000, er: true, accentLabel: 'Central table',
+  eyebrow: 'Data model · Hanoi Lens', title: 'Hanoi Lens database',
+  desc: 'Entity-relationship diagram of the 17 Hanoi Lens tables grouped into places and content, users and journeys, photos and recaps, and stamps and rewards, with journeys as the central table.',
+  nodes: [
+    { id: 'CE', k: 'ent', x: 150, y: 200, t: 'CULTURAL_EVENTS', f: ['# id', '→ destination_id  optional', 'title', 'starts_at, ends_at', 'venue, source_url', 'status  PENDING_REVIEW…'] },
+    { id: 'DEST', k: 'ent', x: 410, y: 200, t: 'DESTINATIONS', f: ['# id', 'name, district', 'cultural_content', 'boundary  PostGIS'] },
+    { id: 'REF', k: 'ent', x: 150, y: 420, t: 'REFERENCE_IMAGES', f: ['# id', '→ artifact_id  optional', '→ destination_id  optional', 'object_key'] },
+    { id: 'ART', k: 'ent', x: 410, y: 420, t: 'ARTIFACTS', f: ['# id', '→ destination_id', 'name, description', 'recognition_label'] },
+    { id: 'LM', k: 'ent', x: 670, y: 420, t: 'LANDMARKS', f: ['# id', '→ destination_id', 'name', 'position  PostGIS'] },
+
+    { id: 'JOUR', k: 'ent', x: 970, y: 200, t: 'JOURNEYS', accent: true, f: ['# id', '→ user_id', '→ destination_id', 'status  ACTIVE · PAUSED · ENDED', 'started_at, ended_at'] },
+    { id: 'USERS', k: 'ent', x: 1260, y: 200, t: 'USERS', f: ['# id', 'email', 'default_location_precision'] },
+    { id: 'JLV', k: 'ent', x: 970, y: 420, w: 240, t: 'JOURNEY_LANDMARK_VISITS', f: ['# id', '→ journey_id', '→ landmark_id', 'visited_at'] },
+
+    { id: 'RP', k: 'ent', x: 820, y: 640, t: 'RECAP_PHOTOS', f: ['→ recap_id', '→ photo_id', 'position'] },
+    { id: 'PHOTOS', k: 'ent', x: 1110, y: 640, w: 224, t: 'PHOTOS', f: ['# id', '→ user_id', '→ journey_id', 'object_key  original, immutable', 'captured_at', 'edit_recipe'] },
+    { id: 'EXP', k: 'ent', x: 1380, y: 640, t: 'PHOTO_EXPORTS', f: ['# id', '→ photo_id', 'stamp_style, label', 'location_precision'] },
+    { id: 'RECAPS', k: 'ent', x: 820, y: 840, t: 'RECAPS', f: ['# id', '→ user_id', '→ journey_id  optional', 'type  JOURNEY · MONTHLY', 'period'] },
+    { id: 'RR', k: 'ent', x: 1110, y: 840, w: 224, t: 'RECOGNITION_RESULTS', f: ['# id', '→ photo_id', '→ artifact_id  optional', 'confidence', 'confirms_presence'] },
+
+    { id: 'ST', k: 'ent', x: 150, y: 640, t: 'STAMPS', f: ['# id', '→ destination_id', 'name'] },
+    { id: 'UST', k: 'ent', x: 410, y: 640, t: 'USER_STAMPS', f: ['# id', '→ user_id', '→ stamp_id', '→ journey_id', 'awarded_at'] },
+    { id: 'RW', k: 'ent', x: 150, y: 840, t: 'REWARDS', f: ['# id', 'name', 'required_stamps'] },
+    { id: 'URW', k: 'ent', x: 410, y: 840, t: 'USER_REWARDS', f: ['# id', '→ user_id', '→ reward_id', 'status  UNLOCKED · REDEEMED'] },
+  ],
+  edges: [
+    { f: 'DEST.l', t: 'CE.r', c1: '1', c2: 'N' },
+    { f: 'DEST.b-40', t: 'ART.t-40', c1: '1', c2: 'N' },
+    { f: 'DEST.b+40', t: 'LM.t', via: [[450, 310], [670, 310]], c1: '1', c2: 'N' },
+    { f: 'ART.l', t: 'REF.r', c1: '1', c2: 'N' },
+    { f: 'DEST.r', t: 'JOUR.l', c1: '1', c2: 'N' },
+    { f: 'USERS.l-20', t: 'JOUR.r-20', c1: '1', c2: 'N' },
+    { f: 'JOUR.b', t: 'JLV.t', c1: '1', c2: 'N' },
+    { f: 'LM.r', t: 'JLV.l', c1: '1', c2: 'N' },
+    { f: 'JOUR.r+30', t: 'PHOTOS.t', via: [[1110, 230]], c1: '1', c2: 'N' },
+    { f: 'PHOTOS.r', t: 'EXP.l', c1: '1', c2: 'N' },
+    { f: 'PHOTOS.b', t: 'RR.t', c1: '1', c2: 'N' },
+    { f: 'PHOTOS.l', t: 'RP.r', c1: '1', c2: 'N' },
+    { f: 'RECAPS.t', t: 'RP.b', c1: '1', c2: 'N' },
+    { f: 'ST.r', t: 'UST.l', c1: '1', c2: 'N' },
+    { f: 'RW.r', t: 'URW.l', c1: '1', c2: 'N' },
+  ],
+  zones: [
+    { label: 'Places and content', nodes: ['CE', 'DEST', 'REF', 'ART', 'LM'] },
+    { label: 'Users and journeys', nodes: ['JOUR', 'USERS', 'JLV'] },
+    { label: 'Photos, recognition and recaps', nodes: ['RP', 'PHOTOS', 'EXP', 'RECAPS', 'RR'] },
+    { label: 'Stamps and rewards', nodes: ['ST', 'UST', 'RW', 'URW'] },
+  ],
+};

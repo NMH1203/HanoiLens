@@ -110,8 +110,7 @@ vn.edu.usth.hanoilens
     ├── event/
     ├── visit/
     ├── media/
-    ├── recap/
-    └── guidance/
+    └── recap/
 ```
 
 Module boundary rules:
@@ -137,8 +136,8 @@ Module boundary rules:
 
 ### Destinations (`modules.destination`)
 
-- Owns destinations, landmarks, PostGIS geofences, cultural narratives, recommended shooting windows, and photography prompts.
-- Supplies every destination page with editorial tips for angle, composition, lighting, and suitable shooting time, plus an always-visible entry point to the historical RAG assistant.
+- Owns destinations, landmarks, PostGIS geofences, and cultural narratives.
+- Supplies the heritage preview (with an always-visible entry point to the historical RAG assistant) and the on-site heritage explore page (history and landmarks of the unlocked heritage).
 - Executes geospatial queries via Hibernate Spatial for nearby discovery and boundary arrival checks.
 - Publishes stable destination identifiers used across journeys.
 
@@ -164,11 +163,6 @@ Module boundary rules:
 
 - Owns destination albums, monthly recaps, and AI-assisted storytelling summaries.
 - Asynchronously compiles journey recap stories upon visit completion.
-
-### Guidance (`modules.guidance`)
-
-- Supplies static, editorial photography tips associated with destinations.
-- Does not analyze live camera frames or provide real-time composition guidance.
 
 ## 7. Backend internal layers
 
@@ -280,7 +274,7 @@ sequenceDiagram
     SB-->>APP: Display answer and verified sources
 ```
 
-The vision result supplies context to RAG, but RAG must also work when the user reaches or manually selects a known destination. A low-confidence vision result is returned as `UNKNOWN` and must not silently select a landmark.
+RAG has two entry points. Before travel, the heritage preview asks with `destinationId` only, so RAG must work without a vision result. On site, the visit map has no direct AI entry: the chat opens from the landmark info screen after a `RECOGNIZED` result and is scoped to that `landmarkId`; afterwards the user returns to the visit map or the heritage explore page. A low-confidence vision result is returned as `UNKNOWN`, must not silently select a landmark, and does not open the chat.
 
 ### 9.3 Deterministic cultural event parsing (non-AI)
 
@@ -322,7 +316,6 @@ Event ingestion rules:
 | Profile | userId, locale, defaultLocationPrecision | Profiles and privacy |
 | Destination | id, slug, name, summary, district, boundary, status | Destinations |
 | Landmark | id, destinationId, name, position, content | Destinations |
-| PhotoPrompt | id, destinationId or landmarkId, technique, text | Guidance |
 | CulturalEvent | id, venueId, title, startsAt, endsAt, sourceUrl, status | Events |
 | Visit | id, userId, destinationId, status, startedAt, endedAt | Visits |
 | VisitLandmark | visitId, landmarkId, visitedAt | Visits |
@@ -539,11 +532,11 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 
 ### ADR 008 Limit the AI scope to Landmark Vision and Historical RAG
 
-**Decision:** Implement exactly two AI capabilities: landmark image classification and domain-grounded historical RAG. The destination page always exposes the historical RAG entry point and editorial photography tips. Event extraction uses deterministic source-specific parsers, and real-time camera guidance is outside the project scope.
+**Decision:** Implement exactly two AI capabilities: landmark image classification and domain-grounded historical RAG. The heritage preview always exposes the historical RAG entry point; on site, the chat opens from landmark info after recognition (see §9.2). Event extraction uses deterministic source-specific parsers, and real-time camera guidance is outside the project scope.
 
 **Reason:** Vision-to-RAG directly supports contextual cultural learning while remaining feasible for the project schedule. Deterministic event parsing is easier to verify than NLP extraction, and removing live camera analysis avoids device-performance work that does not serve the core objective.
 
-**Consequences:** The vision MVP uses classification and returns `UNKNOWN` below its confidence threshold. RAG must cite retrieved evidence and work without a vision result. Static photography tips remain available when AI inference is down and are not a third model. Event parsers produce reviewable drafts and are not counted as AI models.
+**Consequences:** The vision MVP uses classification and returns `UNKNOWN` below its confidence threshold. RAG must cite retrieved evidence and work without a vision result for heritage-preview questions. Static cultural content remains available when AI inference is down. Photography tips were removed (ADR 010). Event parsers produce reviewable drafts and are not counted as AI models.
 
 ### ADR 009 Make security and privacy a required MVP workstream
 
@@ -552,6 +545,14 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 **Reason:** Hanoi Lens handles private photos, location signals, credentials, and AI inputs. A functionally complete demo that permits cross-user access, unsafe uploads, reusable signed URLs, or hidden GPS leakage does not satisfy the product's privacy promise.
 
 **Consequences:** The Cyber Security member owns adversarial requirements and evidence, while backend and Android members implement the controls. The MVP cannot be signed off with unresolved `CRITICAL`/`HIGH` findings in these four areas. Detailed acceptance criteria live in [SECURITY.md](SECURITY.md).
+
+### ADR 010 Remove photography tips and the guidance module
+
+**Decision:** Remove the editorial photography tips feature (`PhotoPrompt`, `GET /destinations/{destinationId}/prompts`, `photoPrompts`) and, with it, the `guidance` module. The backend has seven modules: `identity`, `profile`, `destination`, `event`, `visit`, `media`, `recap`.
+
+**Reason:** Team decision (2026-10-22) to focus on discovery, arrival, recognition, historical RAG, and journey memories. After the tips are removed, `guidance` owns no data or behavior, and an empty module adds only boundary noise.
+
+**Consequences:** No tips, photo prompts, or shooting-time guidance in the client, API, or data model. Destination pages carry cultural content and the RAG entry point only. Reintroducing tips requires a new ADR.
 
 ## 20. Implementation sequence
 
@@ -562,7 +563,7 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 5. Implement arrival checks and the visit lifecycle with raw-coordinate non-retention and cross-user authorization tests.
 6. Integrate CameraX photo capture and hardened S3 presigned uploads, including malicious-file, expiry, wrong-key, and ownership tests.
 7. Build scheduled ingestion and a deterministic parser for the first approved event source; validate, deduplicate, and queue drafts for administrator review.
-8. Implement always-visible editorial photography tips, landmark image classification (Model 1), historical RAG with citations (Model 2), and their Vision-to-RAG handoff.
+8. Implement landmark image classification (Model 1), historical RAG with citations (Model 2), the heritage-preview RAG entry, and the on-site Vision-to-RAG handoff from landmark info.
 9. Add customizable photo watermarks (Journey Stamps) and verify that derived/shared files contain no disallowed EXIF or location data.
 10. Conduct end-to-end, privacy, authorization, and security testing with simulated GPS routes; resolve all `CRITICAL`/`HIGH` findings before submission.
 
