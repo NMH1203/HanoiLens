@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session and sign-in</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75; --color-accent: #bf4520;
+      --font-sans: 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 960px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">System flow 1/5 · Hanoi Lens</p>
+    <h1>Session and sign-in</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 1140" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-flow-1-session-title system-flow-1-session-desc">
+        <title id="system-flow-1-session-title">Session and sign-in</title>
+        <desc id="system-flow-1-session-desc">System flow that validates the stored session, signs the user in or creates an account, shows the landing page only to new accounts, and loads the Explore Hanoi home page.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<rect x="40" y="36" width="240" height="1016" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="52" y="54" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">SESSION</text>
+<rect x="320" y="216" width="460" height="544" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="332" y="234" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">SIGN IN</text>
+<path d="M 160 108 L 160 144" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 160 192 L 160 236" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 244 272 L 352 272" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 160 308 L 160 704" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 440 296 L 440 348" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 440 420 L 440 472" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 524 384 L 600 384" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 440 520 L 440 568" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 680 408 L 680 584 Q 680 592 672 592 L 540 592" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 440 616 L 440 668" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 524 704 L 600 704" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 356 704 L 160 704" fill="none" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<path d="M 680 728 L 680 808 Q 680 816 672 816 L 260 816" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 160 704 L 160 792" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 160 840 L 160 888" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 160 936 L 160 984" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="286.8" y="252" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="298" y="261" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="168" y="500" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="182.3" y="509" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="448" y="440" width="47.2" height="12" rx="2" fill="#f5f5f5"/>
+<text x="471.6" y="449" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LOG IN</text>
+<rect x="535.3" y="364" width="53.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="562" y="373" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">SIGN UP</text>
+<rect x="547.7" y="684" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="562" y="693" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="246.8" y="684" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="258" y="693" fill="#bf4520" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="100" y="68" width="120" height="40" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="160" y="92" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Start</text>
+<rect x="80" y="144" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="160" y="166" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Check stored</text>
+<text x="160" y="180" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">session token</text>
+<polygon points="160,236 244,272 160,308 76,272" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="160" y="276" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Session valid?</text>
+<rect x="352" y="248" width="176" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="440" y="270" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show log in or</text>
+<text x="440" y="284" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sign up form</text>
+<polygon points="440,348 524,384 440,420 356,384" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="440" y="381" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Log in or</text>
+<text x="440" y="395" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">sign up?</text>
+<rect x="360" y="472" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="440" y="500" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Verify credentials</text>
+<rect x="600" y="360" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="680" y="382" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Create account</text>
+<text x="680" y="396" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">save user</text>
+<rect x="340" y="568" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="440" y="590" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Issue tokens</text>
+<text x="440" y="604" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">access JWT + refresh token</text>
+<polygon points="440,668 524,704 440,740 356,704" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="440" y="708" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">New account?</text>
+<rect x="600" y="680" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="680" y="708" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show landing page</text>
+<circle cx="160" cy="704" r="4" fill="#2d3142"/>
+<rect x="60" y="792" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="160" y="814" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load explore data</text>
+<text x="160" y="828" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">heritages · events · paused trip</text>
+<rect x="60" y="888" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="160" y="910" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show Explore Hanoi</text>
+<text x="160" y="924" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">home page</text>
+<rect x="76" y="984" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="160" y="1006" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Requested screen</text>
+<text x="160" y="1020" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 2/5</text>
+<line x1="40" y1="1088" x2="920" y2="1088" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="1104" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+<rect x="40" y="1116" width="24" height="12" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/><text x="72" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Start / end</text>
+<rect x="163" y="1116" width="24" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="195" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+<polygon points="251,1122 263,1116 275,1122 263,1128" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="283" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Decision</text>
+<rect x="359" y="1116" width="24" height="12" rx="2" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/><text x="391" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Jump to another step or diagram</text>
+<circle cx="594" cy="1122" r="4" fill="#2d3142"/><text x="614" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Merge</text>
+<line x1="675" y1="1122" x2="699" y2="1122" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/><text x="707" y="1126" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Fixed after review</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

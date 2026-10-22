@@ -22,8 +22,8 @@
 | - GPS-based destination detection that displays relevant information  |
 |   when users arrive at a location.                                    |
 |                                                                       |
-| - Landmark classification, an always-visible historical RAG assistant |
-|   and curated tips for composition, lighting, angle, and timing.      |
+| - Landmark classification and a historical RAG assistant, shown on    |
+|   every heritage preview and for landmarks identified on site.        |
 |                                                                       |
 | - An event discovery feature that collects and displays ongoing or    |
 |   upcoming cultural events in Hanoi.                                  |
@@ -63,9 +63,6 @@
 |                                                                       |
 | - Historical RAG: Retrieves verified historical evidence and returns  |
 |   grounded answers with source citations.                             |
-|                                                                       |
-| - Photography Guidance: Provides editorial suggestions for angle,     |
-|   composition, lighting, and suitable shooting time at each place.    |
 |                                                                       |
 | - Digital Image Processing: Supports cropping, straightening,         |
 |   exposure adjustment, color correction, filters, and non-destructive |

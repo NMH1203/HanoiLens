@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discovery, preview and event memories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75; --color-accent: #bf4520;
+      --font-sans: 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1400px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 1400px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">System flow 2/5 · Hanoi Lens</p>
+    <h1>Discovery, preview and event memories</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1400 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-flow-2-discover-title system-flow-2-discover-desc">
+        <title id="system-flow-2-discover-title">Discovery, preview and event memories</title>
+        <desc id="system-flow-2-discover-desc">System flow from the Explore Hanoi home page through map, heritage and event queries to the heritage preview with its RAG entry, and the event memory page for events without a heritage.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<rect x="416" y="40" width="768" height="368" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="428" y="58" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">BROWSE</text>
+<rect x="296" y="436" width="544" height="360" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="308" y="454" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">HERITAGE PREVIEW</text>
+<rect x="936" y="428" width="432" height="496" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="948" y="446" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">EVENT</text>
+<path d="M 700 96 L 604 96" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 900 96 L 996 96" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 750 120 L 750 160 Q 750 168 742 168 L 608 168 Q 600 168 600 176 L 600 216" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 800 120 L 800 216" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 850 120 L 850 160 Q 850 168 858 168 L 1032 168 Q 1040 168 1040 176 L 1040 216" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 600 264 L 600 468" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 800 264 L 800 316" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 800 388 L 800 468" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 884 352 L 960 352" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1040 264 L 1040 328" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1040 376 L 1040 460" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 956 496 L 820 496" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1124 496 L 1172 496" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1260 520 L 1260 568" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1260 616 L 1260 664" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1260 712 L 1260 760" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 1260 808 L 1260 856" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 580 496 L 480 496" fill="none" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<path d="M 700 524 L 700 588" fill="none" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+<path d="M 616 624 L 484 624" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 700 660 L 700 728" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="628.4" y="76" width="47.2" height="12" rx="2" fill="#f5f5f5"/>
+<text x="652" y="85" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">RESUME</text>
+<rect x="921.3" y="76" width="53.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="948" y="85" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">JOURNAL</text>
+<rect x="642.1" y="148" width="65.80000000000001" height="12" rx="2" fill="#f5f5f5"/>
+<text x="675" y="157" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">HERITAGES</text>
+<rect x="808" y="166" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="822.3" y="175" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">MAP</text>
+<rect x="921.4" y="148" width="47.2" height="12" rx="2" fill="#f5f5f5"/>
+<text x="945" y="157" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">EVENTS</text>
+<rect x="808" y="422" width="59.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="837.8" y="431" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">HERITAGE</text>
+<rect x="901.5" y="332" width="41" height="12" rx="2" fill="#f5f5f5"/>
+<text x="922" y="341" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">EVENT</text>
+<rect x="873.7" y="476" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="888" y="485" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="1136.8" y="476" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="1148" y="485" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="500.2" y="476" width="59.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="530" y="485" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">QUESTION</text>
+<rect x="538.8" y="604" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="550" y="613" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="708" y="688" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="722.3" y="697" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="700" y="72" width="200" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="800" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Explore Hanoi (home)</text>
+<text x="800" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">requested screen · 1/5</text>
+<rect x="436" y="72" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="520" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Resume paused journey</text>
+<text x="520" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 4/5</text>
+<rect x="996" y="72" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="1080" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load user's trips</text>
+<text x="1080" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 5/5</text>
+<rect x="520" y="216" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="600" y="244" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Query heritage list</text>
+<rect x="720" y="216" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="800" y="238" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Query map markers</text>
+<text x="800" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">heritages + events</text>
+<rect x="960" y="216" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1040" y="238" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Query published</text>
+<text x="1040" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">events</text>
+<polygon points="800,316 884,352 800,388 716,352" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="800" y="349" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Selected</text>
+<text x="800" y="363" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">point type?</text>
+<rect x="960" y="328" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1040" y="356" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load event detail</text>
+<rect x="580" y="468" width="240" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="700" y="494" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load heritage preview</text>
+<text x="700" y="508" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">content · RAG entry</text>
+<rect x="320" y="472" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="400" y="494" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Historical RAG</text>
+<text x="400" y="508" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">answer with citations</text>
+<polygon points="700,588 784,624 700,660 616,624" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="700" y="621" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">User marks</text>
+<text x="700" y="635" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">the heritage?</text>
+<rect x="316" y="600" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="400" y="622" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Explore Hanoi (home)</text>
+<text x="400" y="636" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">back · 1/5</text>
+<rect x="616" y="728" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="700" y="750" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Save mark in journey</text>
+<text x="700" y="764" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 3/5</text>
+<polygon points="1040,460 1124,496 1040,532 956,496" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1040" y="493" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Event linked to</text>
+<text x="1040" y="507" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">a heritage?</text>
+<rect x="1172" y="472" width="176" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1260" y="494" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Render event</text>
+<text x="1260" y="508" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">memory page</text>
+<rect x="1180" y="568" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1260" y="596" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Capture photo</text>
+<rect x="1180" y="664" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1260" y="686" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Presigned upload</text>
+<text x="1260" y="700" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">validate · process</text>
+<rect x="1180" y="760" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="1260" y="782" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Save memory photo</text>
+<text x="1260" y="796" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">to the journal</text>
+<rect x="1176" y="856" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="1260" y="878" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Travel journal</text>
+<text x="1260" y="892" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">see 5/5</text>
+<line x1="40" y1="948" x2="1360" y2="948" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="964" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+<rect x="40" y="976" width="24" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="72" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+<polygon points="128,982 140,976 152,982 140,988" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="160" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Decision</text>
+<rect x="236" y="976" width="24" height="12" rx="2" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/><text x="268" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Jump to another step or diagram</text>
+<line x1="459" y1="982" x2="483" y2="982" stroke="#bf4520" stroke-width="1.4" marker-end="url(#arrow-accent)"/><text x="491" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Fixed after review</text>
+<line x1="617" y1="982" x2="641" y2="982" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/><text x="649" y="986" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Optional</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

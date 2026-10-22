@@ -41,7 +41,7 @@ All input crossing these boundaries is untrusted, including uploaded bytes, JWT 
 | Visit, album, and photo retrieval | Cross-account access, mass assignment, excessive data exposure, unauthorized admin action | Per-resource ownership policy, DTO allowlists, role checks, repository queries scoped by authenticated user, audit log for admin mutations | Parameterized cross-user tests for every resource endpoint; response-field assertions |
 | Landmark recognition and historical RAG | Model abuse, untrusted output, citation fabrication, resource exhaustion, another user's photo supplied for recognition | Photo ownership check, image limits before inference, request/token rate limits, schema validation of model output, retrieval filtered by approved context, citation verification | Unauthorized-photo test, malformed-output test, missing-citation refusal test, rate-limit test |
 
-The Historical RAG entry point may remain visible on every destination page, but visibility does not bypass authentication, rate limiting, grounding, or citation checks. Static editorial photography tips require no model call and remain available during inference outages.
+The Historical RAG entry point stays visible on the heritage preview and opens on site from landmark info after recognition, but visibility does not bypass authentication, rate limiting, grounding, or citation checks. Static cultural content requires no model call and remains available during inference outages.
 
 ## 4. Authentication and authorization
 
