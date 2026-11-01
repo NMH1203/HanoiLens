@@ -1,0 +1,3 @@
+# TODO: Cấu hình Docker Compose khởi tạo PostgreSQL 16 (PostGIS + pgvector) và MinIO S3
+# Phụ trách: TV7 (Lê Bá Tiệp) & TV6 (Hà Thế Duy)
+# Cần định nghĩa: service postgres (port 5432), service minio (port 9000/9001), named volumes

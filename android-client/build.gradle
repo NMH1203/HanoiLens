@@ -1,0 +1,3 @@
+// TODO: Cấu hình Gradle cho Android Native (Java 17, ViewBinding, Retrofit 2, OkHttp 3, CameraX, Room, OSMDroid)
+// Phụ trách: TV7 (Lê Bá Tiệp) & TV3 (Lê Hiền Anh)
+// Cần hiện thực: dependencies: appcompat, material, camerax, retrofit2, room, play-services-location

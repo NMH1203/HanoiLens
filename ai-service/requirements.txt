@@ -1,0 +1,3 @@
+# TODO: Danh sách thư viện Python cho FastAPI, PyTorch/timm (Model 1 Vision) và pgvector/LangChain/LLM (Model 2 RAG)
+# Phụ trách: TV1 (Nguyễn Minh Hoàng) & TV4 (Nguyễn Minh Lương)
+# Cần hiện thực: fastapi, uvicorn, torch, torchvision, pillow, psycopg[binary], pgvector, pydantic

@@ -1,0 +1,3 @@
+-- TODO: Flyway V4 - Khởi tạo bảng upload_sessions, photos, landmark_recognitions, recaps, recap_photos
+-- Phụ trách: TV5 (Lương Quỳnh Anh) - Chạy THỨ 4 (phụ thuộc V1 users, V2 landmarks, V3 visits/events)
+-- Cần hiện thực: CREATE TABLE upload_sessions, photos, landmark_recognitions, recaps, recap_photos

@@ -1,54 +1,16 @@
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-
-# Editors / IDE
-.idea/
-.vscode/
-*.iml
-.obsidian/
-.agent/
-AGENTS.md
-# Local backups
-*.backup-*
-*.bak
-~$*
-.claude
-# Secrets
-.env
-.env.*
-!.env.example
-*.keystore
-*.jks
-local.properties
-
-# Node / web prototype
-node_modules/
-dist/
-.pnpm-store/
-*.log
-
-# Android / Gradle
-.gradle/
-build/
-captures/
-.externalNativeBuild/
-.cxx/
-
-# Java / Spring Boot
+# Build & IDE
 target/
-*.class
-out/
-
-# Python / AI
+build/
+.gradle/
+.idea/
+*.iml
+local.properties
+# Python & Env
 __pycache__/
-*.pyc
 .venv/
 venv/
-.ipynb_checkpoints/
+.env
 *.pt
-*.pth
 *.onnx
-*.h5
+# OS
+.DS_Store

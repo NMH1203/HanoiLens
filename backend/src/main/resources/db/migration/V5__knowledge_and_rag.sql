@@ -1,0 +1,3 @@
+-- TODO: Flyway V5 - Khởi tạo bảng knowledge_chunks (pgvector HNSW), qa_conversations, qa_messages
+-- Phụ trách: TV4 (Nguyễn Minh Lương) - Chạy THỨ 5 (phụ thuộc V1 users, V2 destinations/landmarks, V3 visits)
+-- Cần hiện thực: CREATE TABLE knowledge_chunks, qa_conversations, qa_messages; CREATE INDEX HNSW

@@ -1,0 +1,3 @@
+<!-- TODO: Khai báo dependencies Maven cho Spring Boot 3.x Modulith, Security, Data JPA, Hibernate Spatial, MinIO, Flyway -->
+<!-- Phụ trách: TV7 (Lê Bá Tiệp) -->
+<!-- Cần hiện thực: Spring Modulith BOM, PostGIS, JWT, Testcontainers -->

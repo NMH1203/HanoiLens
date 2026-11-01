@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanoi Lens — Mô Phỏng UX/UI & Ánh Xạ Kiến Trúc Đồng Bộ 100% (16 Màn Hình)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-main: #0b1120;
+      --bg-panel: #111827;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .sim-header {
+      background: rgba(15, 23, 42, 0.96);
+      border-bottom: 1px solid #1e293b;
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 24px;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .sim-grid { grid-template-columns: 1fr; }
+    }
+    .phone-shell {
+      width: 380px;
+      height: 770px;
+      background: #020617;
+      border-radius: 46px;
+      padding: 12px;
+      border: 4px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-screen {
+      flex: 1;
+      background: #0f172a;
+      border-radius: 34px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .screen-view { display: none; }
+    .screen-view.active { display: block; }
+
+    /* 6 Journey Stamp Styles */
+    .stamp-minimal {
+      background: rgba(15, 23, 42, 0.88);
+      border-left: 3px solid #10b981;
+      color: #ecfdf5;
+    }
+    .stamp-postcard {
+      background: linear-gradient(135deg, rgba(254, 243, 199, 0.96), rgba(253, 230, 138, 0.96));
+      border: 2px dashed #b45309;
+      color: #78350f;
+    }
+    .stamp-film {
+      background: rgba(0, 0, 0, 0.92);
+      border-top: 5px dotted #e5e7eb;
+      border-bottom: 5px dotted #e5e7eb;
+      color: #f9fafb;
+      font-family: monospace;
+    }
+    .stamp-map {
+      background: rgba(12, 74, 110, 0.92);
+      border: 1px solid #38bdf8;
+      color: #e0f2fe;
+    }
+    .stamp-heritage {
+      background: rgba(127, 29, 29, 0.94);
+      border: 2px double #fbbf24;
+      color: #fef3c7;
+    }
+    .stamp-weather {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.92), rgba(15, 23, 42, 0.92));
+      border: 1px solid #93c5fd;
+      color: #eff6ff;
+    }
+
+    .nav-pill {
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      transition: all 0.15s;
+    }
+    .nav-pill:hover { background: #334155; color: #fff; }
+    .nav-pill.active {
+      background: #d97706;
+      color: #fff;
+      border-color: #f59e0b;
+    }
+    .btn-action {
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-action:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER: QUICK NAVIGATION ACROSS ALL 16 SCREENS -->
+  <header class="sim-header">
+    <div class="max-w-7xl mx-auto space-y-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm">
+            HL
+          </div>
+          <div>
+            <h1 class="text-sm md:text-base font-bold text-white flex flex-wrap items-center gap-2">
+              Hanoi Lens — Mô Phỏng 16 Màn Hình UX/UI & Ánh Xạ Tiến Độ `TODO.md`
+              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Đồng bộ 100% Docs 01→08 & Flyway V1→V5</span>
+            </h1>
+            <p class="text-xs text-slate-400">Trải nghiệm luồng người dùng bên trái • Xem file code, API, Flyway SQL (`V1`–`V5`) và thứ tự task `[Wx-TVy]` bên phải</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="resetDemoState()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600">
+            🔄 Đặt lại trạng thái Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- 16 Screen Switcher Pills -->
+      <div class="flex flex-wrap gap-1.5 pt-1">
+        <button onclick="goScreen('auth')" id="pill-auth" class="nav-pill">1. Đăng nhập/Đăng ký</button>
+        <button onclick="goScreen('landing')" id="pill-landing" class="nav-pill">2. Landing (User mới)</button>
+        <button onclick="goScreen('explore_home')" id="pill-explore_home" class="nav-pill active">3. Explore Hanoi (Home)</button>
+        <button onclick="goScreen('combined_map')" id="pill-combined_map" class="nav-pill">4. Bản đồ Di sản + Sự kiện</button>
+        <button onclick="goScreen('events')" id="pill-events" class="nav-pill">5. Sự kiện Văn hóa</button>
+        <button onclick="goScreen('event_memory')" id="pill-event_memory" class="nav-pill">6. Event Memory Page</button>
+        <button onclick="goScreen('heritage_preview')" id="pill-heritage_preview" class="nav-pill">7. Heritage Preview</button>
+        <button onclick="goScreen('geofence')" id="pill-geofence" class="nav-pill">8. GPS Arrival Unlock</button>
+        <button onclick="goScreen('heritage_explore')" id="pill-heritage_explore" class="nav-pill">9. Heritage Explore Page</button>
+        <button onclick="goScreen('visit_map')" id="pill-visit_map" class="nav-pill">10. Visit Map (On-device)</button>
+        <button onclick="goScreen('camera')" id="pill-camera" class="nav-pill">11. Camera & AI Vision</button>
+        <button onclick="goScreen('landmark_info')" id="pill-landmark_info" class="nav-pill">12. Landmark Info</button>
+        <button onclick="goScreen('rag_chat')" id="pill-rag_chat" class="nav-pill">13. Historical RAG Chat</button>
+        <button onclick="goScreen('photo_edit')" id="pill-photo_edit" class="nav-pill">14. Sửa ảnh & 6 Dấu hành trình</button>
+        <button onclick="goScreen('stamp_reward')" id="pill-stamp_reward" class="nav-pill">15. Bộ sưu tập Tem & Thưởng</button>
+        <button onclick="goScreen('journal')" id="pill-journal" class="nav-pill">16. Travel Journal & Hồ sơ</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE: LEFT = ANDROID PHONE, RIGHT = ARCHITECTURE & TEAM MAPPING -->
+  <main class="sim-grid">
+
+    <!-- ==================== LEFT: ANDROID DEVICE SIMULATOR ==================== -->
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+
+          <!-- Android Status Bar -->
+          <div class="h-7 bg-slate-950 px-5 flex items-center justify-between text-xs text-slate-400 shrink-0 border-b border-slate-800/80">
+            <span class="font-mono text-xs">09:42</span>
+            <div class="flex items-center gap-2 text-xs">
+              <span id="status-trip-indicator" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Chưa có chuyến đi</span>
+              <span class="text-emerald-400">● GPS</span>
+            </div>
+          </div>
+
+          <!-- Top App Bar -->
+          <div class="h-12 bg-slate-900/95 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div class="flex items-center gap-2">
+              <button id="btn-phone-back" onclick="navigateBack()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-200 text-xs">
+                ←
+              </button>
+              <div>
+                <div id="phone-header-title" class="text-xs font-bold text-amber-400">Explore Hanoi (Home)</div>
+                <div id="phone-header-sub" class="text-xs text-slate-400">ExploreHomeFragment.java</div>
+              </div>
+            </div>
+            <button onclick="openProfileModal()" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700" title="Cài đặt Hồ sơ & Mức hiển thị vị trí">
+              🔒 <span id="header-precision-label">DESTINATION</span>
+            </button>
+          </div>
+
+          <!-- Scrollable Screen Content -->
+          <div id="phone-body" class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3 bg-slate-900">
+
+            <!-- 1. SCREEN: AUTH (LOGIN / SIGN UP) -->
+            <div id="scr-auth" class="screen-view space-y-4 py-3">
+              <div class="text-center space-y-1">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl mx-auto">📸</div>
+                <h2 class="text-base font-bold text-white">Hanoi Lens</h2>
+                <p class="text-xs text-slate-400">Khám phá di sản & sự kiện Hà Nội qua nhiếp ảnh</p>
+              </div>
+
+              <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700 space-y-3">
+                <div class="text-xs font-bold text-slate-200">Đăng nhập / Đăng ký (`LoginActivity.java`)</div>
+                <div>
+                  <label class="text-xs text-slate-400">Email</label>
+                  <input type="text" value="explorer@usth.edu.vn" readonly class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white">
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400">Mật khẩu (băm Argon2id trên Server)</label>
+                  <input type="password" value="••••••••••••" readonly class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white">
+                </div>
+
+                <div class="space-y-2 pt-1">
+                  <button onclick="goScreen('explore_home')" class="btn-action w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs">
+                    Đăng Nhập (`POST /v1/auth/login` → Explore Hanoi)
+                  </button>
+                  <button onclick="goScreen('landing')" class="btn-action w-full py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs">
+                    Đăng Ký Mới (`POST /v1/auth/register` → Landing Page)
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/70 text-xs text-slate-300 space-y-1">
+                <div class="font-semibold text-amber-300">🔐 Bảo mật Phiên (`V1__identity_and_profile.sql`):</div>
+                <p>• Access Token JWT ngắn hạn (tối đa 15 phút).</p>
+                <p>• Refresh Token xoay vòng lưu hash trong bảng `refresh_tokens`, phát hiện reuse tự động thu hồi token family.</p>
+              </div>
+            </div>
+
+            <!-- 2. SCREEN: LANDING PAGE (POST SIGN-UP ONLY) -->
+            <div id="scr-landing" class="screen-view space-y-4 py-2">
+              <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-900/50 via-slate-800 to-slate-900 border border-amber-500/40 space-y-2 text-center">
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Chào mừng thành viên mới!</span>
+                <h2 class="text-base font-bold text-white">Khám Phá Hà Nội Theo Cách Của Bạn</h2>
+                <p class="text-xs text-slate-300">Màn hình `LandingActivity.java` chỉ hiển thị duy nhất 1 lần ngay sau khi đăng ký tài khoản mới (`New account? == Yes`).</p>
+              </div>
+
+              <div class="space-y-2.5 text-xs">
+                <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 flex items-start gap-2.5">
+                  <span class="text-base">🧭</span>
+                  <div>
+                    <div class="font-bold text-white">1. Tự do chọn & Đánh dấu di sản (`markedHeritages`)</div>
+                    <p class="text-slate-400">Không ép đi theo tuyến cố định. Thích địa điểm nào, bạn tự đánh dấu vào chuyến đi.</p>
+                  </div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 flex items-start gap-2.5">
+                  <span class="text-base">🛰️</span>
+                  <div>
+                    <div class="font-bold text-white">2. GPS mở khóa tự động & Presence-Only Privacy</div>
+                    <p class="text-slate-400">Chỉ kiểm tra bạn đã vào vùng di sản hay chưa, hủy ngay tọa độ thô sau khi kiểm tra.</p>
+                  </div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-800 border border-slate-700 flex items-start gap-2.5">
+                  <span class="text-base">🤖</span>
+                  <div>
+                    <div class="font-bold text-white">3. Nhận diện địa danh & Hỏi đáp RAG có trích dẫn</div>
+                    <p class="text-slate-400">Chụp ảnh nhận diện công trình (Model 1) và hỏi đáp lịch sử có nguồn xác thực (Model 2).</p>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="goScreen('explore_home')" class="btn-action w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs">
+                Vào Trang Chủ Explore Hanoi (Home) →
+              </button>
+            </div>
+
+            <!-- 3. SCREEN: EXPLORE HANOI (HOME) -->
+            <div id="scr-explore_home" class="screen-view active space-y-3">
+              <div class="px-3 py-2 rounded-xl bg-blue-950/60 border border-blue-500/40 text-xs text-blue-200">
+                <b>Trang Explore 1/2 — `ExploreHomeFragment.java`:</b> Trang chủ toàn ứng dụng (khác với <i>Heritage Explore Page</i> ở màn #9 chỉ mở khi đã đến và mở khóa di sản).
+              </div>
+
+              <!-- Resume Paused Trip Banner -->
+              <div id="home-resume-card" class="p-3 rounded-xl bg-gradient-to-r from-amber-950/80 to-slate-800 border border-amber-500/50 flex items-center justify-between gap-2 hidden">
+                <div>
+                  <div id="home-resume-status" class="text-xs font-bold text-amber-400">⏸ Hành trình đang tạm dừng</div>
+                  <div class="text-xs text-white font-semibold">Đã đánh dấu: <span id="home-marked-count">1</span> • Đã mở khóa: <span id="home-unlocked-count">0</span></div>
+                </div>
+                <button onclick="resumeTripFromHome()" class="btn-action px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0">
+                  Resume Trip →
+                </button>
+              </div>
+
+              <!-- Quick Action Grid matching User Flow Section 1 -->
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button onclick="goScreen('combined_map')" class="btn-action p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left flex items-center gap-2">
+                  <span class="text-base">🗺️</span>
+                  <div>
+                    <div class="font-bold text-white">Bản đồ chung</div>
+                    <div class="text-xs text-slate-400">Di sản + Sự kiện</div>
+                  </div>
+                </button>
+                <button onclick="goScreen('events')" class="btn-action p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left flex items-center gap-2">
+                  <span class="text-base">🎭</span>
+                  <div>
+                    <div class="font-bold text-white">Sự kiện văn hóa</div>
+                    <div class="text-xs text-slate-400">2 nhánh sự kiện</div>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Heritages List -->
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Danh sách Di sản (`GET /v1/destinations`)</h3>
+                  <span class="text-xs text-amber-400">Bấm để xem Preview</span>
+                </div>
+
+                <!-- Heritage 1: Văn Miếu -->
+                <div onclick="selectHeritage('dst_van_mieu')" class="btn-action rounded-2xl bg-slate-800 border border-slate-700 hover:border-amber-500/60 overflow-hidden">
+                  <div class="p-3 bg-gradient-to-br from-amber-950/60 via-slate-800 to-slate-900 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="px-2 py-0.5 rounded bg-slate-900/80 text-amber-300 font-medium">📍 Quận Đống Đa • 820m</span>
+                      <span id="badge-mark-vanmieu" class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs">📍 Đã đánh dấu</span>
+                    </div>
+                    <h4 class="text-sm font-bold text-white">Văn Miếu – Quốc Tử Giám</h4>
+                    <p class="text-xs text-slate-300">Quần thể trường đại học đầu tiên của Việt Nam với Khuê Văn Các và 82 bia Tiến sĩ.</p>
+                  </div>
+                  <div class="px-3 py-2 bg-slate-900/70 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                    <span class="text-emerald-400">🤖 Có trợ lý Historical RAG</span>
+                    <span class="text-amber-400 font-semibold">Mở Heritage Preview →</span>
+                  </div>
+                </div>
+
+                <!-- Heritage 2: Hoàng Thành Thăng Long -->
+                <div onclick="selectHeritage('dst_hoang_thanh')" class="btn-action rounded-2xl bg-slate-800 border border-slate-700 hover:border-amber-500/60 overflow-hidden">
+                  <div class="p-3 bg-gradient-to-br from-red-950/50 via-slate-800 to-slate-900 space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="px-2 py-0.5 rounded bg-slate-900/80 text-amber-300 font-medium">📍 Quận Ba Đình • 1.4km</span>
+                      <span id="badge-mark-hoangthanh" class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-xs">Chưa đánh dấu</span>
+                    </div>
+                    <h4 class="text-sm font-bold text-white">Hoàng Thành Thăng Long</h4>
+                    <p class="text-xs text-slate-300">Di sản văn hóa thế giới UNESCO gắn liền với lịch sử kinh đô Thăng Long.</p>
+                  </div>
+                  <div class="px-3 py-2 bg-slate-900/70 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                    <span class="text-emerald-400">🤖 Có trợ lý Historical RAG</span>
+                    <span class="text-amber-400 font-semibold">Mở Heritage Preview →</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. SCREEN: COMBINED MAP (HERITAGES + EVENTS) -->
+            <div id="scr-combined_map" class="screen-view space-y-3">
+              <div class="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-300">
+                <b>`CombinedMapFragment.java`:</b> Hiển thị đồng thời Di sản (🏛️) và Sự kiện văn hóa (🎭). Chọn 1 điểm để kiểm tra nhánh điều hướng:
+              </div>
+
+              <div class="h-80 rounded-2xl bg-slate-950 border border-slate-700 relative overflow-hidden p-3 flex flex-col justify-between">
+                <div class="absolute inset-0 opacity-25 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:18px_18px]"></div>
+
+                <div class="absolute top-10 left-6 w-36 h-36 rounded-full border-2 border-dashed border-amber-500/50 bg-amber-500/10 flex items-center justify-center">
+                  <button onclick="selectHeritage('dst_van_mieu')" class="btn-action px-2.5 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-bold shadow-lg">
+                    🏛️ Văn Miếu (R=250m)
+                  </button>
+                </div>
+
+                <div class="absolute top-14 right-5">
+                  <button onclick="selectHeritage('dst_hoang_thanh')" class="btn-action px-2.5 py-1.5 rounded-xl bg-amber-700 text-white text-xs font-bold shadow-lg border border-amber-400/40">
+                    🏛️ Hoàng Thành
+                  </button>
+                </div>
+
+                <div class="absolute bottom-24 left-8">
+                  <button onclick="openEventDetail('linked')" class="btn-action px-2.5 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-lg border border-purple-300/40">
+                    🎭 Hội chữ Xuân (Gắn Văn Miếu)
+                  </button>
+                </div>
+
+                <div class="absolute bottom-12 right-5">
+                  <button onclick="openEventDetail('standalone')" class="btn-action px-2.5 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-lg border border-sky-300/40">
+                    🎭 Triển lãm Ảnh (Độc lập)
+                  </button>
+                </div>
+
+                <div class="relative z-10 text-xs bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-700 text-slate-300">
+                  👆 Bấm vào marker Di sản hoặc Sự kiện trên bản đồ.
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. SCREEN: CULTURAL EVENTS & EVENT DETAIL BRANCHING -->
+            <div id="scr-events" class="screen-view space-y-3">
+              <div class="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-300">
+                <b>`EventFeedFragment` & `EventDetailFragment`:</b> Thu thập bởi `EventSourceParserAdapter.java` (JSON-LD, RSS, CSS Selectors) và đã qua Admin duyệt (`PUBLISHED`).
+              </div>
+
+              <!-- Event 1: Linked to a Heritage -->
+              <div class="p-3.5 rounded-2xl bg-slate-800 border border-purple-500/40 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-semibold">Nhánh 1: Có gắn Di sản (`destinationId != null`)</span>
+                </div>
+                <h4 class="text-sm font-bold text-white">Hội Chữ Xuân & Triển Lãm Thư Pháp Văn Miếu</h4>
+                <p class="text-xs text-slate-300">Địa điểm: Hồ Văn, Văn Miếu (`destinationId = dst_van_mieu`).</p>
+                <div class="text-xs text-slate-400">Nguồn: vanmieu.gov.vn • `lastVerifiedAt`: 2026-10-10T08:00Z</div>
+                <button onclick="selectHeritage('dst_van_mieu')" class="btn-action w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs">
+                  Đi tiếp như Di sản → Mở Heritage Preview Văn Miếu
+                </button>
+              </div>
+
+              <!-- Event 2: Standalone -> Opens Event Memory Page -->
+              <div class="p-3.5 rounded-2xl bg-slate-800 border border-sky-500/40 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-semibold">Nhánh 2: Không gắn Di sản (`destinationId == null`)</span>
+                </div>
+                <h4 class="text-sm font-bold text-white">Triển Lãm Nhiếp Ảnh Đường Phố Hà Nội</h4>
+                <p class="text-xs text-slate-300">Địa điểm: Trung tâm Văn hóa Phố cổ (`destinationId = null`).</p>
+                <div class="text-xs text-slate-400">Nguồn: hanoiculture.vn • `lastVerifiedAt`: 2026-10-10T09:00Z</div>
+                <button onclick="goScreen('event_memory')" class="btn-action w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs">
+                  Mở Trang Kỷ Niệm Sự Kiện (`EventMemoryFragment`) →
+                </button>
+              </div>
+            </div>
+
+            <!-- 6. SCREEN: EVENT MEMORY PAGE -->
+            <div id="scr-event_memory" class="screen-view space-y-3.5">
+              <div class="p-3 rounded-2xl bg-gradient-to-br from-sky-950/80 via-slate-800 to-slate-900 border border-sky-500/40 space-y-1.5">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold">`EventMemoryFragment.java` (Rule §4)</span>
+                <h3 class="text-sm font-bold text-white">Triển Lãm Nhiếp Ảnh Đường Phố Hà Nội</h3>
+                <p class="text-xs text-slate-300">Trang mẫu tự động thích ứng với sự kiện không có di sản cố định. Chụp ảnh kỷ niệm và lưu trực tiếp vào Nhật ký hành trình (`Travel Journal`).</p>
+              </div>
+
+              <div class="h-44 rounded-2xl bg-slate-950 border border-slate-700 flex flex-col items-center justify-center p-4 text-center space-y-2">
+                <div class="text-3xl">🖼️📸</div>
+                <div id="event-memory-status" class="text-xs text-slate-300">Sẵn sàng chụp ảnh kỷ niệm sự kiện (`eventId = evt_street_photo`)</div>
+              </div>
+
+              <div class="space-y-2">
+                <button onclick="captureAndSaveEventMemory()" class="btn-action w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs">
+                  📸 Chụp Ảnh & Lưu Kỷ Niệm Vào Travel Journal
+                </button>
+                <button onclick="goScreen('journal')" class="btn-action w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700">
+                  📖 Mở Travel Journal Để Xem Ảnh Vừa Lưu →
+                </button>
+              </div>
+            </div>
+
+            <!-- 7. SCREEN: HERITAGE PREVIEW -->
+            <div id="scr-heritage_preview" class="screen-view space-y-3">
+              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-950/70 via-slate-800 to-slate-900 border border-amber-500/40 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold">`HeritagePreviewFragment.java`</span>
+                  <span class="text-slate-300">08:00 – 17:00 • 90 phút</span>
+                </div>
+                <h3 id="preview-heritage-name" class="text-base font-bold text-white">Văn Miếu – Quốc Tử Giám</h3>
+                <p id="preview-heritage-desc" class="text-xs text-slate-300">Được xây dựng năm 1070 dưới triều vua Lý Thánh Tông, là trung tâm giáo dục Nho học cao nhất thời phong kiến Việt Nam.</p>
+              </div>
+
+              <!-- Pre-trip Historical RAG Entry Point -->
+              <div class="p-3 rounded-2xl bg-slate-800 border border-emerald-500/40 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-bold text-emerald-300">🤖 Điểm chạm RAG #1: Trước khi đi (Pre-trip)</div>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">`destinationId` only</span>
+                </div>
+                <p class="text-xs text-slate-300">Luôn hiển thị trên trang Heritage Preview, hoạt động độc lập không cần kết quả nhận diện ảnh Vision:</p>
+                <button onclick="openRagChat('preview')" class="btn-action w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-950 border border-emerald-500/40 text-emerald-300 font-semibold text-xs">
+                  💬 Hỏi Trợ Lý Lịch Sử AI Trước Khi Đi (`HistoricalRagChatFragment`) →
+                </button>
+              </div>
+
+              <!-- Self-Marked Heritages Selection -->
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Đánh dấu di sản muốn đi trong chuyến này (`markedHeritages`):</div>
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <span>🏛️ Văn Miếu – Quốc Tử Giám (`dst_van_mieu`)</span>
+                  <input type="checkbox" id="chk-mark-vanmieu" checked onchange="syncMarkedHeritages()" class="accent-amber-500">
+                </label>
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer">
+                  <span>🏛️ Hoàng Thành Thăng Long (`dst_hoang_thanh`)</span>
+                  <input type="checkbox" id="chk-mark-hoangthanh" onchange="syncMarkedHeritages()" class="accent-amber-500">
+                </label>
+              </div>
+
+              <div class="space-y-2">
+                <button onclick="markAndGoToGeofence()" class="btn-action w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs">
+                  📍 Lưu Đánh Dấu & Di Chuyển Tới Điểm Đến (GPS Arrival) →
+                </button>
+                <button onclick="goScreen('explore_home')" class="btn-action w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">
+                  Quay lại Explore Hanoi (Home)
+                </button>
+              </div>
+            </div>
+
+            <!-- 8. SCREEN: GPS GEOFENCE ARRIVAL & UNLOCK -->
+            <div id="scr-geofence" class="screen-view space-y-3">
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-amber-300">🛰️ `GeofenceManager` & `LocationSimulator`</span>
+                  <span class="font-mono text-slate-400">PostGIS SRID 4326</span>
+                </div>
+                <p class="text-slate-300">
+                  <b>Quy tắc §1:</b> Khi GPS xác nhận `INSIDE`, di sản được <b>MỞ KHÓA TỰ ĐỘNG NGAY LẬP TỨC</b> (không bị chặn bởi AI Vision) và hủy tọa độ thô trên RAM.
+                </p>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 space-y-2.5 text-xs">
+                <label class="block text-slate-300 font-semibold">Chọn di sản muốn giả lập bước vào vùng Geofence:</label>
+                <select id="sel-geofence-target" class="w-full p-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs">
+                  <option value="dst_van_mieu">🏛️ Văn Miếu – Quốc Tử Giám (Bán kính R = 250m)</option>
+                  <option value="dst_hoang_thanh">🏛️ Hoàng Thành Thăng Long (Bán kính R = 300m)</option>
+                </select>
+
+                <div class="flex justify-between pt-1">
+                  <span class="text-slate-400">Trạng thái `arrival-checks`:</span>
+                  <span id="geo-status-pill" class="px-2 py-0.5 rounded bg-slate-700 text-slate-200 font-bold">OUTSIDE (420m)</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <button onclick="simulateGpsCheck(false)" class="btn-action py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs">
+                    🚶 Đang ở ngoài (OUTSIDE)
+                  </button>
+                  <button onclick="simulateGpsCheck(true)" class="btn-action py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+                    ✅ Bước vào vùng (INSIDE)
+                  </button>
+                </div>
+              </div>
+
+              <div id="geo-unlock-card" class="p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/60 space-y-2 text-xs hidden">
+                <div id="geo-unlock-title" class="font-bold text-emerald-300 text-sm">🔓 ĐÃ ĐẾN NƠI — MỞ KHÓA VĂN MIẾU!</div>
+                <p class="text-emerald-100">• Đã hủy tọa độ GPS thô ngay sau khi xác nhận hiện diện.</p>
+                <p class="text-emerald-100">• Bước tiếp theo theo đúng User Flow §2: Mở <b>Heritage Explore Page</b> trước khi vào Visit Map.</p>
+                <button onclick="goScreen('heritage_explore')" class="btn-action w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">
+                  Mở Heritage Explore Page (`HeritageExploreFragment`) →
+                </button>
+              </div>
+            </div>
+
+            <!-- 9. SCREEN: HERITAGE EXPLORE PAGE (UNLOCKED SITE PAGE) -->
+            <div id="scr-heritage_explore" class="screen-view space-y-3">
+              <div class="px-3 py-2 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-xs text-emerald-200">
+                <b>Trang Explore 2/2 — `HeritageExploreFragment.java`:</b> Trang nội khu của di sản đã mở khóa (mở sau khi GPS unlock, khi `Resume trip`, hoặc khi chọn `Explore site`).
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-emerald-400 font-bold">🔓 ĐÃ MỞ KHÓA TRONG HÀNH TRÌNH</span>
+                  <span class="text-slate-400">5 Địa danh con (`landmarks`)</span>
+                </div>
+                <h3 class="text-base font-bold text-white">Văn Miếu – Quốc Tử Giám</h3>
+                <p class="text-xs text-slate-300">Trải rộng qua 5 lớp không gian kiến trúc từ Văn Miếu Môn, Đại Trung Môn, Khuê Văn Các, Giếng Thiên Quang đến Điện Đại Thành và khu Thái Học.</p>
+              </div>
+
+              <div class="space-y-1.5 text-xs">
+                <div class="font-bold text-slate-300">Danh sách Địa danh con (`GET /v1/destinations/{id}/landmarks`):</div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex justify-between">
+                  <span>1. Khuê Văn Các (Gác sao Khuê - 1805)</span>
+                  <span class="text-amber-400 font-mono">lmk_khue_van_cac</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex justify-between">
+                  <span>2. Vườn Bia Tiến Sĩ (82 bia đá UNESCO)</span>
+                  <span class="text-amber-400 font-mono">lmk_bia_tien_si</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 flex justify-between">
+                  <span>3. Giếng Thiên Quang & Đại Thành Môn</span>
+                  <span class="text-amber-400 font-mono">lmk_thien_quang</span>
+                </div>
+              </div>
+
+              <button onclick="goScreen('visit_map')" class="btn-action w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs">
+                🗺️ Mở Bản Đồ Tham Quan Nội Khu (`VisitMapFragment`) →
+              </button>
+            </div>
+
+            <!-- 10. SCREEN: VISIT MAP (ON-DEVICE LIVE POSITION) -->
+            <div id="scr-visit_map" class="screen-view space-y-3">
+              <div class="p-2.5 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-between text-xs">
+                <div>
+                  <span class="text-emerald-400 font-bold">● ACTIVE VISIT (`VisitMapFragment.java`)</span>
+                  <div class="text-white font-semibold">Bản đồ tham quan nội khu Văn Miếu</div>
+                </div>
+                <button onclick="pauseActiveTrip()" class="btn-action px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold">
+                  ⏸ Pause
+                </button>
+              </div>
+
+              <!-- On-device Map Canvas -->
+              <div class="h-56 rounded-2xl bg-slate-950 border border-slate-700 relative overflow-hidden p-3 flex flex-col justify-between">
+                <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:14px_14px]"></div>
+
+                <div class="relative z-10 text-xs bg-slate-900/90 px-2 py-1 rounded border border-slate-800 text-sky-300 self-start">
+                  🔒 Vị trí trực tiếp chỉ tính trên thiết bị (On-device only, không gửi Server)
+                </div>
+
+                <div class="absolute top-12 left-8 px-2 py-1 rounded bg-slate-900/90 border border-amber-500/40 text-xs text-amber-300">🏛️ Khuê Văn Các</div>
+                <div class="absolute bottom-14 right-8 px-2 py-1 rounded bg-slate-900/90 border border-amber-500/40 text-xs text-amber-300">🐢 82 Bia Tiến Sĩ</div>
+
+                <div id="user-ondevice-dot" class="absolute top-24 left-28 flex flex-col items-center transition-all duration-300">
+                  <div class="w-4 h-4 rounded-full bg-sky-500 ring-4 ring-sky-500/30"></div>
+                  <span class="text-xs bg-slate-900 px-1.5 rounded text-sky-200 mt-0.5">Bạn</span>
+                </div>
+
+                <div class="relative z-10 flex justify-between items-center">
+                  <button onclick="moveUserOnVisitMap()" class="btn-action px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-600">
+                    👣 Di chuyển quanh di tích
+                  </button>
+                  <button onclick="goScreen('heritage_explore')" class="btn-action px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 border border-slate-600">
+                    📖 Xem Heritage Explore Page
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200">
+                <b>Quy tắc §3:</b> Trên <i>Visit Map</i> không có nút Chat AI trực tiếp. Hãy bấm <b>Chụp ảnh (`Take photo`)</b> → Nhận diện địa danh (`RECOGNIZED`) → Mở <i>Landmark Info</i> (#12) → Mở <i>Historical RAG Chat</i> (#13).
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="goScreen('camera')" class="btn-action py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs">
+                  📷 Chụp Ảnh (`Take photo`)
+                </button>
+                <button onclick="openStampRewardCheck()" class="btn-action py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+                  🏁 Kết Thúc Điểm Thăm (`Finish`)
+                </button>
+              </div>
+            </div>
+
+            <!-- 11. SCREEN: CAMERA & LANDMARK VISION CLASSIFIER (MODEL 1) -->
+            <div id="scr-camera" class="screen-view space-y-3">
+              <div class="h-48 rounded-2xl bg-slate-950 border-2 border-slate-700 relative overflow-hidden flex flex-col justify-between p-3">
+                <div class="flex justify-between text-xs text-slate-400">
+                  <span>`CameraCaptureFragment.java` (CameraX)</span>
+                  <span class="text-amber-400">Không dùng AR Live Overlay</span>
+                </div>
+                <div class="text-center space-y-1">
+                  <div class="text-4xl">🏯</div>
+                  <div class="text-xs text-slate-300">Ảnh vừa chụp: `pht_01_khue_van_cac.jpg`</div>
+                </div>
+                <div class="text-xs text-emerald-400 bg-slate-900/90 px-2 py-1 rounded self-center">
+                  ✓ Đã tải lên MinIO qua Presigned PUT URL (`POST /v1/media/uploads`)
+                </div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Tùy chọn nhận diện địa danh (`POST /v1/ai/recognize-landmark`):</div>
+
+                <button onclick="triggerVisionRecognition('recognized')" class="btn-action w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-left flex items-center justify-between">
+                  <span>1. Model 1 đạt ngưỡng (Confidence 0.96 ≥ 0.75)</span>
+                  <span>→ Màn #12 Landmark Info</span>
+                </button>
+
+                <button onclick="triggerVisionRecognition('unknown')" class="btn-action w-full py-2.5 px-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold text-left flex items-center justify-between">
+                  <span>2. Dưới ngưỡng (Confidence 0.41 &lt; 0.75)</span>
+                  <span>→ Trả về UNKNOWN</span>
+                </button>
+
+                <button onclick="goScreen('photo_edit')" class="btn-action w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-left flex items-center justify-between">
+                  <span>3. Bỏ qua nhận diện → Chỉnh sửa & Đóng Dấu Hành Trình</span>
+                  <span>→ Màn #14 Photo Edit</span>
+                </button>
+              </div>
+
+              <div id="camera-unknown-box" class="p-3 rounded-xl bg-rose-950/70 border border-rose-500/50 text-xs text-rose-200 space-y-2 hidden">
+                <div class="font-bold text-rose-300">⚠️ Kết quả Model 1: `UNKNOWN` (`landmarkId: null`, `confidence: 0.41`)</div>
+                <p>Độ tin cậy dưới ngưỡng `0.75`. Hệ thống không tự ý chọn bừa địa danh và không mở chat AI. Ảnh vẫn được lưu vào chuyến đi.</p>
+                <button onclick="goScreen('visit_map')" class="btn-action w-full py-1.5 rounded-lg bg-rose-600 text-white font-bold">
+                  Quay lại Bản đồ Tham quan (Visit Map) →
+                </button>
+              </div>
+            </div>
+
+            <!-- 12. SCREEN: LANDMARK INFO (OPENED AFTER CONFIDENT RECOGNITION) -->
+            <div id="scr-landmark_info" class="screen-view space-y-3">
+              <div class="p-3.5 rounded-2xl bg-emerald-950/70 border border-emerald-500/50 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">Model 1: RECOGNIZED (96%)</span>
+                  <span class="font-mono text-amber-300">lmk_khue_van_cac</span>
+                </div>
+                <h3 class="text-base font-bold text-white">Khuê Văn Các (`LandmarkInfoFragment.java`)</h3>
+                <p class="text-slate-300">Thuộc: Văn Miếu – Quốc Tử Giám (`GET /v1/landmarks/lmk_khue_van_cac`).</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs text-slate-300 leading-relaxed">
+                <div class="font-bold text-white">Thông tin Kiến trúc & Lịch sử:</div>
+                <p>Khuê Văn Các (Gác vẻ đẹp của sao Khuê) được Tổng trấn Nguyễn Văn Thành cho xây dựng năm Ất Sửu (1805) triều vua Gia Long. Công trình gồm nền vuông lát gạch Bát Tràng, tầng dưới là 4 trụ gạch chạm trổ, tầng trên là kiến trúc gỗ 2 tầng 8 mái với 4 cửa sổ tròn tượng trưng cho bầu trời và sao Khuê tỏa sáng.</p>
+              </div>
+
+              <!-- On-site RAG Entry Point (#2) -->
+              <div class="p-3 rounded-2xl bg-slate-800 border border-amber-500/40 space-y-2 text-xs">
+                <div class="font-bold text-amber-300">🤖 Điểm chạm RAG #2: Tại điểm đến (Scoped to `landmarkId`)</div>
+                <p class="text-slate-300">Đây là lối vào duy nhất tại thực địa để mở khung hỏi đáp AI chuyên sâu về riêng địa danh vừa chụp:</p>
+                <button onclick="openRagChat('landmark')" class="btn-action w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold">
+                  💬 Hỏi AI Chuyên Sâu Về Khuê Văn Các (`HistoricalRagChatFragment`) →
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button onclick="goScreen('photo_edit')" class="btn-action py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold">
+                  🎨 Sửa ảnh & Đóng Dấu
+                </button>
+                <button onclick="goScreen('visit_map')" class="btn-action py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold">
+                  🗺️ Về Visit Map
+                </button>
+              </div>
+            </div>
+
+            <!-- 13. SCREEN: HISTORICAL RAG CHAT (MODEL 2 - GROUNDED Q&A WITH CITATIONS) -->
+            <div id="scr-rag_chat" class="screen-view space-y-3">
+              <div class="p-3 rounded-2xl bg-slate-800 border border-amber-500/40 space-y-1 text-xs">
+                <div class="flex items-center justify-between">
+                  <span id="rag-scope-badge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">Điểm chạm #2: On-site Landmark RAG</span>
+                  <span id="rag-landmark-code" class="font-mono text-emerald-300">landmarkId = lmk_khue_van_cac</span>
+                </div>
+                <h3 id="rag-context-title" class="text-sm font-bold text-white">Trợ Lý Lịch Sử (`HistoricalRagChatFragment.java`)</h3>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-white">Thử nghiệm câu hỏi (`POST /v1/ai/qa`):</span>
+                  <button onclick="toggleRagFallbackMode()" id="btn-toggle-fallback" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs">
+                    Chế độ: AI Online
+                  </button>
+                </div>
+
+                <div class="space-y-1.5">
+                  <button onclick="askRagQuestion(1)" class="btn-action w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-950 border border-slate-700 text-slate-200">
+                    💬 Hỏi 1: "Vì sao Khuê Văn Các có cửa tròn ở gác trên và nền vuông ở dưới?"
+                  </button>
+                  <button onclick="askRagQuestion(2)" class="btn-action w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-950 border border-slate-700 text-slate-200">
+                    💬 Hỏi 2: "82 Bia Tiến Sĩ tại Văn Miếu được dựng trong những triều đại nào?"
+                  </button>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                  <div id="rag-answer-text" class="text-slate-200 leading-relaxed">
+                    <b>Trả lời (Model 2 RAG):</b> Kiến trúc cửa sổ tròn trên gác gỗ kết hợp với nền vuông lát gạch Bát Tràng bên dưới thể hiện quan niệm triết học phương Đông "Trời tròn Đất vuông" (Thiên viên Địa phương), hội tụ tinh hoa đất trời tại trung tâm đạo học Thăng Long.
+                  </div>
+                  <div id="rag-citation-box" class="pt-1.5 border-t border-slate-800 text-amber-400 font-medium">
+                    📚 Trích dẫn xác thực (`sources`): [1] Hồ sơ Di tích Quốc gia Đặc biệt Văn Miếu (Cục Di sản Văn hóa, tr.14).
+                  </div>
+                </div>
+              </div>
+
+              <!-- Where Next? Decision matching User Flow Section 2 -->
+              <div class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Đi đâu tiếp theo sau khi hỏi AI? (`Where next?` trong User Flow):</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="goScreen('visit_map')" class="btn-action py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold">
+                    🗺️ Về Visit Map
+                  </button>
+                  <button onclick="goScreen('heritage_explore')" class="btn-action py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold">
+                    🏛️ Về Heritage Explore Page
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 14. SCREEN: NON-DESTRUCTIVE PHOTO EDITING & 6 JOURNEY STAMPS -->
+            <div id="scr-photo_edit" class="screen-view space-y-3">
+              <div class="rounded-2xl bg-slate-950 border border-slate-700 p-2">
+                <div id="photo-canvas-preview" class="h-44 rounded-xl bg-gradient-to-br from-amber-800/60 via-red-950/60 to-slate-900 relative overflow-hidden flex items-center justify-center transition-all">
+                  <div class="text-center">
+                    <div class="text-5xl">🏯</div>
+                    <div class="text-xs text-amber-200/80 mt-1">Ảnh gốc bất biến • Non-destructive Edit</div>
+                  </div>
+
+                  <div id="live-stamp-box" class="absolute bottom-2 right-2 left-2 p-2 rounded-lg text-xs stamp-postcard transition-all">
+                    <div class="flex justify-between items-center font-bold">
+                      <span id="stamp-dest-text">VĂN MIẾU – QUỐC TỬ GIÁM</span>
+                      <span id="stamp-style-tag" class="text-xs opacity-80">POSTCARD</span>
+                    </div>
+                    <div id="stamp-loc-text" class="text-xs">Quận Đống Đa, Hà Nội</div>
+                    <div id="stamp-meta-text" class="text-xs opacity-85">09:42 • 31.10.2026 • Hanoi Lens</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-white">1. Xử lý ảnh không phá hủy (`ImageEditorProcessor.java`)</span>
+                  <span class="text-emerald-400">Giữ nguyên ảnh gốc</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="space-y-1">
+                    <span class="text-slate-400">Độ sáng (Exposure/Brightness)</span>
+                    <input type="range" min="75" max="135" value="100" oninput="updatePhotoAdjustments()" id="rng-bright" class="w-full accent-amber-500">
+                  </label>
+                  <label class="space-y-1">
+                    <span class="text-slate-400">Tương phản (Contrast)</span>
+                    <input type="range" min="80" max="140" value="100" oninput="updatePhotoAdjustments()" id="rng-contrast" class="w-full accent-amber-500">
+                  </label>
+                </div>
+                <div class="flex gap-1.5 pt-1">
+                  <button onclick="setFilterPreset('none')" class="btn-action px-2 py-1 rounded bg-slate-700 text-white">Gốc</button>
+                  <button onclick="setFilterPreset('sepia(0.45)')" class="btn-action px-2 py-1 rounded bg-amber-900/60 text-amber-200">HANOI_FILM</button>
+                  <button onclick="setFilterPreset('saturate(1.4)')" class="btn-action px-2 py-1 rounded bg-emerald-900/60 text-emerald-200">Rực rỡ</button>
+                  <button onclick="setFilterPreset('grayscale(0.85)')" class="btn-action px-2 py-1 rounded bg-slate-600 text-slate-200">Hoài cổ B&W</button>
+                </div>
+              </div>
+
+              <!-- 6 Journey Stamp Styles -->
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">2. Chọn 6 phong cách `JourneyStampRenderer.java`:</div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button onclick="applyStampStyle('minimal')" class="btn-action py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">1. Minimal</button>
+                  <button onclick="applyStampStyle('postcard')" class="btn-action py-1.5 px-2 rounded-lg bg-amber-500/20 border border-amber-500 text-amber-300 font-bold">2. Postcard</button>
+                  <button onclick="applyStampStyle('film')" class="btn-action py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">3. Film frame</button>
+                  <button onclick="applyStampStyle('map')" class="btn-action py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">4. Map stamp</button>
+                  <button onclick="applyStampStyle('heritage')" class="btn-action py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">5. Heritage</button>
+                  <button onclick="applyStampStyle('weather')" class="btn-action py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">6. Weather</button>
+                </div>
+              </div>
+
+              <!-- 5 Location Precision Levels -->
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-1.5 text-xs">
+                <div class="flex justify-between">
+                  <span class="font-bold text-white">3. Mức hiển thị vị trí (`LocationPrecision` - 5 mức):</span>
+                  <span class="text-emerald-400">Đã xóa EXIF GPS</span>
+                </div>
+                <select id="sel-stamp-precision" onchange="applyStampPrecision(this.value)" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs">
+                  <option value="DESTINATION">1. DESTINATION — Chỉ hiển thị tên địa danh</option>
+                  <option value="DISTRICT" selected>2. DISTRICT — Chỉ hiển thị quận / khu vực</option>
+                  <option value="APPROXIMATE">3. APPROXIMATE — Hiển thị tọa độ gần đúng (~21.03°N, 105.84°E)</option>
+                  <option value="EXACT">4. EXACT — Hiển thị tọa độ chính xác (21.028511, 105.835536)</option>
+                  <option value="NONE">5. NONE — Không hiển thị vị trí</option>
+                </select>
+              </div>
+
+              <button onclick="goScreen('visit_map')" class="btn-action w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+                💾 Lưu Bản Sao Đóng Dấu & Quay Lại Visit Map
+              </button>
+            </div>
+
+            <!-- 15. SCREEN: STAMP COLLECTION & REWARD CHECK -->
+            <div id="scr-stamp_reward" class="screen-view space-y-3">
+              <div class="p-3 rounded-2xl bg-slate-800 border border-amber-500/40 space-y-2 text-xs">
+                <div class="font-bold text-amber-300">Bước 1: Bộ sưu tập Tem (`StampCollectionFragment.java`)</div>
+                <p class="text-slate-300">Đúng quy tắc §6: Khi bấm <i>Finish visit</i>, mở Bộ sưu tập Tem trước, rồi mới đối soát `markedHeritages` với `unlockedHeritages`:</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="p-2 rounded-xl bg-amber-950/60 border border-amber-500/50 text-center">
+                    <div class="text-xl">🏛️</div>
+                    <div class="font-bold text-white">Tem Văn Miếu</div>
+                    <div id="stamp-slot-1-status" class="text-emerald-400">✓ Đã mở khóa</div>
+                  </div>
+                  <div id="stamp-slot-2" class="p-2 rounded-xl bg-slate-900 border border-slate-700 text-center">
+                    <div class="text-xl">🏰</div>
+                    <div class="font-bold text-slate-300">Tem Hoàng Thành</div>
+                    <div id="stamp-slot-2-status" class="text-slate-400">Không đánh dấu</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Bước 2: Đối soát `All marked heritages unlocked?` (`RewardDialogFragment.java`)</div>
+                <div class="flex gap-2">
+                  <button onclick="setRewardScenario(true)" class="btn-action flex-1 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold">
+                    Thử: Mở khóa đủ 100% (Yes)
+                  </button>
+                  <button onclick="setRewardScenario(false)" class="btn-action flex-1 py-1.5 rounded-lg bg-slate-700 text-slate-200 font-semibold">
+                    Thử: Còn 1 điểm chưa đến (No)
+                  </button>
+                </div>
+
+                <div id="reward-granted-box" class="p-3 rounded-xl bg-gradient-to-br from-amber-950/90 to-slate-900 border border-amber-400/60 text-center space-y-1.5">
+                  <div class="text-2xl">🏅 + 🎁</div>
+                  <div class="font-bold text-amber-300 text-sm">Nhận Huy Hiệu Journey Stamp Badge & Quà Ngẫu Nhiên!</div>
+                  <p class="text-slate-200">Huy hiệu: <b>Tri Thức Thăng Long</b> • Quà từ di sản: <b>Thẻ đánh dấu sách Khuê Văn Các</b></p>
+                </div>
+
+                <div id="reward-pending-box" class="p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 space-y-2 hidden">
+                  <p>Bạn còn <b>Hoàng Thành Thăng Long</b> đã đánh dấu nhưng chưa mở khóa. Bạn có thể bấm giả lập đến Hoàng Thành để mở khóa nốt hoặc kết thúc chuyến đi ngay vẫn lưu đầy đủ ảnh!</p>
+                  <button onclick="goScreen('geofence')" class="btn-action w-full py-1.5 rounded-lg bg-amber-600 text-white font-bold">
+                    🛰️ Đến Mở Khóa Nốt Hoàng Thành →
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Bước 3: Bạn có muốn tiếp tục khám phá? (`Continue exploring?`)</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="goScreen('heritage_explore')" class="btn-action py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold">
+                    Yes → Về Heritage Explore Page
+                  </button>
+                  <button onclick="completeTripAndOpenJournal()" class="btn-action py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold">
+                    No → Kết thúc & Cập nhật Journal
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 16. SCREEN: TRAVEL JOURNAL, RECAPS & PROFILE SETTINGS -->
+            <div id="scr-journal" class="screen-view space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400">Travel Journal (`TravelJournalFragment.java`)</h3>
+                <span class="text-xs text-emerald-400">Private by Default</span>
+              </div>
+
+              <!-- Recap Switcher: Destination Recap vs Monthly Recap -->
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button onclick="switchRecapTab('destination')" id="btn-recap-dest" class="btn-action py-2 rounded-xl bg-amber-600 text-white font-bold">
+                  📍 Destination Recap
+                </button>
+                <button onclick="switchRecapTab('monthly')" id="btn-recap-month" class="btn-action py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-semibold">
+                  📅 Monthly Recap (T10/2026)
+                </button>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-950/60 via-slate-800 to-slate-900 border border-amber-500/40 space-y-1.5 text-xs">
+                <div class="flex justify-between">
+                  <span id="recap-type-badge" class="font-bold text-amber-300">DESTINATION RECAP (`RecapDetailFragment.java`)</span>
+                  <span class="text-slate-400">31/10/2026</span>
+                </div>
+                <div id="recap-title" class="text-sm font-bold text-white">Buổi sáng mùa thu tại Văn Miếu – Quốc Tử Giám</div>
+                <p id="recap-summary" class="text-slate-300">Đã mở khóa di sản, ghé thăm Khuê Văn Các & Vườn Bia Tiến Sĩ, lưu ảnh đóng dấu Postcard và nhận huy hiệu Tri Thức Thăng Long.</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="font-bold text-white">Ảnh trong chuyến đi (`GET /v1/visits/{id}/photos` — Signed Read URLs):</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="p-2 rounded-xl bg-slate-900 border border-slate-700 space-y-1">
+                    <div class="text-2xl text-center">🏯</div>
+                    <div class="font-semibold text-white">Khuê Văn Các</div>
+                    <div class="text-slate-400">Stamp: Postcard • DISTRICT</div>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-900 border border-slate-700 space-y-1">
+                    <div class="text-2xl text-center">🖼️</div>
+                    <div class="font-semibold text-white">Kỷ niệm Sự kiện</div>
+                    <div class="text-slate-400">Event Memory • Đống Đa</div>
+                  </div>
+                </div>
+                <button onclick="downloadPhotoSimulation()" class="btn-action w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">
+                  ⬇️ Tải Ảnh Về Máy (`ExifPrivacySanitizer` — Đã xóa EXIF GPS)
+                </button>
+              </div>
+
+              <!-- Profile & Privacy Settings Section (`ProfileFragment.java`) -->
+              <div id="profile-settings-card" class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-amber-300">👤 Hồ sơ & Quyền riêng tư (`ProfileFragment.java`)</span>
+                  <span class="font-mono text-slate-400">PATCH /v1/me</span>
+                </div>
+                <label class="block text-slate-300">Mức hiển thị vị trí mặc định (`defaultLocationPrecision`):</label>
+                <select onchange="updateDefaultPrecision(this.value)" class="w-full p-2 rounded-xl bg-slate-900 border border-slate-700 text-white">
+                  <option value="DESTINATION" selected>DESTINATION — Chỉ tên địa danh</option>
+                  <option value="DISTRICT">DISTRICT — Chỉ tên quận</option>
+                  <option value="APPROXIMATE">APPROXIMATE — Tọa độ làm tròn</option>
+                  <option value="EXACT">EXACT — Tọa độ chính xác</option>
+                  <option value="NONE">NONE — Ẩn hoàn toàn vị trí</option>
+                </select>
+                <button onclick="goScreen('auth')" class="btn-action w-full py-2 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white font-bold">
+                  Đăng Xuất (`POST /v1/auth/logout` — Thu hồi Refresh Token Family)
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Android Bottom Navigation Bar (5 Tabs) -->
+          <div class="h-14 bg-slate-950 border-t border-slate-800 px-2 flex items-center justify-around shrink-0 text-xs">
+            <button onclick="goScreen('explore_home')" id="bnav-explore" class="flex flex-col items-center text-amber-400 font-bold">
+              <span>🧭</span>
+              <span class="text-xs">Khám phá</span>
+            </button>
+            <button onclick="goScreen('combined_map')" id="bnav-map" class="flex flex-col items-center text-slate-400">
+              <span>🗺️</span>
+              <span class="text-xs">Bản đồ</span>
+            </button>
+            <button onclick="goScreen('events')" id="bnav-events" class="flex flex-col items-center text-slate-400">
+              <span>🎭</span>
+              <span class="text-xs">Sự kiện</span>
+            </button>
+            <button onclick="goScreen('journal')" id="bnav-journal" class="flex flex-col items-center text-slate-400">
+              <span>📖</span>
+              <span class="text-xs">Nhật ký</span>
+            </button>
+            <button onclick="openProfileModal()" id="bnav-profile" class="flex flex-col items-center text-slate-400">
+              <span>👤</span>
+              <span class="text-xs">Hồ sơ</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== RIGHT: LIVE ARCHITECTURE & TODO.MD INSPECTOR ==================== -->
+    <div class="space-y-4">
+
+      <!-- Card 1: Dynamic Inspector for the Currently Active Screen -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Ánh Xạ Kiến Trúc & Tiến Độ `TODO.md` Trực Tiếp</span>
+            <h2 id="insp-title" class="text-lg font-bold text-white">3. Explore Hanoi (Home) — Trang Chủ Toàn Ứng Dụng</h2>
+          </div>
+          <span id="insp-owner-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            Phụ trách: TV3 (Hiền Anh) & TV2 (Ninh)
+          </span>
+        </div>
+
+        <p id="insp-summary" class="text-xs md:text-sm text-slate-300 leading-relaxed">
+          Màn hình chính hiển thị sau khi đăng nhập, sau khi tạm dừng chuyến đi (`Pause`), hoặc khi quay về từ Nhật ký.
+        </p>
+
+        <!-- Synchronized TODO.md Wave & Flyway SQL Migration Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1">
+            <div class="font-bold text-amber-300">📅 Mã Task & Thứ Tự Thực Thi Trong `TODO.md`:</div>
+            <div id="insp-todo-wave" class="text-slate-200 font-medium">
+              • `[W3-TV3]` (Bước 2 - Song song: Mock UI)<br>
+              • `[W5-TV3]` (Bước 1 - Mở đường: PostGIS API)
+            </div>
+          </div>
+          <div class="p-3 rounded-xl bg-blue-950/30 border border-blue-500/40 space-y-1">
+            <div class="font-bold text-blue-300">🗄️ File Migration CSDL Độc Quyền (Chống Conflict):</div>
+            <div id="insp-sql-file" class="font-mono text-slate-200">
+              V2__destination_and_landmarks.sql (TV3)<br>
+              V3__visit_event_and_reward.sql (TV2)
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+            <div class="font-bold text-emerald-400">📱 File Khung Android (`android-client/`)</div>
+            <div id="insp-android-files" class="font-mono text-slate-300 space-y-1 break-all">
+              <div>• ui/explore/ExploreHomeFragment.java</div>
+              <div>• viewmodel/ExploreViewModel.java</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+            <div class="font-bold text-sky-400">⚙️ File Khung Backend & AI (`backend/` & `ai-service/`)</div>
+            <div id="insp-backend-files" class="font-mono text-slate-300 space-y-1 break-all">
+              <div>• modules/destination/controller/DestinationController.java</div>
+              <div>• modules/visit/controller/VisitController.java</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs">
+          <div class="font-bold text-purple-300">🔌 REST API Contract (`docs/03_DATA_AND_CONTRACT.md`) & Quy Tắc (`docs/04_WORKFLOW_DIAGRAM.md`):</div>
+          <div id="insp-api-contract" class="font-mono text-amber-300">
+            GET /v1/destinations • GET /v1/events • GET /v1/visits/active
+          </div>
+          <div id="insp-rule-note" class="text-slate-300 pt-1">
+            Phân biệt rõ với <b>Heritage Explore Page</b>: Trang này là trang chủ toàn app, còn Heritage Explore Page chỉ mở khi người dùng đã đến và mở khóa một di sản cụ thể.
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Dependency Order Visualization (Why no one conflicts) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 text-xs">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-400">
+          🔗 Chuỗi Thứ Tự Phụ Thuộc CSDL & Code Đã Đồng Bộ Trong `TODO.md` (0% Git Conflict)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-amber-500/40">
+            <div class="font-bold text-amber-300">1. Flyway V1 (TV7)</div>
+            <div class="text-slate-300 mt-1">`users`, `refresh_tokens`, `profiles` + Khung Auth/Nav đi đầu tiên.</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-emerald-500/40">
+            <div class="font-bold text-emerald-300">2. Flyway V2 (TV3)</div>
+            <div class="text-slate-300 mt-1">`destinations`, `landmarks` (PostGIS) + Seed mã chuẩn cho cả nhóm.</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-sky-500/40">
+            <div class="font-bold text-sky-300">3. Flyway V3 (TV2)</div>
+            <div class="text-slate-300 mt-1">`cultural_events`, `visits`, `rewards` (FK tới V1 `users` & V2 `destinations`).</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-purple-500/40">
+            <div class="font-bold text-purple-300">4. Flyway V4 (TV5)</div>
+            <div class="text-slate-300 mt-1">`upload_sessions`, `photos`, `recaps` (FK tới V1, V2, V3) + MinIO S3.</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-rose-500/40">
+            <div class="font-bold text-rose-300">5. Flyway V5 (TV4)</div>
+            <div class="text-slate-300 mt-1">`knowledge_chunks` (`pgvector` HNSW), `qa_messages` + FastAPI `:8001`.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Complete 12-Feature Checklist -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2.5 text-xs">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">
+          ✅ 12 Điểm Nghiệp Vụ Đặc Thù Đã Khớp Giữa `UI_SIMULATOR.html` và Bộ Tài Liệu `01` → `08`
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-slate-300">
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">1. Đăng ký mới qua `LandingActivity`, đăng nhập cũ vào thẳng `ExploreHomeFragment`.</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">2. Tách biệt `ExploreHomeFragment` (#3) và `HeritageExploreFragment` nội khu (#9).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">3. Sự kiện gắn di sản → `Heritage Preview`; Sự kiện độc lập → `Event Memory Page` (#6).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">4. Tự đánh dấu nhiều di sản (`markedHeritages`) + Tạm dừng (`PAUSED`) / Tiếp tục (`Resume`).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">5. GPS Geofence mở khóa di sản ngay lập tức (#8), hủy tọa độ thô trên RAM.</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">6. `VisitMapFragment` (#10) hiển thị vị trí trực tiếp trên máy, không có nút chat AI trực tiếp.</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">7. Model 1 Vision (#11): `RECOGNIZED` (≥ 0.75) mở `LandmarkInfoFragment` (#12); &lt; 0.75 trả `UNKNOWN`.</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">8. Model 2 Historical RAG (#13): Mở từ `Heritage Preview` (#7) hoặc từ `Landmark Info` (#12).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">9. Sửa ảnh không phá hủy & 6 kiểu `JourneyStampRenderer` (#14).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">10. 5 mức `LocationPrecision` (`DESTINATION`, `DISTRICT`, `APPROXIMATE`, `EXACT`, `NONE`) + xóa EXIF.</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">11. Kết thúc điểm thăm: Mở `StampCollectionFragment` trước → đối soát trao Badge + Gift (#15).</div>
+          <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">12. `TravelJournalFragment` & `RecapDetailFragment` (`DESTINATION` & `MONTHLY` Recap) (#16).</div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const state = {
+      currentScreen: 'explore_home',
+      history: ['explore_home'],
+      markedHeritages: ['dst_van_mieu'],
+      unlockedHeritages: [],
+      tripStatus: 'NONE',
+      ragFallback: false,
+      precision: 'DESTINATION'
+    };
+
+    const screenMeta = {
+      auth: {
+        headerTitle: "Đăng Nhập / Đăng Ký",
+        headerSub: "ui/auth/LoginActivity.java",
+        title: "1. Đăng Nhập & Đăng Ký (`LoginActivity.java`)",
+        owner: "Phụ trách: TV7 (Lê Bá Tiệp) & TV6 (Hà Thế Duy)",
+        summary: "Xác thực tài khoản trước khi khám phá. Cấp Access JWT (15 phút) và Rotating Refresh Token lưu trong Android Keystore.",
+        todoWave: "• [W1-TV7] (Bước 1 - Mở đường: Khung dự án)\n• [W3-TV7] (Bước 1 - Mở đường: Auth Argon2id & JWT)\n• [W3-TV6] (Bước 3 - Kiểm thử: Token Replay Test)",
+        sqlFile: "V1__identity_and_profile.sql (TV7 — Chạy số 1)",
+        androidFiles: ["ui/auth/LoginActivity.java", "data/api/AuthApi.java", "data/local/TokenManager.java"],
+        backendFiles: ["modules/identity/controller/AuthController.java", "modules/identity/service/AuthService.java", "shared/SecurityConfig.java"],
+        api: "POST /v1/auth/register • POST /v1/auth/login • POST /v1/auth/refresh",
+        rule: "Tài khoản đăng ký mới chuyển sang LandingActivity (#2); tài khoản cũ đăng nhập vào thẳng ExploreHomeFragment (#3)."
+      },
+      landing: {
+        headerTitle: "Giới Thiệu Ứng Dụng",
+        headerSub: "ui/auth/LandingActivity.java",
+        title: "2. Landing Page (`LandingActivity.java` — Chỉ Cho Tài Khoản Mới)",
+        owner: "Phụ trách: TV7 (Lê Bá Tiệp)",
+        summary: "Màn hình giới thiệu triết lý khám phá tự do của Hanoi Lens, chỉ hiển thị duy nhất một lần ngay sau khi người dùng đăng ký tài khoản mới.",
+        todoWave: "• [W4-TV7] (Bước 2 - Song song: Hoàn thiện LandingActivity & Profile)",
+        sqlFile: "V1__identity_and_profile.sql (TV7)",
+        androidFiles: ["ui/auth/LandingActivity.java"],
+        backendFiles: ["modules/identity/controller/AuthController.java"],
+        api: "GET /v1/me",
+        rule: "Quy tắc System Flow §1: New account? == Yes → Show landing page → Load explore data."
+      },
+      explore_home: {
+        headerTitle: "Explore Hanoi (Home)",
+        headerSub: "ui/explore/ExploreHomeFragment.java",
+        title: "3. Explore Hanoi (Home) — Trang Chủ Toàn Ứng Dụng",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh) & TV2 (Lê Bá Ninh)",
+        summary: "Trang khám phá tổng thể của ứng dụng: dẫn vào Bản đồ chung, Danh sách Di sản, Danh sách Sự kiện, Nhật ký hành trình và nút Tiếp tục chuyến đi đang tạm dừng (Resume trip).",
+        todoWave: "• [W3-TV3] (Bước 2 - Song song: Mock UI ExploreHome)\n• [W4-TV3] (Bước 1 - Mở đường: Seed Destinations)\n• [W5-TV3] (Bước 1 - Mở đường: PostGIS API)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3 — Chạy số 2)",
+        androidFiles: ["ui/explore/ExploreHomeFragment.java", "viewmodel/ExploreViewModel.java", "data/repository/ExploreRepository.java"],
+        backendFiles: ["modules/destination/controller/DestinationController.java", "modules/visit/controller/VisitController.java"],
+        api: "GET /v1/destinations • GET /v1/events • GET /v1/visits/active",
+        rule: "Quy tắc §2: Tách biệt hoàn toàn với Heritage Explore Page (#9 — trang nội khu chỉ mở khi đã đến di sản)."
+      },
+      combined_map: {
+        headerTitle: "Bản Đồ Di Sản & Sự Kiện",
+        headerSub: "ui/map/CombinedMapFragment.java",
+        title: "4. Bản Đồ Tổng Hợp (`CombinedMapFragment.java`)",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh)",
+        summary: "Hiển thị đồng thời các điểm Di sản và Sự kiện văn hóa trên cùng một bản đồ tương tác kèm vùng ranh giới Geofence.",
+        todoWave: "• [W5-TV3] (Bước 1 - Mở đường: Nearby Spatial Query)\n• [W7-TV3] (Bước 1 - Mở đường: CombinedMapFragment)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3) & V3__visit_event_and_reward.sql (TV2)",
+        androidFiles: ["ui/map/CombinedMapFragment.java", "data/api/DestinationApi.java"],
+        backendFiles: ["modules/destination/service/DestinationService.java", "modules/event/service/EventService.java"],
+        api: "GET /v1/destinations/nearby • GET /v1/events/nearby",
+        rule: "Tọa độ truyền lên chỉ dùng để truy vấn khoảng cách lân cận và không bao giờ lưu thành lịch sử di chuyển."
+      },
+      events: {
+        headerTitle: "Sự Kiện Văn Hóa Hà Nội",
+        headerSub: "ui/events/EventFeedFragment.java",
+        title: "5. Danh Sách & Chi Tiết Sự Kiện (`EventFeedFragment` & `EventDetailFragment`)",
+        owner: "Phụ trách: TV2 (Lê Bá Ninh)",
+        summary: "Hiển thị các sự kiện văn hóa được thu thập bằng Deterministic Parser (JSON-LD, RSS, CSS Selectors) và đã được Admin phê duyệt.",
+        todoWave: "• [W3-TV2] (Bước 2 - Song song: Stub Event API & UI)\n• [W4-TV2] (Bước 2 - Song song: EventSourceParserAdapter)\n• [W8-TV2] (Bước 2 - Song song: Scheduled Ingestion)",
+        sqlFile: "V3__visit_event_and_reward.sql (TV2 — Chạy số 3)",
+        androidFiles: ["ui/events/EventFeedFragment.java", "ui/events/EventDetailFragment.java"],
+        backendFiles: ["modules/event/controller/EventController.java", "modules/event/adapter/EventSourceParserAdapter.java"],
+        api: "GET /v1/events • GET /v1/events/{eventId}",
+        rule: "Quy tắc §4: Sự kiện có gắn di sản chuyển sang Heritage Preview (#7); sự kiện độc lập mở Event Memory Page (#6)."
+      },
+      event_memory: {
+        headerTitle: "Kỷ Niệm Sự Kiện",
+        headerSub: "ui/events/EventMemoryFragment.java",
+        title: "6. Event Memory Page (`EventMemoryFragment.java`)",
+        owner: "Phụ trách: TV2 (Lê Bá Ninh) & TV5 (Lương Quỳnh Anh)",
+        summary: "Trang lưu giữ kỷ niệm dành riêng cho các sự kiện văn hóa không gắn với một di sản cố định. Chụp ảnh và lưu trực tiếp vào Travel Journal.",
+        todoWave: "• [W7-TV2] (Bước 2 - Song song: EventMemoryFragment)\n• [W7-TV5] (Bước 2 - Song song: Lưu ảnh sự kiện vào Journal)",
+        sqlFile: "V3__visit_event_and_reward.sql (TV2) & V4__media_and_recap.sql (TV5)",
+        androidFiles: ["ui/events/EventMemoryFragment.java", "data/repository/MediaRepository.java"],
+        backendFiles: ["modules/media/controller/MediaController.java", "modules/event/entity/CulturalEvent.java"],
+        api: "POST /v1/media/uploads • POST /v1/media/uploads/{id}/complete",
+        rule: "Ảnh chụp tại đây gắn với eventId và hiển thị trực tiếp trong Nhật ký hành trình (#16)."
+      },
+      heritage_preview: {
+        headerTitle: "Heritage Preview",
+        headerSub: "ui/explore/HeritagePreviewFragment.java",
+        title: "7. Xem Trước Di Sản (`HeritagePreviewFragment.java`)",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh) & TV2 (Lê Bá Ninh)",
+        summary: "Hiển thị lịch sử tóm tắt, giờ mở cửa, nút hỏi đáp trợ lý AI Historical RAG trước chuyến đi (chỉ cần destinationId), và đánh dấu di sản vào hành trình.",
+        todoWave: "• [W3-TV3] (Bước 2 - Song song: HeritagePreviewFragment)\n• [W5-TV2] (Bước 2 - Song song: Lưu markedHeritages)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3) & V3__visit_event_and_reward.sql (TV2)",
+        androidFiles: ["ui/explore/HeritagePreviewFragment.java", "viewmodel/ExploreViewModel.java"],
+        backendFiles: ["modules/destination/controller/DestinationController.java", "modules/visit/service/VisitService.java"],
+        api: "GET /v1/destinations/{destinationId} • POST /v1/ai/qa (destinationId only)",
+        rule: "Quy tắc §3 & §5: RAG luôn sẵn sàng trên trang Preview trước khi đi; người dùng tự đánh dấu di sản vào chuyến đi."
+      },
+      geofence: {
+        headerTitle: "GPS Arrival Check",
+        headerSub: "location/GeofenceManager.java",
+        title: "8. Kiểm Tra Đến Nơi & Mở Khóa Tự Động (`GeofenceManager` & `LocationSimulator`)",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh), TV2 (Ninh) & TV6 (Duy)",
+        summary: "Kiểm tra sự hiện diện nhị phân (INSIDE / OUTSIDE) trong vùng ranh giới di sản bằng PostGIS. Khi xác nhận INSIDE, di sản được mở khóa ngay lập tức và tọa độ thô bị hủy bỏ.",
+        todoWave: "• [W6-TV3] (Bước 1 - Mở đường: API arrival-checks)\n• [W6-TV2] (Bước 2 - Song song: unlockHeritageOnArrival)\n• [W8-TV3] (Bước 2 - Song song: LocationSimulator)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3) & V3__visit_event_and_reward.sql (TV2)",
+        androidFiles: ["location/GeofenceManager.java", "location/LocationSimulator.java"],
+        backendFiles: ["modules/destination/service/DestinationService.java", "modules/visit/service/VisitService.java"],
+        api: "POST /v1/destinations/{destinationId}/arrival-checks • POST /v1/visits",
+        rule: "Quy tắc §1: GPS đến nơi mở khóa di sản ngay lập tức, tuyệt đối không phụ thuộc vào nhận diện ảnh AI."
+      },
+      heritage_explore: {
+        headerTitle: "Heritage Explore Page",
+        headerSub: "ui/explore/HeritageExploreFragment.java",
+        title: "9. Heritage Explore Page (`HeritageExploreFragment.java`)",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh)",
+        summary: "Trang thông tin nội khu của di sản sau khi đã mở khóa (hoặc khi Resume trip / Continue exploring). Hiển thị lịch sử chi tiết và danh sách các địa danh con (landmarks) trước khi mở Visit Map.",
+        todoWave: "• [W6-TV3] (Bước 1 - Mở đường: HeritageExploreFragment)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3)",
+        androidFiles: ["ui/explore/HeritageExploreFragment.java"],
+        backendFiles: ["modules/destination/controller/DestinationController.java"],
+        api: "GET /v1/destinations/{destinationId} • GET /v1/destinations/{destinationId}/landmarks",
+        rule: "Quy tắc §2: Mở ngay sau khi GPS mở khóa di sản, trước khi người dùng bấm vào Visit Map (#10)."
+      },
+      visit_map: {
+        headerTitle: "Visit Map (On-device)",
+        headerSub: "ui/map/VisitMapFragment.java",
+        title: "10. Bản Đồ Tham Quan Nội Khu (`VisitMapFragment.java`)",
+        owner: "Phụ trách: TV3 (Lê Hiền Anh) & TV2 (Lê Bá Ninh)",
+        summary: "Hiển thị bản đồ khu vực di sản với vị trí trực tiếp của người dùng chỉ tính toán trên thiết bị. Cho phép đi lại, chụp ảnh, tạm dừng (Pause) hoặc kết thúc điểm thăm (Finish).",
+        todoWave: "• [W7-TV3] (Bước 1 - Mở đường: Bản đồ & vị trí on-device)\n• [W7-TV2] (Bước 2 - Song song: Điều khiển Pause/Finish)",
+        sqlFile: "V3__visit_event_and_reward.sql (TV2)",
+        androidFiles: ["ui/map/VisitMapFragment.java", "viewmodel/VisitViewModel.java", "res/layout/fragment_visit_map.xml"],
+        backendFiles: ["modules/visit/controller/VisitController.java"],
+        api: "POST /v1/visits/{visitId}/pause • PUT /v1/visits/{visitId}/landmarks/{landmarkId}",
+        rule: "Quy tắc §3: Visit Map không có nút Chat AI trực tiếp; Chat AI tại điểm đến chỉ mở từ Landmark Info (#12) sau khi nhận diện ảnh."
+      },
+      camera: {
+        headerTitle: "Camera & AI Vision",
+        headerSub: "ui/camera/CameraCaptureFragment.java",
+        title: "11. Chụp Ảnh CameraX & Nhận Diện Địa Danh (`CameraCaptureFragment` & Model 1)",
+        owner: "Phụ trách: TV1 (Nguyễn Minh Hoàng) & TV5 (Lương Quỳnh Anh)",
+        summary: "Chụp ảnh bằng CameraX, tải lên MinIO qua Presigned PUT URL, và tùy chọn gửi tới Model 1 để phân loại địa danh chính trong ảnh với ngưỡng tin cậy 0.75.",
+        todoWave: "• [W3-TV1] (Bước 2: Mock FastAPI Vision)\n• [W5-TV1] & [W6-TV1] (Bước 2: Fine-tune & gắn Model 1 thật)\n• [W5-TV5] (Bước 2: Presigned PUT Upload)",
+        sqlFile: "V4__media_and_recap.sql (TV5 — Chạy số 4)",
+        androidFiles: ["ui/camera/CameraCaptureFragment.java", "camera/CameraController.java"],
+        backendFiles: ["modules/recap/controller/AlbumRecapController.java", "ai-service/app/vision/classifier.py", "ai-service/app/api/routes_vision.py"],
+        api: "POST /v1/media/uploads • POST /v1/ai/recognize-landmark → POST /internal/v1/vision/classify",
+        rule: "Quy tắc ADR 008: Dưới ngưỡng 0.75 trả về UNKNOWN và quay lại Visit Map; đạt ngưỡng mới mở Landmark Info (#12)."
+      },
+      landmark_info: {
+        headerTitle: "Landmark Info",
+        headerSub: "ui/ai/LandmarkInfoFragment.java",
+        title: "12. Thông Tin Địa Danh Đã Nhận Diện (`LandmarkInfoFragment.java`)",
+        owner: "Phụ trách: TV1 (Nguyễn Minh Hoàng) & TV7 (Lê Bá Tiệp)",
+        summary: "Màn hình thông tin chi tiết của công trình/địa danh vừa được Model 1 nhận diện thành công, đồng thời là lối vào duy nhất tại thực địa để mở khung Chat Historical RAG (#13).",
+        todoWave: "• [W7-TV7] (Bước 2: AiChatViewModel & luồng điều hướng)\n• [W7-TV1] (Bước 2: Giao diện LandmarkInfoFragment)",
+        sqlFile: "V2__destination_and_landmarks.sql (TV3) & V4__media_and_recap.sql (TV5)",
+        androidFiles: ["ui/ai/LandmarkInfoFragment.java", "viewmodel/AiChatViewModel.java"],
+        backendFiles: ["modules/destination/controller/DestinationController.java"],
+        api: "GET /v1/landmarks/{landmarkId}",
+        rule: "Quy tắc §3: Chỉ mở sau khi nhận diện ảnh đạt ngưỡng RECOGNIZED; bấm Ask AI để sang HistoricalRagChatFragment (#13)."
+      },
+      rag_chat: {
+        headerTitle: "Historical RAG Chat",
+        headerSub: "ui/ai/HistoricalRagChatFragment.java",
+        title: "13. Trợ Lý Lịch Sử RAG Có Trích Dẫn (`HistoricalRagChatFragment` & Model 2)",
+        owner: "Phụ trách: TV4 (Nguyễn Minh Lương) & TV7 (Lê Bá Tiệp)",
+        summary: "Truy xuất các đoạn tư liệu lịch sử đã kiểm chứng từ pgvector (HNSW index) theo destinationId / landmarkId và sinh câu trả lời kèm trích dẫn nguồn xác thực.",
+        todoWave: "• [W2-TV4] (Bước 2: Flyway V5 pgvector)\n• [W4-TV4] & [W5-TV4] (Bước 2: Ingest & Retriever)\n• [W6-TV4] & [W7-TV4] (Bước 2: Generator & UI RAG Chat)",
+        sqlFile: "V5__knowledge_and_rag.sql (TV4 — Chạy số 5)",
+        androidFiles: ["ui/ai/HistoricalRagChatFragment.java", "viewmodel/AiChatViewModel.java"],
+        backendFiles: ["ai-service/app/rag/retriever.py", "ai-service/app/rag/generator.py", "ai-service/app/api/routes_rag.py", "modules/recap/adapter/AiInferenceClientAdapter.java"],
+        api: "POST /v1/ai/qa → POST /internal/v1/rag/answer",
+        rule: "Bắt buộc có trích dẫn nguồn (sources); tự động chuyển sang Static Fallback khi AI tắt; sau khi hỏi chọn về Visit Map (#10) hoặc Heritage Explore Page (#9)."
+      },
+      photo_edit: {
+        headerTitle: "Sửa Ảnh & Dấu Hành Trình",
+        headerSub: "ui/camera/PhotoEditFragment.java",
+        title: "14. Chỉnh Sửa Không Phá Hủy & 6 Phong Cách Dấu Hành Trình (`PhotoEditFragment`)",
+        owner: "Phụ trách: TV5 (Lương Quỳnh Anh) & TV6 (Hà Thế Duy)",
+        summary: "Chỉnh sửa ảnh không phá hủy bản gốc và gắn lớp phủ Dấu hành trình theo 6 phong cách cùng 5 mức hiển thị vị trí, tự động xóa sạch EXIF GPS.",
+        todoWave: "• [W4-TV5] & [W6-TV5] (Bước 2: ImageEditor & 6 kiểu JourneyStampRenderer)\n• [W6-TV6] (Bước 3 - Đi sau: ExifPrivacySanitizer & kiểm định EXIF)",
+        sqlFile: "V4__media_and_recap.sql (TV5 — Chạy số 4)",
+        androidFiles: ["ui/camera/PhotoEditFragment.java", "camera/ImageEditorProcessor.java", "util/JourneyStampRenderer.java", "util/ExifPrivacySanitizer.java"],
+        backendFiles: ["modules/media/service/MediaService.java", "modules/media/service/WatermarkExportService.java"],
+        api: "POST /v1/photos/{photoId}/edits • POST /v1/photos/{photoId}/exports",
+        rule: "Ảnh gốc giữ nguyên bất biến; mọi ảnh xuất và thumbnail đều tự động xóa sạch siêu dữ liệu EXIF GPS."
+      },
+      stamp_reward: {
+        headerTitle: "Bộ Sưu Tập Tem & Thưởng",
+        headerSub: "ui/visit/StampCollectionFragment.java",
+        title: "15. Bộ Sưu Tập Tem & Đối Soát Trao Thưởng (`StampCollection` & `RewardDialog`)",
+        owner: "Phụ trách: TV2 (Lê Bá Ninh)",
+        summary: "Khi kết thúc điểm thăm, hiển thị Bộ sưu tập Tem trước, sau đó kiểm tra xem toàn bộ di sản đã đánh dấu trong chuyến đi đã được mở khóa hết chưa để trao Huy hiệu & Quà ngẫu nhiên.",
+        todoWave: "• [W6-TV2] (Bước 2: RewardService)\n• [W7-TV2] (Bước 2: StampCollectionFragment & RewardDialogFragment)",
+        sqlFile: "V3__visit_event_and_reward.sql (TV2 — Chạy số 3)",
+        androidFiles: ["ui/visit/StampCollectionFragment.java", "ui/visit/RewardDialogFragment.java"],
+        backendFiles: ["modules/visit/service/RewardService.java", "modules/visit/controller/VisitController.java"],
+        api: "POST /v1/visits/{visitId}/end",
+        rule: "Quy tắc §6: Nếu chọn tiếp tục khám phá thì quay về Heritage Explore Page (#9); nếu kết thúc thì lưu tiến trình và cập nhật Travel Journal (#16)."
+      },
+      journal: {
+        headerTitle: "Travel Journal & Hồ Sơ",
+        headerSub: "ui/journal/TravelJournalFragment.java",
+        title: "16. Travel Journal, Recaps & Hồ Sơ Quyền Riêng Tư (`TravelJournalFragment` & `ProfileFragment`)",
+        owner: "Phụ trách: TV5 (Lương Quỳnh Anh) & TV7 (Lê Bá Tiệp)",
+        summary: "Xem lại các chuyến đi trước, tải ảnh về thiết bị, xem Recap tự động tổng hợp theo Địa danh hoặc theo Tháng, và quản lý mức độ riêng tư vị trí mặc định.",
+        todoWave: "• [W4-TV7] (Bước 2: ProfileFragment & PATCH /v1/me)\n• [W8-TV5] (Bước 1 - Mở đường: TravelJournalFragment & RecapService)",
+        sqlFile: "V4__media_and_recap.sql (TV5) & V1__identity_and_profile.sql (TV7)",
+        androidFiles: ["ui/journal/TravelJournalFragment.java", "ui/journal/RecapDetailFragment.java", "ui/auth/ProfileFragment.java"],
+        backendFiles: ["modules/recap/controller/AlbumRecapController.java", "modules/recap/service/RecapService.java", "modules/profile/controller/ProfileController.java"],
+        api: "GET /v1/albums • GET /v1/recaps • PATCH /v1/me",
+        rule: "Kết thúc chuyến đi không tự động ép chuyển sang màn hình Recap mà cập nhật vào Nhật ký để người dùng chủ động xem."
+      }
+    };
+
+    function goScreen(scrKey, pushHistory = true) {
+      if (pushHistory && state.currentScreen !== scrKey) {
+        state.history.push(scrKey);
+      }
+      state.currentScreen = scrKey;
+
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('scr-' + scrKey);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active'));
+      const pill = document.getElementById('pill-' + scrKey);
+      if (pill) pill.classList.add('active');
+
+      const meta = screenMeta[scrKey];
+      if (meta) {
+        document.getElementById('phone-header-title').innerText = meta.headerTitle;
+        document.getElementById('phone-header-sub').innerText = meta.headerSub;
+        document.getElementById('insp-title').innerText = meta.title;
+        document.getElementById('insp-owner-badge').innerText = meta.owner;
+        document.getElementById('insp-summary').innerText = meta.summary;
+        document.getElementById('insp-todo-wave').innerHTML = meta.todoWave.replace(/\n/g, '<br>');
+        document.getElementById('insp-sql-file').innerText = meta.sqlFile;
+        document.getElementById('insp-api-contract').innerText = meta.api;
+        document.getElementById('insp-rule-note').innerHTML = meta.rule;
+
+        document.getElementById('insp-android-files').innerHTML = meta.androidFiles.map(f => `<div>• ${f}</div>`).join('');
+        document.getElementById('insp-backend-files').innerHTML = meta.backendFiles.map(f => `<div>• ${f}</div>`).join('');
+      }
+
+      const bnavMap = {
+        explore_home: 'bnav-explore',
+        combined_map: 'bnav-map',
+        events: 'bnav-events',
+        journal: 'bnav-journal'
+      };
+      ['bnav-explore', 'bnav-map', 'bnav-events', 'bnav-journal', 'bnav-profile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.className = (bnavMap[scrKey] === id)
+          ? 'flex flex-col items-center text-amber-400 font-bold'
+          : 'flex flex-col items-center text-slate-400';
+      });
+
+      document.getElementById('phone-body').scrollTop = 0;
+      refreshStatusBadges();
+    }
+
+    function openProfileModal() {
+      goScreen('journal');
+      setTimeout(() => {
+        const el = document.getElementById('profile-settings-card');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 80);
+    }
+
+    function navigateBack() {
+      if (state.history.length > 1) {
+        state.history.pop();
+        const prev = state.history[state.history.length - 1];
+        goScreen(prev, false);
+      } else {
+        goScreen('explore_home', false);
+      }
+    }
+
+    function refreshStatusBadges() {
+      const ind = document.getElementById('status-trip-indicator');
+      if (state.tripStatus === 'ACTIVE') {
+        ind.innerText = '● Trip: ACTIVE';
+        ind.className = 'px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold';
+      } else if (state.tripStatus === 'PAUSED') {
+        ind.innerText = '⏸ Trip: PAUSED';
+        ind.className = 'px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold';
+      } else if (state.tripStatus === 'ENDED') {
+        ind.innerText = '✓ Trip: ENDED';
+        ind.className = 'px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold';
+      } else {
+        ind.innerText = 'Chưa có chuyến đi';
+        ind.className = 'px-1.5 py-0.5 rounded bg-slate-800 text-slate-400';
+      }
+
+      const resumeCard = document.getElementById('home-resume-card');
+      if (state.tripStatus === 'PAUSED' || state.tripStatus === 'ACTIVE') {
+        resumeCard.classList.remove('hidden');
+        document.getElementById('home-resume-status').innerText =
+          state.tripStatus === 'PAUSED' ? '⏸ Hành trình đang tạm dừng (PAUSED)' : '🟢 Hành trình đang diễn ra (ACTIVE)';
+        document.getElementById('home-marked-count').innerText = state.markedHeritages.length;
+        document.getElementById('home-unlocked-count').innerText = state.unlockedHeritages.length;
+      } else {
+        resumeCard.classList.add('hidden');
+      }
+
+      document.getElementById('badge-mark-vanmieu').innerText =
+        state.unlockedHeritages.includes('dst_van_mieu') ? '🔓 Đã mở khóa' :
+        (state.markedHeritages.includes('dst_van_mieu') ? '📍 Đã đánh dấu' : 'Chưa đánh dấu');
+      document.getElementById('badge-mark-hoangthanh').innerText =
+        state.unlockedHeritages.includes('dst_hoang_thanh') ? '🔓 Đã mở khóa' :
+        (state.markedHeritages.includes('dst_hoang_thanh') ? '📍 Đã đánh dấu' : 'Chưa đánh dấu');
+    }
+
+    function selectHeritage(id) {
+      if (id === 'dst_hoang_thanh') {
+        document.getElementById('preview-heritage-name').innerText = 'Hoàng Thành Thăng Long';
+        document.getElementById('preview-heritage-desc').innerText = 'Quần thể di tích gắn với lịch sử kinh thành Thăng Long từ thế kỷ VII qua các triều đại Lý, Trần, Lê, Nguyễn.';
+      } else {
+        document.getElementById('preview-heritage-name').innerText = 'Văn Miếu – Quốc Tử Giám';
+        document.getElementById('preview-heritage-desc').innerText = 'Được xây dựng năm 1070 dưới triều vua Lý Thánh Tông, là trung tâm giáo dục Nho học cao nhất thời phong kiến Việt Nam.';
+      }
+      goScreen('heritage_preview');
+    }
+
+    function openEventDetail(type) {
+      if (type === 'linked') {
+        selectHeritage('dst_van_mieu');
+      } else {
+        goScreen('event_memory');
+      }
+    }
+
+    function captureAndSaveEventMemory() {
+      const el = document.getElementById('event-memory-status');
+      el.innerHTML = '<span class="text-emerald-400 font-bold">✓ Đã chụp & lưu ảnh kỷ niệm sự kiện vào Travel Journal!</span>';
+    }
+
+    function syncMarkedHeritages() {
+      const m = [];
+      if (document.getElementById('chk-mark-vanmieu').checked) m.push('dst_van_mieu');
+      if (document.getElementById('chk-mark-hoangthanh').checked) m.push('dst_hoang_thanh');
+      state.markedHeritages = m.length ? m : ['dst_van_mieu'];
+      refreshStatusBadges();
+    }
+
+    function markAndGoToGeofence() {
+      syncMarkedHeritages();
+      state.tripStatus = 'ACTIVE';
+      goScreen('geofence');
+    }
+
+    function openRagChat(mode) {
+      if (mode === 'preview') {
+        document.getElementById('rag-scope-badge').innerText = 'Điểm chạm #1: Heritage Preview (Pre-trip)';
+        document.getElementById('rag-landmark-code').innerText = 'destinationId = dst_van_mieu';
+        document.getElementById('rag-context-title').innerText = 'Hỏi đáp tổng quan: Văn Miếu – Quốc Tử Giám';
+      } else {
+        document.getElementById('rag-scope-badge').innerText = 'Điểm chạm #2: On-site Landmark RAG';
+        document.getElementById('rag-landmark-code').innerText = 'landmarkId = lmk_khue_van_cac';
+        document.getElementById('rag-context-title').innerText = 'Hỏi đáp chuyên sâu: Khuê Văn Các';
+      }
+      goScreen('rag_chat');
+    }
+
+    function simulateGpsCheck(inside) {
+      const pill = document.getElementById('geo-status-pill');
+      const card = document.getElementById('geo-unlock-card');
+      const targetId = document.getElementById('sel-geofence-target').value;
+      const targetName = targetId === 'dst_hoang_thanh' ? 'HOÀNG THÀNH THĂNG LONG' : 'VĂN MIẾU – QUỐC TỬ GIÁM';
+
+      if (!inside) {
+        pill.innerText = 'OUTSIDE (420m)';
+        pill.className = 'px-2 py-0.5 rounded bg-slate-700 text-slate-200 font-bold';
+        card.classList.add('hidden');
+      } else {
+        pill.innerText = 'INSIDE (Khoảng cách: 12m)';
+        pill.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40';
+        document.getElementById('geo-unlock-title').innerText = `🔓 ĐÃ ĐẾN NƠI — MỞ KHÓA ${targetName}!`;
+        card.classList.remove('hidden');
+        if (!state.unlockedHeritages.includes(targetId)) {
+          state.unlockedHeritages.push(targetId);
+        }
+        state.tripStatus = 'ACTIVE';
+        refreshStatusBadges();
+      }
+    }
+
+    function pauseActiveTrip() {
+      state.tripStatus = 'PAUSED';
+      goScreen('explore_home');
+    }
+
+    function resumeTripFromHome() {
+      state.tripStatus = 'ACTIVE';
+      goScreen('heritage_explore');
+    }
+
+    let dotStep = 0;
+    function moveUserOnVisitMap() {
+      dotStep = (dotStep + 1) % 3;
+      const dot = document.getElementById('user-ondevice-dot');
+      const positions = [
+        { top: '6rem', left: '7rem' },
+        { top: '3.2rem', left: '4rem' },
+        { top: '7.5rem', left: '12rem' }
+      ];
+      dot.style.top = positions[dotStep].top;
+      dot.style.left = positions[dotStep].left;
+    }
+
+    function triggerVisionRecognition(mode) {
+      const unkBox = document.getElementById('camera-unknown-box');
+      if (mode === 'unknown') {
+        unkBox.classList.remove('hidden');
+      } else {
+        unkBox.classList.add('hidden');
+        goScreen('landmark_info');
+      }
+    }
+
+    function toggleRagFallbackMode() {
+      state.ragFallback = !state.ragFallback;
+      const btn = document.getElementById('btn-toggle-fallback');
+      const txt = document.getElementById('rag-answer-text');
+      const cit = document.getElementById('rag-citation-box');
+      if (state.ragFallback) {
+        btn.innerText = 'Đang bật: Static Fallback (AI Offline)';
+        btn.className = 'px-2 py-0.5 rounded bg-amber-600 text-white text-xs font-bold';
+        txt.innerHTML = '<b>[Static Fallback — isAiGenerated: false]:</b> Dịch vụ suy luận AI tạm thời không phản hồi. Hiển thị nội dung biên tập tĩnh: Khuê Văn Các xây dựng năm 1805, là biểu tượng văn hiến của Thủ đô Hà Nội.';
+        cit.innerText = '📚 Nguồn tĩnh nội bộ: Cẩm nang Di tích Văn Miếu – Quốc Tử Giám.';
+      } else {
+        btn.innerText = 'Chế độ: AI Online';
+        btn.className = 'px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs';
+        askRagQuestion(1);
+      }
+    }
+
+    function askRagQuestion(qIndex) {
+      const txt = document.getElementById('rag-answer-text');
+      const cit = document.getElementById('rag-citation-box');
+      if (qIndex === 1) {
+        txt.innerHTML = '<b>Trả lời (Model 2 RAG):</b> Kiến trúc cửa sổ tròn trên gác gỗ kết hợp với nền vuông lát gạch Bát Tràng bên dưới thể hiện quan niệm triết học phương Đông "Trời tròn Đất vuông" (Thiên viên Địa phương), hội tụ tinh hoa đất trời tại trung tâm đạo học Thăng Long.';
+        cit.innerText = '📚 Trích dẫn xác thực (sources): [1] Hồ sơ Di tích Quốc gia Đặc biệt Văn Miếu (Cục Di sản Văn hóa, tr.14).';
+      } else {
+        txt.innerHTML = '<b>Trả lời (Model 2 RAG):</b> 82 bia Tiến sĩ tại Văn Miếu ghi danh các bậc đại khoa từ khoa thi năm 1442 (Lê Thái Tông) đến năm 1779 (Lê Hiển Tông), được UNESCO công nhận là Di sản Tư liệu Thế giới năm 2010.';
+        cit.innerText = '📚 Trích dẫn xác thực (sources): [2] Tuyển tập Văn bia Thăng Long – Hà Nội (Viện Nghiên cứu Hán Nôm, tr.38).';
+      }
+    }
+
+    let currentFilterPreset = 'none';
+    function updatePhotoAdjustments() {
+      const b = document.getElementById('rng-bright').value;
+      const c = document.getElementById('rng-contrast').value;
+      const canvas = document.getElementById('photo-canvas-preview');
+      const extra = currentFilterPreset === 'none' ? '' : currentFilterPreset;
+      canvas.style.filter = `brightness(${b}%) contrast(${c}%) ${extra}`;
+    }
+
+    function setFilterPreset(preset) {
+      currentFilterPreset = preset;
+      updatePhotoAdjustments();
+    }
+
+    function applyStampStyle(style) {
+      const box = document.getElementById('live-stamp-box');
+      const tag = document.getElementById('stamp-style-tag');
+      const meta = document.getElementById('stamp-meta-text');
+      box.className = `absolute bottom-2 right-2 left-2 p-2 rounded-lg text-xs stamp-${style} transition-all`;
+      tag.innerText = style.toUpperCase();
+
+      if (style === 'minimal') {
+        meta.innerText = '31.10.2026 • Hanoi Lens';
+      } else if (style === 'weather') {
+        meta.innerText = '☀️ 26°C Thu Hà Nội • 09:42 • 31.10.2026';
+      } else if (style === 'map') {
+        meta.innerText = '🗺️ Geofence Zone Verified • 09:42 • 31.10.2026';
+      } else {
+        meta.innerText = '09:42 • 31.10.2026 • Hanoi Lens';
+      }
+    }
+
+    function applyStampPrecision(prec) {
+      const loc = document.getElementById('stamp-loc-text');
+      const dest = document.getElementById('stamp-dest-text');
+      if (prec === 'DESTINATION') {
+        dest.innerText = 'VĂN MIẾU – QUỐC TỬ GIÁM';
+        loc.innerText = 'Chỉ hiển thị tên địa danh';
+      } else if (prec === 'DISTRICT') {
+        dest.innerText = 'VĂN MIẾU – QUỐC TỬ GIÁM';
+        loc.innerText = 'Quận Đống Đa, Hà Nội';
+      } else if (prec === 'APPROXIMATE') {
+        dest.innerText = 'VĂN MIẾU – QUỐC TỬ GIÁM';
+        loc.innerText = 'Đống Đa • ~21.03°N, 105.84°E';
+      } else if (prec === 'EXACT') {
+        dest.innerText = 'VĂN MIẾU – QUỐC TỬ GIÁM';
+        loc.innerText = '21.028511°N, 105.835536°E';
+      } else if (prec === 'NONE') {
+        dest.innerText = 'HANOI LENS JOURNEY';
+        loc.innerText = '(Đã ẩn toàn bộ vị trí theo cài đặt riêng tư)';
+      }
+    }
+
+    function openStampRewardCheck() {
+      if (!state.unlockedHeritages.includes('dst_van_mieu')) {
+        state.unlockedHeritages.push('dst_van_mieu');
+      }
+      const allUnlocked = state.markedHeritages.every(h => state.unlockedHeritages.includes(h));
+      setRewardScenario(allUnlocked);
+      goScreen('stamp_reward');
+    }
+
+    function setRewardScenario(allUnlocked) {
+      const granted = document.getElementById('reward-granted-box');
+      const pending = document.getElementById('reward-pending-box');
+      const slot2Status = document.getElementById('stamp-slot-2-status');
+      if (allUnlocked) {
+        granted.classList.remove('hidden');
+        pending.classList.add('hidden');
+        slot2Status.innerText = state.markedHeritages.includes('dst_hoang_thanh') ? '✓ Đã mở khóa' : 'Không đánh dấu';
+        slot2Status.className = 'text-emerald-400';
+      } else {
+        granted.classList.add('hidden');
+        pending.classList.remove('hidden');
+        slot2Status.innerText = '🔒 Đã đánh dấu nhưng chưa đến';
+        slot2Status.className = 'text-amber-400';
+      }
+    }
+
+    function completeTripAndOpenJournal() {
+      state.tripStatus = 'ENDED';
+      goScreen('journal');
+    }
+
+    function switchRecapTab(type) {
+      const btnDest = document.getElementById('btn-recap-dest');
+      const btnMonth = document.getElementById('btn-recap-month');
+      const badge = document.getElementById('recap-type-badge');
+      const title = document.getElementById('recap-title');
+      const summary = document.getElementById('recap-summary');
+
+      if (type === 'destination') {
+        btnDest.className = 'btn-action py-2 rounded-xl bg-amber-600 text-white font-bold';
+        btnMonth.className = 'btn-action py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
+        badge.innerText = 'DESTINATION RECAP (`RecapDetailFragment.java`)';
+        title.innerText = 'Buổi sáng mùa thu tại Văn Miếu – Quốc Tử Giám';
+        summary.innerText = 'Đã mở khóa di sản, ghé thăm Khuê Văn Các & Vườn Bia Tiến Sĩ, lưu ảnh đóng dấu Postcard và nhận huy hiệu Tri Thức Thăng Long.';
+      } else {
+        btnMonth.className = 'btn-action py-2 rounded-xl bg-amber-600 text-white font-bold';
+        btnDest.className = 'btn-action py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
+        badge.innerText = 'MONTHLY RECAP • THÁNG 10/2026';
+        title.innerText = 'Tổng kết hành trình khám phá Hà Nội Tháng 10';
+        summary.innerText = 'Trong tháng 10/2026, bạn đã thực hiện 3 chuyến khám phá qua Quận Đống Đa và Ba Đình, sưu tập 4 Dấu hành trình và tham gia 1 sự kiện văn hóa.';
+      }
+    }
+
+    function downloadPhotoSimulation() {
+      document.getElementById('recap-summary').innerHTML =
+        '<span class="text-emerald-400 font-bold">✓ Đã tải ảnh về thiết bị! Kiểm định bảo mật: Toàn bộ trường EXIF GPS/Serial thiết bị đã được xóa sạch.</span>';
+    }
+
+    function updateDefaultPrecision(val) {
+      state.precision = val;
+      document.getElementById('header-precision-label').innerText = val;
+      document.getElementById('sel-stamp-precision').value = val;
+      applyStampPrecision(val);
+    }
+
+    function resetDemoState() {
+      state.markedHeritages = ['dst_van_mieu'];
+      state.unlockedHeritages = [];
+      state.tripStatus = 'NONE';
+      state.ragFallback = false;
+      document.getElementById('chk-mark-vanmieu').checked = true;
+      document.getElementById('chk-mark-hoangthanh').checked = false;
+      goScreen('explore_home');
+    }
+  </script>
+</body>
+</html>

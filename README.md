@@ -1,91 +1,53 @@
 # Hanoi Lens
 
-Mobile-first application for exploring Hanoi's scenic spots and landmarks through photography-led journeys.
+Ứng dụng Android giúp người dùng tự do khám phá di sản, danh thắng và sự kiện văn hóa Hà Nội qua nhiếp ảnh — **USTH ICT Group Project 2025–2026**.
 
-The workspace is organized into:
+- **Khám phá tự do:** người dùng tự đánh dấu di sản; GPS geofence (chỉ kiểm tra trong/ngoài vùng) mở khóa di sản khi đến nơi.
+- **2 model AI:** nhận diện địa danh từ ảnh (trả `UNKNOWN` khi độ tin cậy thấp) và Historical RAG trả lời có trích dẫn.
+- **Album & Dấu hành trình:** ảnh gốc bất biến, chỉnh sửa không phá hủy, Journey Stamp, recap theo địa điểm/tháng.
+- **Quyền riêng tư:** không theo dõi liên tục, người dùng chọn mức hiển thị vị trí, xóa EXIF GPS khi xuất ảnh.
 
-- `apps/hanoi-lens`: React + Vite product prototype.
-- `docs`: product brief, diagrams, and project documentation.
-- `prototypes`: earlier static HTML/CSS exploration kept for reference.
+## Tech stack
 
-See [the product brief](docs/HANOI_LENS_PRODUCT_BRIEF.md) for the current direction.
+Android Native (Java 17 + XML, MVVM) · Spring Boot 3.x Modulith · PostgreSQL 16 (PostGIS + pgvector) · MinIO (S3) · Python FastAPI (Vision + RAG). Chi tiết: [docs/02_ARCHITECTURE.md](docs/02_ARCHITECTURE.md).
 
-Current technical documentation:
-
-- [System architecture](docs/ARCHITECTURE.md)
-- [REST API contract](docs/API.md)
-- [MVP security and privacy baseline](docs/SECURITY.md)
-- [Thành viên nhóm](docs/TEAM.md)
-
-## Ý tưởng sản phẩm hiện tại
-
-Hanoi Lens hướng người dùng tự do đi quanh Hà Nội và khám phá thành phố dưới góc nhìn của một nhiếp ảnh gia. Ứng dụng không ép người dùng đi theo tuyến đường hoặc hoàn thành một danh sách cố định.
-
-Người dùng chọn một địa điểm, xem trang thông tin rồi quyết định có muốn đến hay không. Nếu muốn đến, ứng dụng mở bản đồ chỉ đường; GPS chỉ dùng để xác nhận khi người dùng đã vào vùng địa danh. Tại đó, người dùng có thể chủ động bắt đầu khám phá, tự do đi lại, chụp ảnh và kết thúc bất cứ lúc nào.
-
-Mỗi trang địa điểm luôn có lối vào trợ lý Historical RAG và gợi ý chụp đẹp theo góc chụp, bố cục, ánh sáng và thời điểm. Đây là nội dung hướng dẫn tĩnh có thể dùng ngay cả khi AI tạm thời không hoạt động; ứng dụng không phân tích camera theo thời gian thực.
-
-### Album hành trình
-
-Ảnh, địa điểm đã ghé và tiến trình của mỗi lần khám phá được lưu thành một album hành trình. Người dùng có thể xem album sau khi kết thúc mà không bị ứng dụng tự động chuyển sang trang recap.
-
-Album có thể bao gồm:
-
-- Địa danh và các khu vực đã ghé.
-- Ngày giờ bắt đầu và kết thúc.
-- Những bức ảnh được chụp trong chuyến đi.
-- Kỹ thuật chụp hoặc xử lý ảnh đã sử dụng.
-- Ghi chú và cảm xúc của người dùng.
-- Recap theo địa danh hoặc theo tháng.
-
-### Dấu hành trình — Journey Stamp
-
-Ảnh trong album có thể được gắn một lớp thông tin trực quan gọi là **Dấu hành trình**. Đây là dạng `photo watermark`, `timestamp overlay` hoặc `location stamp` được thiết kế theo phong cách Hanoi Lens.
-
-Dấu hành trình có thể chứa:
-
-- Tên địa danh.
-- Quận hoặc khu vực.
-- Ngày và giờ chụp.
-- Thời tiết.
-- Tọa độ hoặc vị trí gần đúng.
-- Tên chuyến khám phá.
-- Logo hoặc nhận diện Hanoi Lens.
-
-Ví dụ:
+## Cấu trúc repo
 
 ```text
-VĂN MIẾU – QUỐC TỬ GIÁM
-Đống Đa, Hà Nội
-07:42 · 01.10.2026
-Hanoi Lens
+android-client/   Ứng dụng Android (Java/XML)
+backend/          Spring Boot Modulith: identity, profile, destination, event, visit, media, recap
+ai-service/       FastAPI nội bộ: vision/ và rag/
+docs/             Tài liệu dự án (bắt đầu từ docs/INDEX.md)
+TODO.md           Kế hoạch 12 tuần
 ```
 
-Người dùng có thể lựa chọn nhiều phong cách dấu khác nhau:
+Các file trong `android-client/`, `backend/`, `ai-service/` hiện chỉ là **file khung** chứa comment `TODO` (mục đích, người phụ trách, các hàm cần viết).
 
-- Minimal: chỉ tên địa danh và ngày.
-- Postcard: trình bày như một tấm bưu thiếp.
-- Film frame: thông tin nằm trên viền phim.
-- Map stamp: có bản đồ hoặc tọa độ nhỏ.
-- Heritage stamp: thiết kế riêng theo từng di tích.
-- Weather stamp: thêm nhiệt độ và thời tiết.
+## Thành viên
 
-Ảnh gốc luôn được giữ nguyên. Dấu hành trình chỉ được áp dụng trên phiên bản dùng trong album hoặc khi người dùng xuất và chia sẻ ảnh.
+| TV | Họ và tên | MSSV | Vai trò |
+|---|---|---|---|
+| TV1 | Nguyễn Minh Hoàng | 2410315 | AI: Computer Vision |
+| TV2 | Lê Bá Ninh | 23BA14224 | Hành trình, Sự kiện & Phần thưởng |
+| TV3 | Lê Hiền Anh | 2410042 | Khám phá, Bản đồ & Đến nơi |
+| TV4 | Nguyễn Minh Lương | 23BA14184 | AI: RAG lịch sử |
+| TV5 | Lương Quỳnh Anh | 23BA14008 | Camera, Ảnh, Album & Recap |
+| TV6 | Hà Thế Duy | 2410207 | Cyber Security + QA |
+| TV7 | Lê Bá Tiệp | 23BA14282 | Tài khoản, Hồ sơ & Tích hợp AI |
 
-Vì lý do riêng tư, người dùng được lựa chọn mức độ hiển thị vị trí:
+Phân công chi tiết: [docs/05_TEAM_ROLES_WORKLOAD.md](docs/05_TEAM_ROLES_WORKLOAD.md).
 
-- Chỉ hiển thị tên địa danh.
-- Chỉ hiển thị quận hoặc khu vực.
-- Hiển thị tọa độ gần đúng.
-- Hiển thị tọa độ chính xác.
-- Không hiển thị vị trí.
+## Tài liệu
 
-Ngoài thông tin được hiển thị trực tiếp trên ảnh, vị trí và ngày giờ cũng có thể được lưu dưới dạng metadata để phục vụ việc sắp xếp album và tạo recap.
+Mục lục và lộ trình đọc theo vai trò: **[docs/INDEX.md](docs/INDEX.md)**. Kế hoạch: **[TODO.md](TODO.md)**.
 
-## Run the prototype
+## Quick start
 
 ```bash
-cd apps/hanoi-lens
-pnpm install
-pnpm dev
+cp .env.example .env
+docker compose up -d                                   # PostgreSQL + MinIO
+cd backend && ./mvnw spring-boot:run                   # API :8080
+cd ai-service && uvicorn app.main:app --reload --port 8001
 ```
+
+Android: mở `android-client/` bằng Android Studio. Hướng dẫn đầy đủ: [docs/08_ENVIRONMENT_SETUP.md](docs/08_ENVIRONMENT_SETUP.md).

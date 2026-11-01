@@ -1,0 +1,3 @@
+-- TODO: Flyway V3 - Khởi tạo bảng cultural_events, visits, visit_marked_heritages, visit_unlocked_heritages, visit_landmarks, rewards
+-- Phụ trách: TV2 (Lê Bá Ninh) - Chạy THỨ 3 (phụ thuộc V1 users và V2 destinations)
+-- Cần hiện thực: CREATE TABLE cultural_events, visits, rewards + partial unique index 1 active visit/user
