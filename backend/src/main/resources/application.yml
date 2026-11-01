@@ -1,0 +1,3 @@
+# TODO: Cấu hình Spring Boot (Datasource PostGIS, JWT, S3/MinIO, AI Adapter timeout, Actuator)
+# Phụ trách: TV7 (Lê Bá Tiệp) & TV6 (Hà Thế Duy)
+# Cần hiện thực: spring.datasource, security.jwt, storage.s3, ai.inference

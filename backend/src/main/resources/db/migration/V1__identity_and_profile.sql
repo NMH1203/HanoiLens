@@ -1,0 +1,3 @@
+-- TODO: Flyway V1 - Khởi tạo extensions (postgis, vector) và bảng users, refresh_tokens, profiles
+-- Phụ trách: TV7 (Lê Bá Tiệp) - Chạy ĐẦU TIÊN vì các bảng khác FK tới users(id)
+-- Cần hiện thực: CREATE EXTENSION postgis, vector; CREATE TABLE users, refresh_tokens, profiles

@@ -1,0 +1,3 @@
+-- TODO: Flyway V2 - Khởi tạo bảng destinations (PostGIS boundary) và landmarks + GIST index
+-- Phụ trách: TV3 (Lê Hiền Anh) - Chạy THỨ 2 vì visits, events, photos, knowledge_chunks FK tới destinations/landmarks
+-- Cần hiện thực: CREATE TABLE destinations, landmarks; CREATE INDEX GIST
