@@ -150,3 +150,13 @@ Expected deliverables:
 - Upload/presigned-URL security test report.
 - Location/EXIF leakage test report.
 - Final findings register with severity, evidence, remediation, and retest result.
+
+## 9. Security and privacy methods
+
+Security and privacy methods of the project, kept here instead of the product brief §9. Privacy-Aware Design and Security Hardening are methods in the project proposal; Threat Modeling is the proposal's "documented security baseline" outcome. Each row points to the section above that defines its controls and tests.
+
+| # | Method / Technique | Category | Description & Purpose | Details |
+| --- | --- | --- | --- | --- |
+| 1 | **Privacy-Aware Design** | Privacy Engineering | Maximizes user comfort by operating on area presence only: the arrival check answers inside/outside, raw coordinates are discarded afterwards, and no travel path is stored. Users choose how their location is shown (`NONE`, `DESTINATION`, `DISTRICT`, `APPROXIMATE`, `EXACT`); the backend filters every DTO, stamp, recap, and export to that level, and GPS/device EXIF is stripped from every derived or shared image. | §6 |
+| 2 | **Security Hardening** | Cyber Security | Argon2id password hashing (bcrypt fallback), short-lived access JWTs with rotating, hashed refresh tokens and reuse detection, ownership checks on every private resource (IDOR/BOLA), single-key short-lived presigned upload URLs, and magic-byte plus full-decode validation of uploaded images. | §4, §5 |
+| 3 | **Threat Modeling** | Security Assurance | Review of the five critical flows (auth and refresh, geofence arrival, photo upload and access, private resources, recognition and RAG), with findings tracked by severity until no `CRITICAL`/`HIGH` remains. | §3, §7 |

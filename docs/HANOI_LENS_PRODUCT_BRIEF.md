@@ -217,22 +217,23 @@ Travel journal: past trip -> details & photos -> download -> Explore Hanoi (home
 
 ## 9. Used methods and techniques
 
-The system directly implements the 12 methods and techniques defined in the project proposal:
+The product and AI methods below come from the project proposal. The security and privacy methods (Privacy-Aware Design, Security Hardening) are described in [SECURITY.md §9](SECURITY.md#9-security-and-privacy-methods).
 
-| #   | Method / Technique                 | Category                 | Description & Purpose                                                                                                                                                   |
-| --- | ---------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **GPS Geofencing**                 | Geospatial Awareness     | Detects when users enter or leave the defined geographical area of a landmark (binary presence check) without tracking exact coordinates or continuous movement trails. |
-| 2   | **Location-Based Services**        | Local Discovery          | Provides nearby destinations, cultural information, and events based on the user's current location.                                                                    |
-| 3   | **Event Data Aggregation**         | Data Ingestion           | Collects event information from selected official websites and trusted public sources.                                                                                  |
-| 4   | **Deterministic Event Parsing**    | Data Processing          | Uses JSON-LD, RSS, CSS selectors, and date-parsing rules to extract event names, dates, locations, and descriptions from approved sources.                              |
-| 5   | **Landmark Image Classification**  | Computer Vision          | Recognizes a supported primary landmark from a submitted photo and returns `landmarkId`, confidence, or `UNKNOWN`.                                                      |
-| 6   | **Digital Image Processing**       | Media Processing         | Supports cropping, straightening, exposure adjustment, color correction, filters, and non-destructive editing.                                                          |
-| 7   | **Photo Watermarking**             | Visual Identity & Export | Adds customizable location names, timestamps, weather information, or journey stamps to exported photos.                                                                |
-| 8   | **Metadata Management**            | Data Architecture        | Stores photo timestamps, approximate locations, visited landmarks, and editing information for album organization.                                                      |
-| 9   | **Journey Tracking**               | Session Lifecycle        | Records visited destinations and saves unfinished exploration sessions so users can continue later.                                                                     |
-| 10  | **Album and Recap Generation**     | Memory & Summaries       | Organizes photographs and journey information into destination-based and monthly recaps.                                                                                |
-| 11  | **Responsive Mobile UI/UX Design** | Client Interface         | Creates an accessible, mobile-first interface suitable for outdoor exploration.                                                                                         |
-| 12  | **Privacy-Aware Design**           | Security & Privacy       | Maximizes user comfort by operating on area presence only; avoids storing exact coordinates or monitoring travel paths.                                                 |
+| #  | Method / Technique                 | Category                 | Description & Purpose                                                                                                                                                                                                                                                                                                |
+| -- | ---------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **GPS Geofencing**                 | Geospatial Awareness     | Detects when users enter or leave the defined geographical area of a landmark (binary presence check) without tracking exact coordinates or continuous movement trails.                                                                                                                                              |
+| 2  | **Location-Based Services**        | Local Discovery          | Provides nearby destinations, cultural information, and events based on the user's current location.                                                                                                                                                                                                                 |
+| 3  | **Event Data Aggregation**         | Data Ingestion           | Collects event information from selected official websites and trusted public sources.                                                                                                                                                                                                                               |
+| 4  | **Deterministic Event Parsing**    | Data Processing          | Uses JSON-LD, RSS, CSS selectors, and date-parsing rules to extract event names, dates, locations, and descriptions from approved sources.                                                                                                                                                                           |
+| 5  | **Landmark Image Classification**  | Computer Vision          | Recognizes a supported primary landmark from a submitted photo and returns `landmarkId`, confidence, or `UNKNOWN`.                                                                                                                                                                                                   |
+| 6  | **Historical RAG**                 | Generative AI (Model 2)  | Answers historical questions only from verified sources: the backend embeds the question, retrieves the closest chunks from `pgvector` filtered by `destinationId` (heritage preview) or the recognized `landmarkId` (landmark info), and the generator replies with citations or declines when evidence is missing. |
+| 7  | **Digital Image Processing**       | Media Processing         | Supports cropping, straightening, exposure adjustment, color correction, filters, and non-destructive editing.                                                                                                                                                                                                       |
+| 8  | **Photo Watermarking**             | Visual Identity & Export | Adds customizable location names, timestamps, weather information, or journey stamps to exported photos.                                                                                                                                                                                                             |
+| 9  | **Metadata Management**            | Data Architecture        | Stores photo timestamps, approximate locations, visited landmarks, and editing information for album organization.                                                                                                                                                                                                   |
+| 10 | **Journey Tracking**               | Session Lifecycle        | Records visited destinations and saves unfinished exploration sessions so users can continue later.                                                                                                                                                                                                                  |
+| 11 | **Heritage Rewards**               | Engagement & Rewards     | Shows the user's stamp collection when a visit ends, then grants a Journey Stamp badge and a random gift from the heritage site once every heritage the user marked has been unlocked.                                                                                                                               |
+| 12 | **Album and Recap Generation**     | Memory & Summaries       | Organizes photographs and journey information into destination-based and monthly recaps.                                                                                                                                                                                                                             |
+| 13 | **Responsive Mobile UI/UX Design** | Client Interface         | Creates an accessible, mobile-first interface suitable for outdoor exploration.                                                                                                                                                                                                                                      |
 
 ---
 
@@ -290,16 +291,18 @@ Recap
 
 ## 11. Expected outcomes
 
-The project delivers the 8 concrete deliverables stated in the proposal:
+The project delivers the 10 deliverables stated in the proposal:
 
 1. **Mobile Application:** A responsive mobile application that enables users to freely discover Hanoi's landmarks, heritage sites, and scenic locations.
-2. **GPS-Based Destination Detection:** Automated geofence detection that recognizes arrival and displays location-relevant cultural insights.
-3. **Landmark Recognition & Historical RAG:** Two AI capabilities classify supported landmarks and provide source-grounded historical answers.
+2. **GPS-Based Destination Detection:** Automated geofence detection that recognizes arrival, unlocks marked heritages, and displays location-relevant cultural insights without tracking continuous movement.
+3. **Landmark Recognition & Historical RAG:** Two AI capabilities classify supported landmarks and provide source-grounded historical answers, on every heritage preview and for landmarks identified on site.
 4. **Cultural Event Discovery:** An aggregated feed presenting ongoing and upcoming cultural activities, exhibitions, and festivals across Hanoi.
-5. **Journey Albums:** Structured digital albums preserving user photos, visited locations, timestamps, and exploration progress.
-6. **Customizable Journey Stamps & Watermarks:** Flexible location names, timestamps, weather overlays, and commemorative stamps on exported photos.
-7. **Personalized Destination & Monthly Recaps:** Curated visual recaps preserving exploration memories and encouraging rediscovery.
-8. **Interactive Cultural Engagement:** A more engaging and interactive medium to learn about Hanoi's history, culture, and urban landscape through photography.
+5. **Heritage Rewards:** Self-marked heritages with a stamp collection, and a Journey Stamp badge and random gift when every marked heritage is unlocked.
+6. **Documented Security Baseline:** Threat modeling, access control, hardened photo upload, and location/EXIF privacy, with test evidence (see [SECURITY.md](SECURITY.md)).
+7. **Journey Albums:** Structured digital albums preserving user photos, visited locations, timestamps, and exploration progress.
+8. **Customizable Journey Stamps & Watermarks:** Flexible location names, timestamps, weather overlays, and commemorative stamps on exported photos.
+9. **Personalized Destination & Monthly Recaps:** Curated visual recaps preserving exploration memories and encouraging rediscovery.
+10. **Interactive Cultural Engagement:** A more engaging and interactive medium to learn about Hanoi's history, culture, and urban landscape through photography.
 
 ---
 
