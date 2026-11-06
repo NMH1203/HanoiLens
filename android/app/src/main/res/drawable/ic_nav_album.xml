@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Back card -->
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M6,17H4A2,2 0 0,1 2,15V5A2,2 0 0,1 4,3H14A2,2 0 0,1 16,5V7" />
+    <!-- Front card -->
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8,7H20A2,2 0 0,1 22,9V19A2,2 0 0,1 20,21H8A2,2 0 0,1 6,19V9A2,2 0 0,1 8,7Z" />
+    <!-- Mountain landscape inside front card -->
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M7,18L11,13L15,17L18,14L21,18" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,10.5A1.5,1.5 0 1,0 11,7.5A1.5,1.5 0 0,0 11,10.5Z" />
+</vector>

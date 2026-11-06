@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_explore">
+
+    <fragment
+        android:id="@+id/nav_explore"
+        android:name="vn.edu.usth.hanoilens.ui.explore.ExploreHomeFragment"
+        android:label="@string/nav_explore" />
+
+    <fragment
+        android:id="@+id/nav_map"
+        android:name="vn.edu.usth.hanoilens.ui.map.CombinedMapFragment"
+        android:label="@string/nav_map" />
+
+    <fragment
+        android:id="@+id/nav_camera"
+        android:name="vn.edu.usth.hanoilens.ui.camera.CameraCaptureFragment"
+        android:label="@string/nav_camera" />
+
+    <fragment
+        android:id="@+id/nav_album"
+        android:name="vn.edu.usth.hanoilens.ui.journal.TravelJournalFragment"
+        android:label="@string/nav_album" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="vn.edu.usth.hanoilens.ui.auth.ProfileFragment"
+        android:label="@string/nav_profile" />
+</navigation>

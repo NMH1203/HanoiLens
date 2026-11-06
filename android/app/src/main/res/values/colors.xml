@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#8B0000</color> <!-- Hanoi Heritage Red -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="surface">#FFF8F6</color>
+    <color name="on_surface">#231919</color>
+
+    <!-- Bottom Navigator Colors (Figma Design) -->
+    <color name="nav_active_coral">#FF725E</color>
+    <color name="nav_active_icon">#FFFFFFFF</color>
+    <color name="nav_inactive_icon">#222B45</color>
+    <color name="nav_inactive_text">#718096</color>
+    <color name="nav_pill_bg">#FFFFFF</color>
+    <color name="nav_inactive_icon_bg">#FFF5E8</color>
+</resources>

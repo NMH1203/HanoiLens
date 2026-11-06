@@ -140,9 +140,36 @@ The MVP uses a signed access JWT and a rotating opaque refresh token. Access tok
 
 Creates a `USER` account from an allowlisted registration DTO. Clients cannot assign roles or account status.
 
+**Request**
+
+```json
+{
+  "displayName": "Minh Hoang",
+  "email": "user@example.com",
+  "password": "user-supplied-secret"
+}
+```
+
+The registration request does not accept a role or account status. The Android client models these fields in `RegisterRequest`.
+
 ### `POST /auth/login`
 
 Validates credentials and returns an access token, its expiry, and a refresh token. Authentication failures return one generic message and are strictly rate-limited.
+
+**Response `200`** (also returned by a successful refresh):
+
+```json
+{
+  "data": {
+    "tokenType": "Bearer",
+    "accessToken": "<short-lived-access-token>",
+    "refreshToken": "<rotating-refresh-token>",
+    "expiresIn": 900
+  }
+}
+```
+
+`expiresIn` is the access-token lifetime in seconds.
 
 ### `POST /auth/refresh`
 

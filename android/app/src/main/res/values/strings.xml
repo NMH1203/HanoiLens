@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Hanoi Lens</string>
+
+    <!-- [Chung / Navigation] -->
+    <string name="nav_explore">Khám phá</string>
+    <string name="nav_map">Bản đồ</string>
+    <string name="nav_camera">Camera</string>
+    <string name="nav_album">Album</string>
+    <string name="nav_profile">Hồ sơ</string>
+    <string name="nav_events">Sự kiện</string>
+    <string name="nav_journal">Nhật ký</string>
+    <string name="nav_selected_accessibility">%1$s, đã chọn</string>
+    <string name="explore_loading">Đang tải địa điểm…</string>
+    <string name="explore_load_error">Không thể làm mới danh sách địa điểm.</string>
+
+    <!-- [Hoàng] -->
+
+    <!-- [Ninh] -->
+
+    <!-- [Hiền Anh] -->
+
+    <!-- [Lương] -->
+
+    <!-- [Quỳnh Anh] -->
+
+    <!-- [Duy] -->
+
+    <!-- [Tiệp] -->
+</resources>
