@@ -206,7 +206,10 @@ For each private resource endpoint, the reusable test template (`T13`) must veri
 - Inspect structured logs during nearby search (`T16`), arrival checks (`T18`), uploads (`T26`), and exports (`T40`) for prohibited values (`T43`).
 - Verify User B cannot infer User A's location through filenames, object keys, URLs, error messages, or album metadata (`T43`).
 
----
+- Inspect generated files with an EXIF reader and assert that GPS/device fields are absent.
+- Verify every location-precision option against API responses, stamps, recap assets, and exports.
+- Inspect structured logs during nearby search, arrival checks, walking routes, uploads, and exports for prohibited values, and check that requests to the routing engine carry no user identifier.
+- Verify User B cannot infer User A's location through filenames, object keys, URLs, error messages, or album metadata.
 
 ## 7. Security acceptance criteria for the MVP
 

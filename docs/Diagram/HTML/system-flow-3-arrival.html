@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mark, arrive and unlock</title>
+  <title>Arrive and unlock</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,11 +21,11 @@
 <body>
   <div class="frame">
     <p class="eyebrow">System flow 3/5 · Hanoi Lens</p>
-    <h1>Mark, arrive and unlock</h1>
+    <h1>Arrive and unlock</h1>
     <div class="diagram-container">
       <svg viewBox="0 0 720 1080" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-flow-3-arrival-title system-flow-3-arrival-desc">
-        <title id="system-flow-3-arrival-title">Mark, arrive and unlock</title>
-        <desc id="system-flow-3-arrival-desc">System flow that saves the marked heritage in the journey, reads GPS on the device, runs the server arrival check, unlocks the heritage while discarding raw coordinates, and opens the heritage explore page.</desc>
+        <title id="system-flow-3-arrival-title">Arrive and unlock</title>
+        <desc id="system-flow-3-arrival-desc">System flow with no marking step: optional directions, GPS read on the device, a silent server arrival check near any published heritage, then the heritage is unlocked, its visit started and its heritage stamp collected while raw coordinates are discarded, and the heritage explore page opens.</desc>
         <defs>
           <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
@@ -33,15 +33,14 @@
         </defs>
         <rect width="100%" height="100%" fill="#f5f5f5"/>
         <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
-<rect x="68" y="40" width="512" height="312" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
-<text x="80" y="58" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">PLAN</text>
+<rect x="96" y="40" width="484" height="248" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="108" y="58" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">GO</text>
 <rect x="52" y="376" width="528" height="612" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
 <text x="64" y="394" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">ARRIVAL CHECK</text>
-<path d="M 200 120 L 200 168" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M 200 216 L 200 260" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M 284 296 L 400 296" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M 200 332 L 200 408" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M 480 320 L 480 412 Q 480 420 472 420 L 280 420" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 200 120 L 200 196" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 284 232 L 400 232" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 200 268 L 200 408" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 480 256 L 480 412 Q 480 420 472 420 L 280 420" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 200 456 L 200 504" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 200 552 L 200 604" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 284 640 L 400 640" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -49,28 +48,26 @@
 <path d="M 200 676 L 200 728" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 200 776 L 200 824" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 200 872 L 200 920" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
-<rect x="327.7" y="276" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
-<text x="342" y="285" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
-<rect x="208" y="364" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
-<text x="219.2" y="373" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
+<rect x="327.7" y="212" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
+<text x="342" y="221" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
+<rect x="208" y="332" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
+<text x="219.2" y="341" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
 <rect x="330.8" y="620" width="22.4" height="12" rx="2" fill="#f5f5f5"/>
 <text x="342" y="629" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">NO</text>
 <rect x="208" y="696" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
 <text x="222.3" y="705" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
 <rect x="116" y="72" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
 <text x="200" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Heritage preview</text>
-<text x="200" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">user marks it · 2/5</text>
-<rect x="88" y="168" width="224" height="48" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
-<text x="200" y="190" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Save mark in journey</text>
-<text x="200" y="204" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">create ACTIVE journey if none</text>
-<polygon points="200,260 284,296 200,332 116,296" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
-<text x="200" y="293" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Directions</text>
-<text x="200" y="307" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">requested?</text>
-<rect x="400" y="272" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
-<text x="480" y="300" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show route on map</text>
+<text x="200" y="108" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">user wants to go · 2/5</text>
+<polygon points="200,196 284,232 200,268 116,232" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="200" y="229" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Directions</text>
+<text x="200" y="243" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">requested?</text>
+<rect x="400" y="208" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="480" y="230" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">In-app directions</text>
+<text x="480" y="244" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">walking route on the device</text>
 <rect x="120" y="408" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="200" y="430" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Read GPS location</text>
-<text x="200" y="444" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">on the device</text>
+<text x="200" y="444" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">on the device · any heritage</text>
 <rect x="72" y="504" width="256" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="200" y="526" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Arrival check</text>
 <text x="200" y="540" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">POST /destinations/{id}/arrival-checks</text>
@@ -78,11 +75,11 @@
 <text x="200" y="637" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Inside the</text>
 <text x="200" y="651" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">heritage zone?</text>
 <rect x="400" y="616" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
-<text x="480" y="638" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show distance</text>
-<text x="480" y="652" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">wait for next position</text>
+<text x="480" y="638" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Re-check silently</text>
+<text x="480" y="652" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">no status on screen</text>
 <rect x="80" y="728" width="240" height="48" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
-<text x="200" y="750" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Record arrival + unlock</text>
-<text x="200" y="764" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">discard raw coordinates</text>
+<text x="200" y="750" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Unlock + heritage stamp</text>
+<text x="200" y="764" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">start visit · discard coordinates</text>
 <rect x="120" y="824" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="200" y="852" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Load heritage detail</text>
 <rect x="108" y="920" width="184" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>

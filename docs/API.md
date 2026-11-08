@@ -4,7 +4,7 @@
 
 This document defines the proposed HTTP API for the Hanoi Lens MVP. It is a contract for the native Android client and future administrative tools; it does not claim that the backend endpoints already exist.
 
-The API covers authentication, profiles, destinations, geofence arrival checks, events, visits, photos, editing, albums, recaps, and exports. Administrative ingestion and moderation endpoints are listed separately.
+The API covers authentication, profiles, destinations, geofence arrival checks, in-app walking routes, events, visits, photos, editing, albums, recaps, and exports. Administrative ingestion and moderation endpoints are listed separately.
 
 ## 2. Conventions
 
@@ -105,7 +105,7 @@ The client must send one stable `Idempotency-Key` for each intended create or co
 - Same key and different request: `422 IDEMPOTENCY_KEY_REUSED`.
 - Same key while the first request is running: `409 REQUEST_IN_PROGRESS` with `Retry-After`.
 
-The key is required on visit creation or ending, upload creation or completion, recap regeneration, and export creation.
+The key is required on visit creation or ending, upload creation or completion, recap regeneration, album creation, and export creation.
 
 ## 3. Shared types
 
@@ -195,6 +195,7 @@ Returns the authenticated user and profile.
     "email": "user@example.com",
     "locale": "vi-VN",
     "defaultLocationPrecision": "DESTINATION",
+    "autoJourneyAlbum": true,
     "createdAt": "2026-10-10T08:30:00Z"
   }
 }
@@ -210,9 +211,12 @@ Updates only supplied profile fields.
 {
   "displayName": "Hoang",
   "locale": "vi-VN",
-  "defaultLocationPrecision": "DISTRICT"
+  "defaultLocationPrecision": "DISTRICT",
+  "autoJourneyAlbum": false
 }
 ```
+
+`autoJourneyAlbum` (default `true`) controls the automatic journey album: when `true`, ending a visit generates the destination recap that the journal shows as "Album tự động"; when `false`, no automatic album is generated and the user builds albums manually.
 
 **Response:** `200` with the updated user object.
 
@@ -379,6 +383,45 @@ Lists published events ordered by `startsAt`, then `id`.
 - `destinationId`
 - `search`
 
+### `POST /routes/walking`
+
+In-app walking directions to a heritage or an event venue (team decision 2026-11-07, ARCHITECTURE ADR 012). The backend proxies the request to the routing engine so the engine never sees the user's identity, device, or token. Authentication is required. The origin travels in the body, never in the URL or query string, and is neither stored nor logged; the response is not cached server-side.
+
+**Request**
+
+```json
+{
+  "origin": { "latitude": 21.0302, "longitude": 105.8366 },
+  "accuracyMeters": 20,
+  "target": { "type": "DESTINATION", "id": "dst_van_mieu" }
+}
+```
+
+- `target.type` is `DESTINATION` or `EVENT`; the server resolves the target position (destination entrance or event venue). Clients cannot send a free target coordinate, so the endpoint is not a general routing proxy.
+- An unpublished or unknown target returns `404`. An origin farther than the configured service radius from the target (default 30 km) returns `422 ORIGIN_OUT_OF_RANGE`.
+
+**Response `200`**
+
+```json
+{
+  "data": {
+    "mode": "WALKING",
+    "distanceMeters": 1200,
+    "durationSeconds": 1080,
+    "geometry": { "type": "LineString", "coordinates": [[105.8366, 21.0302], [105.8352, 21.0288]] },
+    "steps": [
+      { "maneuver": "TURN_LEFT", "instruction": "Rẽ trái vào phố Văn Miếu", "streetName": "Văn Miếu", "distanceMeters": 200 }
+    ],
+    "attribution": "© OpenStreetMap contributors"
+  }
+}
+```
+
+- `geometry` is GeoJSON (SRID 4326, `[longitude, latitude]`). `maneuver` values: `DEPART`, `STRAIGHT`, `TURN_LEFT`, `TURN_RIGHT`, `SLIGHT_LEFT`, `SLIGHT_RIGHT`, `U_TURN`, `ARRIVE`.
+- Following the route, the next-turn card, and off-route detection run on the device; the client calls again only to re-route (Location rate-limit group).
+- No path found returns `422 ROUTE_NOT_FOUND` (the client shows the straight-line distance); routing engine down returns `503 ROUTING_UNAVAILABLE` with `Retry-After`.
+- Arrival is still decided by `POST /destinations/{destinationId}/arrival-checks`, never by reaching the end of the route.
+
 ### `GET /events/nearby`
 
 Lists events near a point.
@@ -399,11 +442,9 @@ Clients must display the event source and verification time because schedules ma
 ACTIVE -> PAUSED -> ACTIVE
 ACTIVE -> ENDED
 PAUSED -> ENDED
-ACTIVE -> CANCELLED
-PAUSED -> CANCELLED
 ```
 
-`ENDED` and `CANCELLED` are terminal. The MVP permits at most one `ACTIVE` or `PAUSED` visit per user.
+`ENDED` is terminal; there is no cancelled state (ADR 011). A visit covers one heritage. The MVP permits at most one `ACTIVE` or `PAUSED` visit per user.
 
 ### Visit representation
 
@@ -418,7 +459,8 @@ PAUSED -> CANCELLED
   "startedAt": "2026-10-10T08:35:00Z",
   "pausedAt": null,
   "endedAt": null,
-  "visitedLandmarkCount": 1,
+  "unlockedLandmarkCount": 1,
+  "landmarkCount": 10,
   "photoCount": 3,
   "locationPrecision": "DESTINATION",
   "createdAt": "2026-10-10T08:35:00Z",
@@ -428,7 +470,7 @@ PAUSED -> CANCELLED
 
 ### `POST /visits`
 
-Starts a visit. Requires `Idempotency-Key`.
+Starts a visit and unlocks the heritage. Requires `Idempotency-Key`. The client calls it automatically after an arrival check at any published heritage returns `INSIDE` with `canStartVisit: true`; there is no marking step (ADR 011). The first visit to a heritage also collects its heritage stamp; the response includes `stampCollected` (`null` if the user already had it).
 
 **Request**
 
@@ -468,7 +510,7 @@ Changes `PAUSED` to `ACTIVE`. Requires `Idempotency-Key`.
 
 ### `POST /visits/{visitId}/end`
 
-Ends the visit and creates a pending recap. Requires `Idempotency-Key`.
+Ends the visit and, when the profile setting `autoJourneyAlbum` is `true`, creates a pending recap (the automatic journey album). Requires `Idempotency-Key`. When the setting is `false`, the response has `"recap": null`.
 
 **Request**
 
@@ -497,25 +539,32 @@ Ends the visit and creates a pending recap. Requires `Idempotency-Key`.
 }
 ```
 
-### `POST /visits/{visitId}/cancel`
-
-Cancels an active or paused visit. Requires `Idempotency-Key`. Existing photos remain private and can be retained or deleted by explicit user action.
-
 ### `PUT /visits/{visitId}/landmarks/{landmarkId}`
 
-Idempotently marks a landmark as visited.
+Unlocks a landmark of the visit's heritage after a confident recognition and collects its landmark stamp. Idempotent.
 
 **Request**
 
 ```json
 {
-  "visitedAt": "2026-10-10T09:00:00Z"
+  "recognitionId": "rec_01..."
 }
 ```
 
-Repeated requests return the existing record with `200`.
+Rules:
+
+- `recognitionId` must be a `RECOGNIZED` result of `POST /ai/recognize-landmark` for this `landmarkId`, on a photo owned by the current user and taken in this visit. Otherwise `422 RECOGNITION_REQUIRED`. A recognition or visit of another user returns `404`.
+- The landmark must belong to the visit's destination (`422 VALIDATION_ERROR`).
+- The response returns the unlocked landmark and `stampCollected` (`null` when the stamp was already collected). Repeated requests return the existing record with `200`.
+- An unlocked landmark stays unlocked for the user in later visits; its landmark info and stamp remain available.
+
+### `GET /me/stamps`
+
+Returns the user's stamp collection grouped by destination: for each destination the heritage stamp and every landmark stamp with `collected`, `collectedAt`, and `artworkUrl`. Owner only. Stamps are collectibles; there are no badges or gifts (ADR 011).
 
 ## 8. Media and photos
+
+Every photo the user captures during a visit (or on an event memory page) is uploaded and kept in the user's private journal automatically. There is no separate "save to journal" step; the user removes a photo with `DELETE /photos/{photoId}`.
 
 ### Upload constraints
 
@@ -616,13 +665,33 @@ Creates a non-destructive edit variant. Requires `Idempotency-Key`.
     "shadows": 0.1,
     "temperature": 0.05
   },
-  "recipe": "HANOI_FILM"
+  "colorPreset": "HANOI_FILM",
+  "stickers": [
+    { "stickerId": "stk_text_hanoi_heart", "x": 0.06, "y": 0.05, "scale": 1.0, "rotationDegrees": 6 },
+    { "stickerId": "stk_stamp_lmk_khue_van_cac", "x": 0.70, "y": 0.06, "scale": 0.9, "rotationDegrees": 0 },
+    { "stickerId": "stk_date", "x": 0.05, "y": 0.86, "scale": 1.0, "rotationDegrees": 0, "text": "07 · 11 · 2026" }
+  ],
+  "captions": [
+    { "text": "Một sáng ở Văn Miếu", "fontId": "fnt_handwriting_brush", "color": "#FFF8F1", "x": 0.08, "y": 0.78, "scale": 1.0, "rotationDegrees": -3 }
+  ]
 }
 ```
 
 Normalized values are validated against documented ranges in the OpenAPI schema.
 
-**Response:** `202` with a `PhotoVariant` in `PENDING` state.
+`colorPreset` is one of the ready-made nostalgic colour presets from `GET /edit-presets` (applied before manual `adjustments`). `captions` are handwritten-style text layers: `text` max 80 characters, `fontId` from `GET /edit-presets`, at most 5 captions per edit, same position rules as stickers.
+
+Stickers are an ordered layer of the edit recipe; the original photo is never modified. Each sticker has a `stickerId` from `GET /stickers`, a normalized position (`x`, `y` in 0–1 of the edited image), `scale` (0.2–3), `rotationDegrees` (−180–180), and an optional `text` (max 40 characters) for stickers whose catalogue entry allows text. At most 20 stickers per edit. A landmark stamp sticker is accepted only if the user has unlocked that landmark; otherwise the request fails with `422 STICKER_NOT_AVAILABLE`. The rendered variant and every export built from it strip GPS and device EXIF.
+
+### `GET /stickers`
+
+Returns the ready-made sticker catalogue for the photo editor: `id`, `type` (`STAMP`, `POSTMARK`, `DATE`, `TEXT`, `HEART`, `BADGE`), `imageUrl`, `allowsText`, and, for landmark stamps, `landmarkId` plus `available` (whether the current user has unlocked that landmark). Cacheable; the catalogue changes only through admin releases.
+
+### `GET /edit-presets`
+
+Returns the editor's ready-made `colorPresets` (`id`, `name`, `previewUrl`; nostalgic looks such as `HANOI_FILM`, `SEPIA_1990`, `FADED_POSTCARD`) and `captionFonts` (`id`, `name`, `previewUrl`; handwriting styles with full Vietnamese diacritics). Cacheable.
+
+The `POST /photos/{photoId}/edits` **response** is `202` with a `PhotoVariant` in `PENDING` state.
 
 ### `DELETE /photos/{photoId}`
 
@@ -630,13 +699,65 @@ Deletes a photo owned by the current user. Returns `204`. Deletion is idempotent
 
 ## 9. Albums and recaps
 
+Two album kinds exist. `DESTINATION` albums are derived automatically from the user's visits; the recap created when a visit ends (`POST /visits/{visitId}/end`, if the profile setting `autoJourneyAlbum` is `true`) is the automatic journey album shown in the journal ("Album tự động"), composed from the visit's sharpest, non-duplicate photos. The user can keep it as is, or turn it into an editable `JOURNEY` album with `POST /albums` using its photos. `JOURNEY` albums are created by the user from photos they choose from one journey (one or more of their own visits), in a chosen layout. Both are private to their owner.
+
 ### `GET /albums`
 
-Lists destination albums derived from the user's visits. Supports `cursor`, `limit`, and `destinationId`.
+Lists the user's albums. Supports `cursor`, `limit`, `destinationId`, `kind` (`DESTINATION` or `JOURNEY`), and `status`.
+
+### `POST /albums`
+
+Creates a `JOURNEY` album from photos the user selected. Requires `Idempotency-Key`. Album composition runs asynchronously; the client polls `GET /albums/{albumId}`.
+
+**Request**
+
+```json
+{
+  "title": "Một sáng ở Văn Miếu",
+  "visitIds": ["vst_01..."],
+  "photoIds": ["pht_01...", "pht_02...", "pht_05..."],
+  "layout": "TIMELINE",
+  "locationPrecision": "DESTINATION"
+}
+```
+
+Rules:
+
+- `visitIds`: 1–10 visits owned by the current user. Visits may be at different heritages, so one album can mix photos from several heritages (team decision 2026-11-06).
+- `photoIds`: 1–50 photos owned by the current user. Each photo must belong to one of `visitIds`. Order in the request is ignored for `TIMELINE` and `BY_DESTINATION` and kept for `POSTCARD` and `FILM`.
+- `layout`: `TIMELINE`, `BY_DESTINATION`, `POSTCARD`, or `FILM`.
+- `locationPrecision`: `NONE`, `DESTINATION`, or `DISTRICT`. Must not exceed any selected photo's permitted precision. Album assets never carry GPS or device EXIF.
+- A visit or photo that does not exist or belongs to another user returns `404`, without revealing which ID failed. A photo outside the listed visits returns `422 VALIDATION_ERROR`.
+- The `recap` module checks visit and photo ownership through the published application services of the `visit` and `media` modules.
+
+**Response `202`**
+
+```json
+{
+  "data": {
+    "id": "alb_01...",
+    "kind": "JOURNEY",
+    "status": "PENDING",
+    "statusUrl": "/v1/albums/alb_01..."
+  }
+}
+```
 
 ### `GET /albums/{albumId}`
 
-Returns album metadata, visits, and ordered photo summaries.
+Returns album metadata, visits, and ordered photo summaries. For `JOURNEY` albums it also returns `status` (`PENDING`, `PROCESSING`, `READY`, `FAILED`), `layout`, `locationPrecision`, and, when ready, `sections`: each section has a `destination` (name only), the first `capturedAt`, and ordered photos with short-lived signed `imageUrl` values.
+
+### `PATCH /albums/{albumId}`
+
+Updates `title`, `layout`, or the ordered `photoIds` of a `JOURNEY` album. A layout or photo change returns `202` and recomposes the album. `DESTINATION` albums are read-only (`409 ALBUM_READ_ONLY`).
+
+### `DELETE /albums/{albumId}`
+
+Deletes a `JOURNEY` album and its derived assets. Original photos are never deleted. Returns `204`.
+
+### `POST /albums/{albumId}/exports`
+
+Exports a `READY` album for download. Requires `Idempotency-Key`. Request: `{ "format": "JPEG_ZIP" | "PDF" }`. Returns `202` with an export ID; the client polls `GET /exports/{exportId}`. Exported files have GPS and device EXIF stripped and show location only at the album's `locationPrecision`.
 
 ### `GET /recaps`
 
@@ -714,7 +835,7 @@ The backend must reject a request that attempts to include location detail beyon
 
 ## 11. Landmark recognition and historical RAG
 
-The heritage preview exposes the historical RAG entry point by default. On site, the visit map has no direct AI entry: the client opens the chat from the landmark info screen after a `RECOGNIZED` result. If AI inference is unavailable, static cultural content remains usable and the client reports the assistant as temporarily unavailable.
+The heritage preview exposes the historical RAG entry point by default. On site, the chat is the AI tab of the heritage explore page, scoped to the heritage and the landmarks the user has unlocked there; landmark info opens the same chat focused on that landmark. The visit map has no AI button. If AI inference is unavailable, static cultural content remains usable and the client reports the assistant as temporarily unavailable.
 
 ### `POST /ai/recognize-landmark`
 
@@ -733,6 +854,7 @@ Runs Model 1, the landmark image classifier, against a private photo owned by th
 ```json
 {
   "data": {
+    "id": "rec_01...",
     "landmarkId": "lmk_khue_van_cac",
     "confidence": 0.96,
     "result": "RECOGNIZED"
@@ -740,14 +862,14 @@ Runs Model 1, the landmark image classifier, against a private photo owned by th
 }
 ```
 
-When confidence is below the configured threshold, `landmarkId` is `null` and `result` is `UNKNOWN`. The endpoint does not provide bounding boxes or live camera analysis.
+When confidence is below the configured threshold, `landmarkId` is `null` and `result` is `UNKNOWN`. The endpoint does not provide bounding boxes or live camera analysis. The result `id` is the `recognitionId` the client sends to `PUT /visits/{visitId}/landmarks/{landmarkId}` when the user unlocks the landmark; an `UNKNOWN` result unlocks nothing.
 
 ### `POST /ai/qa`
 
 Runs Model 2, the historical RAG capability, for a cultural question. Authentication is required and rate limits apply. Two scopes:
 
 - **Heritage preview (before travel):** `destinationId` only; `landmarkId` is omitted. Must work without any vision result.
-- **On site (from landmark info):** `destinationId` plus the `landmarkId` returned by a `RECOGNIZED` result of `POST /ai/recognize-landmark`. Retrieval is filtered by that landmark. An `UNKNOWN` result never leads here.
+- **On site (AI tab of the heritage explore page, team decision 2026-11-06):** `destinationId` of the user's visit; retrieval covers the heritage's general content plus every landmark the user has unlocked there, so the assistant learns each landmark as it is unlocked. Locked landmarks are not retrieved. When opened from landmark info, the client also sends that unlocked `landmarkId` as the focus; a locked or foreign `landmarkId` returns `422 LANDMARK_LOCKED`.
 
 **Request**
 
@@ -818,7 +940,7 @@ Exact quotas are deployment configuration, but responses use standard `RateLimit
 | Group | Example endpoints | Relative policy |
 | --- | --- | --- |
 | Public discovery | destinations and events | High |
-| Location | nearby and arrival checks | Medium per user and device |
+| Location | nearby, arrival checks, walking routes | Medium per user and device |
 | Media | uploads, edits, exports | Lower and storage-aware |
 | AI inference | landmark recognition and historical Q&A | Low and cost-aware |
 | Authentication | login and token operations | Strict per account and IP |
@@ -827,7 +949,7 @@ Exact quotas are deployment configuration, but responses use standard `RateLimit
 ## 15. Conceptual client contract examples
 
 ```ts
-type VisitStatus = "ACTIVE" | "PAUSED" | "ENDED" | "CANCELLED";
+type VisitStatus = "ACTIVE" | "PAUSED" | "ENDED";
 
 interface StartVisitInput {
   destinationId: string;
@@ -879,6 +1001,7 @@ The first backend increment should implement these endpoints before advanced edi
 - `GET /destinations/{destinationId}`
 - `GET /destinations/{destinationId}/landmarks`
 - `POST /destinations/{destinationId}/arrival-checks`
+- `POST /routes/walking`
 - `GET /events`
 - `GET /events/{eventId}`
 - `POST /visits`
@@ -888,7 +1011,6 @@ The first backend increment should implement these endpoints before advanced edi
 - `POST /visits/{visitId}/pause`
 - `POST /visits/{visitId}/resume`
 - `POST /visits/{visitId}/end`
-- `PUT /visits/{visitId}/landmarks/{landmarkId}`
 - `POST /media/uploads`
 - `POST /media/uploads/{uploadId}/complete`
 - `GET /photos/{photoId}`
@@ -897,10 +1019,13 @@ The first backend increment should implement these endpoints before advanced edi
 - `GET /albums/{albumId}`
 - `GET /recaps/{recapId}`
 
+The journey album increment (Nhật ký) adds `POST /albums`, `PATCH /albums/{albumId}`, `DELETE /albums/{albumId}`, and `POST /albums/{albumId}/exports`.
+
 After the core exploration flow is stable, the AI increment adds:
 
 - `POST /ai/recognize-landmark`
 - `POST /ai/qa`
+- `PUT /visits/{visitId}/landmarks/{landmarkId}` (needs a recognition) and `GET /me/stamps`
 
 ## 17. OpenAPI delivery requirements
 

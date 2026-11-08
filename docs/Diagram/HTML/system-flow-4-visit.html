@@ -25,7 +25,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1140 1540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="system-flow-4-visit-title system-flow-4-visit-desc">
         <title id="system-flow-4-visit-title">Heritage explore page, visit map and recognition</title>
-        <desc id="system-flow-4-visit-desc">System flow for the on-site part of a journey: the heritage explore page after unlock or resume, the visit map, photo upload with optional landmark recognition that returns UNKNOWN below threshold, Historical RAG scoped to the identified landmark, pausing, and finishing the visit.</desc>
+        <desc id="system-flow-4-visit-desc">System flow for the on-site part of a journey: the heritage explore page after unlock or resume, the visit map, photo upload with optional landmark recognition that returns UNKNOWN below threshold, landmark unlock with its stamp, Historical RAG scoped to the heritage and its unlocked landmarks (AI tab or landmark info), pausing, and finishing the visit.</desc>
         <defs>
           <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
@@ -56,6 +56,7 @@
 <path d="M 880 1048 L 880 1112" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 640 1060 L 640 1112" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 640 1160 L 640 1216" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M 760 304 L 1092 304 Q 1100 304 1100 312 L 1100 1232 Q 1100 1240 1092 1240 L 740 1240" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 640 1264 L 640 1316" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 556 1352 L 408 1352 Q 400 1352 400 1344 L 400 824" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M 724 1352 L 836 1352" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -77,6 +78,8 @@
 <text x="662.3" y="1089" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">YES</text>
 <rect x="648" y="1182" width="47.2" height="12" rx="2" fill="#f5f5f5"/>
 <text x="671.6" y="1191" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">ASK AI</text>
+<rect x="894" y="284" width="72" height="12" rx="2" fill="#f5f5f5"/>
+<text x="930" y="293" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">ASK AI TAB</text>
 <rect x="463.7" y="1332" width="28.6" height="12" rx="2" fill="#f5f5f5"/>
 <text x="478" y="1341" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">MAP</text>
 <rect x="737.8" y="1332" width="84.4" height="12" rx="2" fill="#f5f5f5"/>
@@ -91,7 +94,7 @@
 <text x="640" y="196" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Set journey ACTIVE</text>
 <rect x="520" y="276" width="240" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="640" y="302" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Render heritage explore page</text>
-<text x="640" y="316" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">history · landmarks</text>
+<text x="640" y="316" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">5 tabs incl. camera · Ask AI</text>
 <rect x="520" y="404" width="240" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="640" y="430" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Render visit map</text>
 <text x="640" y="444" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">live position on device only</text>
@@ -126,12 +129,12 @@
 <rect x="796" y="1112" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>
 <text x="880" y="1134" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Visit map</text>
 <text x="880" y="1148" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">next action</text>
-<rect x="560" y="1112" width="160" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
-<text x="640" y="1134" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Show landmark info</text>
-<text x="640" y="1148" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">set RAG context</text>
+<rect x="540" y="1112" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="640" y="1134" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Unlock landmark + stamp</text>
+<text x="640" y="1148" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">show landmark info</text>
 <rect x="540" y="1216" width="200" height="48" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="640" y="1238" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Historical RAG</text>
-<text x="640" y="1252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">scoped to landmark · citations</text>
+<text x="640" y="1252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">heritage + unlocked landmarks</text>
 <polygon points="640,1316 724,1352 640,1388 556,1352" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
 <text x="640" y="1356" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Where next?</text>
 <rect x="836" y="1328" width="168" height="48" rx="6" fill="#f5f5f5" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3"/>

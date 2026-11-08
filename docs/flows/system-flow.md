@@ -6,11 +6,11 @@ Rules this flow encodes:
 
 - Landing page only for **new** accounts; returning users go straight to the **Explore Hanoi (home)** page.
 - Two explore pages: **Explore Hanoi (home)** is app-wide; the **Heritage explore page** belongs to the heritage the user is at. Unlock and resume open the Heritage explore page first, then the visit map. Pause returns home; "continue exploring" after the reward check stays on the Heritage explore page.
-- Arrival check: coordinates are used once for the presence check, then discarded. The heritage is unlocked on arrival. Live position on the visit map stays **on the device** (BRIEF §6.2).
-- Recognition below the confidence threshold returns `UNKNOWN`; nothing is unlocked or saved as a recognized landmark (ARCHITECTURE §9.2, ADR 008).
-- Historical RAG is reachable from the heritage preview before travel; on site it is reached only from **landmark info** after a confident recognition, scoped to that landmark. It answers only with citations.
-- Journey states follow API §7: `ACTIVE ⇄ PAUSED → ENDED`.
-- Finishing a visit first loads the user's **stamp collection**, then compares marked vs unlocked heritages.
+- No marking step (team decision 2026-11-06, ADR 011). Arrival check near any published heritage: coordinates are used once for the presence check, then discarded; nothing is shown while outside (silent check). On `INSIDE` the visit starts, the heritage is unlocked and its heritage stamp collected. Live position on the visit map stays **on the device** (BRIEF §6.2).
+- Recognition below the confidence threshold returns `UNKNOWN`; nothing is unlocked. A `RECOGNIZED` result lets the user unlock the landmark (`PUT /visits/{id}/landmarks/{landmarkId}` with the `recognitionId`) and collect its stamp (ARCHITECTURE §9.2, ADR 011).
+- Historical RAG is reachable from the heritage preview before travel; on site it is the **Ask AI tab** of the heritage explore page, retrieving the heritage plus the landmarks the user has unlocked (landmark info opens it focused on that landmark). It answers only with citations.
+- Journey (visit) states follow API §7: `ACTIVE ⇄ PAUSED → ENDED`; one visit covers one heritage.
+- Finishing a visit loads the user's **stamp collection**; there is no reward check.
 
 Rendered diagrams (diagram-design; source HTML next to each PNG, generator specs in `docs/Diagram/HTML/src/`):
 
@@ -18,9 +18,9 @@ Rendered diagrams (diagram-design; source HTML next to each PNG, generator specs
 |---|---|
 | 1/5 Session and sign-in | ![](../Diagram/system-flow-1-session.png) |
 | 2/5 Discovery, preview and event memories | ![](../Diagram/system-flow-2-discover.png) |
-| 3/5 Mark, arrive and unlock | ![](../Diagram/system-flow-3-arrival.png) |
+| 3/5 Arrive and unlock | ![](../Diagram/system-flow-3-arrival.png) |
 | 4/5 Visit map, photos and recognition | ![](../Diagram/system-flow-4-visit.png) |
-| 5/5 Reward, journey end and travel journal | ![](../Diagram/system-flow-5-finish-journal.png) |
+| 5/5 Stamp collection, journey end and travel journal | ![](../Diagram/system-flow-5-finish-journal.png) |
 
 ## 1. Session, explore and discovery
 
@@ -64,28 +64,29 @@ flowchart TD
     PREVIEW["Load heritage preview<br/>content, RAG entry"]
     PREVIEW -. question .-> RAG1[Historical RAG answer with citations]
     RAG1 -.-> PREVIEW
-    PREVIEW --> WANTGO{User marks the heritage?}
+    PREVIEW --> WANTGO{User wants to go?}
     WANTGO -- No --> SHOWEX
-    WANTGO -- Yes --> MARK[[Save mark in active journey - section 2]]
+    WANTGO -- Yes --> GOTO[[Optional directions and arrival - section 2]]
 ```
 
-## 2. Journey, arrival, visit and reward
+## 2. Journey, arrival, visit and stamps
 
 ```mermaid
 flowchart TD
-    MARK["Save mark in journey<br/>create ACTIVE journey if none"] --> DIR{Directions requested?}
-    DIR -- Yes --> ROUTE[Show route on map]
+    GOTO[User wants to go] --> DIR{Directions requested?}
+    DIR -- Yes --> ROUTE[In-app walking directions on the device]
     DIR -- No --> GPS
     ROUTE --> GPS[Read GPS location on device]
-    GPS --> CHECK["Arrival check<br/>POST /destinations/id/arrival-checks"]
+    GPS --> CHECK["Arrival check near any heritage<br/>POST /destinations/id/arrival-checks"]
     CHECK --> INSIDE{Inside heritage zone?}
-    INSIDE -- No --> WAIT[Show distance, wait for next position]
+    INSIDE -- No --> WAIT[Re-check silently, no status shown]
     WAIT --> GPS
-    INSIDE -- Yes --> UNLOCK["Record arrival and unlock heritage<br/>discard raw coordinates"]
+    INSIDE -- Yes --> UNLOCK["Start visit, unlock heritage, collect heritage stamp<br/>discard raw coordinates"]
     UNLOCK --> DETAIL[Load heritage detail]
     RESUME[Resume paused journey, set ACTIVE] --> SITE
-    DETAIL --> SITE["Render heritage explore page<br/>history, landmarks"]
+    DETAIL --> SITE["Render heritage explore page<br/>info, map, camera, landmarks, Ask AI"]
     SITE -- Map --> VISIT["Render visit map<br/>live position on device only"]
+    SITE -- Ask AI tab --> RAG
 
     VISIT --> ACTION{User action?}
     ACTION -- Move --> VISIT
@@ -96,22 +97,17 @@ flowchart TD
     IDREQ -- No --> VISIT
     IDREQ -- Yes --> CLASSIFY[Landmark classifier]
     CLASSIFY --> CONF{Confidence above threshold?}
-    CONF -- Yes --> INFO[Show landmark info, set RAG context]
-    CONF -- No --> UNKNOWN[Show UNKNOWN, no landmark selected]
+    CONF -- Yes --> INFO["Unlock landmark with recognitionId<br/>collect stamp, show landmark info"]
+    CONF -- No --> UNKNOWN[Show UNKNOWN, nothing unlocked]
     UNKNOWN --> VISIT
-    INFO -- Ask AI --> RAG["Historical RAG scoped to landmark<br/>answer with citations"]
+    INFO -- Ask AI --> RAG["Historical RAG<br/>heritage + unlocked landmarks, citations"]
     RAG --> WHERE{Where next?}
     WHERE -- Map --> VISIT
     WHERE -- Explore site --> SITE
     ACTION -- Pause --> PAUSE[Set journey PAUSED, save progress]
     PAUSE --> SHOWEX[[Show Explore Hanoi home - section 1]]
     ACTION -- Finish visit --> STAMPS[Load user's stamp collection, owner only]
-    STAMPS --> COMPARE[Compare marked vs unlocked heritages]
-
-    COMPARE --> ALL{All marked heritages unlocked?}
-    ALL -- Yes --> REWARD[Grant badge and random gift, save reward]
-    ALL -- No --> CONT{User continues exploring?}
-    REWARD --> CONT
+    STAMPS --> CONT{User continues exploring?}
     CONT -- Yes --> SITE
     CONT -- No --> ENDJ[Set journey ENDED, save progress]
     ENDJ --> UPDJ[Update travel journal]
@@ -124,7 +120,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TRIPS[Load user's trips] --> READ["Read journeys, photos, rewards<br/>owner only"]
+    TRIPS[Load user's trips] --> READ["Read journeys, photos, stamps<br/>owner only"]
     READ --> SIGN[Create short-lived signed read URLs]
     SIGN --> RENDER[Render trip details and photos]
     RENDER --> DL{Download requested?}
@@ -147,3 +143,4 @@ flowchart TD
 | — | Typos "Dowload", "Unknow", "User interesting the heritage?", "Question ask?" | Corrected wording |
 | — | RAG reachable only after recognition | RAG answer available from the heritage preview, and on site after landmark info |
 | — | Team request (2026-10-22), mirrored from the user flow | Explore Hanoi (home) vs Heritage explore page; unlock/resume → Heritage explore page → visit map; no direct Ask AI on the visit map (RAG after landmark info, then Map / Explore site); Finish visit → stamp collection → compare; continue exploring → Heritage explore page; static tips removed from the preview |
+| — | Team decision (2026-11-06, ADR 011) | Marking, the marked-vs-unlocked comparison, badge and gift removed; arrival near any heritage starts the visit, unlocks it and collects its stamp; outside the zone the app re-checks silently (no distance shown); recognition unlocks a landmark with its `recognitionId` and stamp; Ask AI tab on the heritage explore page scoped to the heritage and its unlocked landmarks |
