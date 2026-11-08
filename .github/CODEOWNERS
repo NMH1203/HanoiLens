@@ -1,3 +1,13 @@
 # Code owners for Hanoi Lens
-# Mọi thay đổi trong repo đều cần @NMH1203 review.
-* @NMH1203
+
+# backend/ owner: Lê Bá Tiệp — add his GitHub username to the line below
+/backend/ @lebatiep @NMH1203
+
+# android/ owner: Lương Quỳnh Anh — add her GitHub username to the line below
+/android/ @qual05
+
+# ai-runtime/ owners: Nguyễn Minh Hoàng, Nguyễn Minh Lương
+/ai-runtime/ @NMH1203 @luongnm23ba14184-lgtm
+
+# .github/ owners: Nguyễn Minh Hoàng
+/.github/ @NMH1203

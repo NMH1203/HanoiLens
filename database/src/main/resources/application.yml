@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: hanoilens-backend
+  datasource:
+    # Defaults match backend/docker-compose.yml + .env.example (local development only).
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hanoilens}
+    username: ${DB_USER:hanoilens}
+    password: ${DB_PASSWORD:hanoilens_dev}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate        # Flyway owns the schema; Hibernate only verifies the mapping
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    problemdetails:
+      enabled: false
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+hanoilens:
+  jwt:
+    # >= 32 bytes. MUST be overridden outside local development (env JWT_SECRET).
+    secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789abcdef}
+    issuer: hanoilens
+    audience: hanoilens-android
+    access-ttl: 15m
+    refresh-ttl: 30d
+  arrival:
+    max-accuracy-meters: 50
+    nearby-threshold-meters: 100
+    max-clock-skew: 2m
+    check-ttl: 10m

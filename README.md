@@ -1,91 +1,73 @@
 # Hanoi Lens
 
-Mobile-first application for exploring Hanoi's scenic spots and landmarks through photography-led journeys.
+A privacy-aware Android app for exploring Hanoi's landmarks, heritage sites, and scenic places through photography. USTH Group Project, academic year 2025–2026.
 
-The workspace is organized into:
+Users sign in, preview heritages, and mark the ones they want to visit. When GPS confirms arrival, the heritage is unlocked and its explore page and visit map open. Every heritage preview offers a historical Q&A assistant (RAG); on site, users can photograph a landmark to identify it and ask about its history with cited sources. The app also lists cultural events in Hanoi. Photos and progress are saved in a private travel journal with journey stamps, a stamp collection, and destination or monthly recaps, and unlocking every marked heritage earns a Journey Stamp badge and a random gift. The app never prescribes routes, and users can stop at any time.
 
-- `apps/hanoi-lens`: React + Vite product prototype.
-- `docs`: product brief, diagrams, and project documentation.
-- `prototypes`: earlier static HTML/CSS exploration kept for reference.
+## Architecture
 
-See [the product brief](docs/HANOI_LENS_PRODUCT_BRIEF.md) for the current direction.
+| Part | Folder | Technology | Role |
+|---|---|---|---|
+| Android client | [`android/`](android/) | Java, XML layouts, MVVM, ViewBinding, CameraX, Retrofit/OkHttp, Room | UI, on-device location and geofence presence, photo capture and editing |
+| Backend | [`backend/`](backend/) | Java 17, Spring Boot 3.x, Spring Modulith, Spring Security (JWT), Spring Data JPA | One deployable modular monolith: REST API `/v1`, business modules, scheduled jobs, AI orchestration |
+| AI runtime | [`ai-runtime/`](ai-runtime/) | Python, FastAPI | Optional inference adapter for exactly two models: landmark image classification and historical RAG. Called only by the backend |
+| Database | — | PostgreSQL 16 + PostGIS + pgvector | Records, spatial geofences (SRID 4326), RAG vectors |
+| Object storage | — | S3-compatible (MinIO / S3) | Original photos (immutable) and derived images |
 
-Current technical documentation:
-
-- [System architecture](docs/ARCHITECTURE.md)
-- [REST API contract](docs/API.md)
-- [MVP security and privacy baseline](docs/SECURITY.md)
-- [Thành viên nhóm](docs/TEAM.md)
-
-## Ý tưởng sản phẩm hiện tại
-
-Hanoi Lens hướng người dùng tự do đi quanh Hà Nội và khám phá thành phố dưới góc nhìn của một nhiếp ảnh gia. Ứng dụng không ép người dùng đi theo tuyến đường hoặc hoàn thành một danh sách cố định.
-
-Người dùng chọn một địa điểm, xem trang thông tin rồi quyết định có muốn đến hay không. Nếu muốn đến, ứng dụng mở bản đồ chỉ đường; GPS chỉ dùng để xác nhận khi người dùng đã vào vùng địa danh. Tại đó, người dùng có thể chủ động bắt đầu khám phá, tự do đi lại, chụp ảnh và kết thúc bất cứ lúc nào.
-
-Mỗi trang địa điểm luôn có lối vào trợ lý Historical RAG và gợi ý chụp đẹp theo góc chụp, bố cục, ánh sáng và thời điểm. Đây là nội dung hướng dẫn tĩnh có thể dùng ngay cả khi AI tạm thời không hoạt động; ứng dụng không phân tích camera theo thời gian thực.
-
-### Album hành trình
-
-Ảnh, địa điểm đã ghé và tiến trình của mỗi lần khám phá được lưu thành một album hành trình. Người dùng có thể xem album sau khi kết thúc mà không bị ứng dụng tự động chuyển sang trang recap.
-
-Album có thể bao gồm:
-
-- Địa danh và các khu vực đã ghé.
-- Ngày giờ bắt đầu và kết thúc.
-- Những bức ảnh được chụp trong chuyến đi.
-- Kỹ thuật chụp hoặc xử lý ảnh đã sử dụng.
-- Ghi chú và cảm xúc của người dùng.
-- Recap theo địa danh hoặc theo tháng.
-
-### Dấu hành trình — Journey Stamp
-
-Ảnh trong album có thể được gắn một lớp thông tin trực quan gọi là **Dấu hành trình**. Đây là dạng `photo watermark`, `timestamp overlay` hoặc `location stamp` được thiết kế theo phong cách Hanoi Lens.
-
-Dấu hành trình có thể chứa:
-
-- Tên địa danh.
-- Quận hoặc khu vực.
-- Ngày và giờ chụp.
-- Thời tiết.
-- Tọa độ hoặc vị trí gần đúng.
-- Tên chuyến khám phá.
-- Logo hoặc nhận diện Hanoi Lens.
-
-Ví dụ:
-
-```text
-VĂN MIẾU – QUỐC TỬ GIÁM
-Đống Đa, Hà Nội
-07:42 · 01.10.2026
-Hanoi Lens
+```mermaid
+flowchart LR
+    APP["Android app"] -->|"HTTPS REST /v1"| BE["Spring Boot Modulith<br/>one JVM, one deployment"]
+    APP -->|"presigned PUT"| OBJ[("Object storage")]
+    BE --> DB[("PostgreSQL<br/>PostGIS + pgvector")]
+    BE --> OBJ
+    BE -->|"inference over HTTP"| AI["AI runtime<br/>FastAPI"]
 ```
 
-Người dùng có thể lựa chọn nhiều phong cách dấu khác nhau:
+The backend has seven in-process modules in `vn.edu.usth.hanoilens.modules.*`: `identity`, `profile`, `destination`, `event`, `visit`, `media`, `recap`. They are source-code boundaries, not separate services; each table has one owning module. Background work runs in-process (Modulith events, `@Scheduled`); there is no message broker.
 
-- Minimal: chỉ tên địa danh và ngày.
-- Postcard: trình bày như một tấm bưu thiếp.
-- Film frame: thông tin nằm trên viền phim.
-- Map stamp: có bản đồ hoặc tọa độ nhỏ.
-- Heritage stamp: thiết kế riêng theo từng di tích.
-- Weather stamp: thêm nhiệt độ và thời tiết.
+Privacy rules: no continuous GPS trails, exact coordinates are discarded after the arrival check, original photos are immutable, and GPS/device EXIF is stripped from every derived or shared image.
 
-Ảnh gốc luôn được giữ nguyên. Dấu hành trình chỉ được áp dụng trên phiên bản dùng trong album hoặc khi người dùng xuất và chia sẻ ảnh.
+## MVP scope
 
-Vì lý do riêng tư, người dùng được lựa chọn mức độ hiển thị vị trí:
+- Required sign in / sign up; JWT access tokens with rotating refresh tokens and ownership checks on private data.
+- Destination browsing, a combined map of heritages and events, and a detailed pilot destination with landmarks.
+- Heritage preview with the historical RAG assistant (static fallback when AI is unavailable).
+- Self-marked heritages, GPS geofence arrival that unlocks the heritage, heritage explore page, and on-device visit map.
+- Photo capture and hardened presigned upload; landmark classification with an `UNKNOWN` fallback, then landmark info and AI chat scoped to that landmark.
+- Non-destructive photo editing (crop, straighten, brightness, contrast, filters) and Journey Stamp watermarks.
+- Visit lifecycle: start, pause, resume, finish; stamp collection, then Journey Stamp badge and random gift when every marked heritage is unlocked.
+- Travel journal with photos, timestamps, visited landmarks, destination recap, and photo download.
+- Curated cultural event feed (deterministic parsers, admin review) and an event memory page.
+- User-selectable location privacy, automated EXIF/location-leak checks, threat model and security test evidence.
+- Simulator mode for location testing and demos.
 
-- Chỉ hiển thị tên địa danh.
-- Chỉ hiển thị quận hoặc khu vực.
-- Hiển thị tọa độ gần đúng.
-- Hiển thị tọa độ chính xác.
-- Không hiển thị vị trí.
+Out of scope for the MVP: AR or live camera analytics, object detection with bounding boxes, large-scale scraping, public social features, photography tips.
 
-Ngoài thông tin được hiển thị trực tiếp trên ảnh, vị trí và ngày giờ cũng có thể được lưu dưới dạng metadata để phục vụ việc sắp xếp album và tạo recap.
+## Team
 
-## Run the prototype
+| # | Name | Student ID | Role |
+|---|---|---|---|
+| 1 | Nguyễn Minh Hoàng | 2410315 | AI: Computer Vision |
+| 2 | Lê Bá Ninh | 23BA14224 | Journeys, Events & Rewards |
+| 3 | Lê Hiền Anh | 2410042 | Discovery, Map & Arrival |
+| 4 | Nguyễn Minh Lương | 23BA14184 | AI: Historical RAG |
+| 5 | Lương Quỳnh Anh | 23BA14008 | Camera, Photos, Album & Recap |
+| 6 | Hà Thế Duy | 2410207 | Cyber Security & QA |
+| 7 | Lê Bá Tiệp | 23BA14282 | Accounts, Profile & AI Integration |
 
-```bash
-cd apps/hanoi-lens
-pnpm install
-pnpm dev
-```
+Folder owners review pull requests for their folder ([CODEOWNERS](.github/CODEOWNERS)): `backend/` Lê Bá Tiệp (`@lebatiep`), `android/` Lương Quỳnh Anh (`@qual05`), `ai-runtime/` Nguyễn Minh Hoàng (`@NMH1203`) and Nguyễn Minh Lương (`@luongnm23ba14184-lgtm`). Everything else (docs, root files) is reviewed by `@NMH1203`.
+
+## Documentation
+
+- [Product brief](docs/HANOI_LENS_PRODUCT_BRIEF.md) — product behavior and privacy intent
+- [Architecture](docs/ARCHITECTURE.md) — modules, data ownership, flows, ADRs
+- [REST API contract](docs/API.md) — proposed `/v1` endpoints
+- [Security baseline](docs/SECURITY.md) — MVP security and privacy requirements
+- [User and system flows](docs/flows/) — corrected flows with diagrams in [docs/Diagram](docs/Diagram/)
+- [Git workflow](docs/GIT_WORKFLOW.md) — branches, commits, pull requests
+- [Project structure and naming](docs/PROJECT_STRUCTURE_AND_NAMING.md) — folder layout and naming rules
+- Work plan: Google Sheet **Task** (tasks `T01`–`T45`, owners and dates)
+
+## Status
+
+The Android Gradle skeleton is in `android/`; its Java/XML foundation includes Navigation, the five-item bottom bar, Retrofit/OkHttp, Room destination caching, and an Explore MVVM example. Backend and AI runtime implementation remains under development. See each folder README for current setup details.

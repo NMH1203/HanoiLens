@@ -224,7 +224,7 @@ app/src/main/
 
 ### Mobile client state & networking rules
 
-- **Networking:** Built with **Retrofit 2** and **OkHttp 3**, utilizing interceptors for JWT token injection and automatic token refresh.
+- **Networking:** Built with **Retrofit 2** and **OkHttp**, utilizing an interceptor for JWT injection and an authenticator for rotating refresh tokens. HTTP logs must redact credentials and precise coordinates and must not log request bodies.
 - **View Binding:** All XML layouts are bound using Android Jetpack **ViewBinding**, eliminating `findViewById` boilerplate and preventing NullPointerExceptions.
 - **Asynchronous Execution:** Background data calls and Room operations are handled via Java `ExecutorService` / `CompletableFuture` or Android `LiveData`.
 - **Camera Pipeline:** Utilizes **CameraX** `Preview` and `ImageCapture` for ordinary photo capture. Real-time composition analysis is outside the project scope.

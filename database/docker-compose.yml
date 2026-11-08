@@ -1,0 +1,52 @@
+# Local development database for Hanoi Lens (PostgreSQL 16 + PostGIS + pgvector).
+#
+#   cp .env.example .env
+#   docker compose up -d db                 # start the database
+#   docker compose --profile migrate run --rm flyway migrate   # apply migrations without the Spring app
+#   docker compose down -v                  # stop AND wipe local data
+#
+# Spring Boot applies the same migrations from classpath:db/migration at startup,
+# so the flyway service is only a convenience for the DB before the app skeleton exists.
+name: hanoilens
+
+services:
+  db:
+    build: ./docker/postgres
+    image: hanoilens/postgres-postgis-pgvector:16-3.4
+    container_name: hanoilens-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hanoilens}
+      POSTGRES_USER: ${DB_USER:-hanoilens}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hanoilens_dev}
+      TZ: UTC
+    ports:
+      # Bound to localhost only; change DB_PORT if 5432 is already taken.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - hanoilens-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  flyway:
+    image: flyway/flyway:10-alpine
+    profiles: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/${DB_NAME:-hanoilens}
+      FLYWAY_USER: ${DB_USER:-hanoilens}
+      FLYWAY_PASSWORD: ${DB_PASSWORD:-hanoilens_dev}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_CONNECT_RETRIES: "10"
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql:ro
+    command: info
+
+volumes:
+  hanoilens-db-data:
