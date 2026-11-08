@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- docs/UI_DESIGN.md §4 Chuyển động (ms) -->
+    <integer name="hl_motion_short">150</integer>
+    <integer name="hl_motion_medium">300</integer>
+    <integer name="hl_motion_long">500</integer>
+    <integer name="hl_motion_celebrate">800</integer>
+    <integer name="hl_motion_shimmer">1200</integer>
+</resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- docs/UI_DESIGN.md §4 -->
+    <dimen name="space_0">0dp</dimen>
+    <dimen name="space_1">2dp</dimen>
+    <dimen name="space_2">4dp</dimen>
+    <dimen name="space_3">8dp</dimen>
+    <dimen name="space_4">12dp</dimen>
+    <dimen name="space_5">16dp</dimen>
+    <dimen name="space_6">20dp</dimen>
+    <dimen name="space_7">24dp</dimen>
+    <dimen name="space_8">32dp</dimen>
+    <dimen name="space_9">40dp</dimen>
+    <dimen name="space_10">48dp</dimen>
+    <dimen name="space_11">64dp</dimen>
+
+    <dimen name="radius_xs">4dp</dimen>
+    <dimen name="radius_sm">8dp</dimen>
+    <dimen name="radius_md">12dp</dimen>
+    <dimen name="radius_lg">16dp</dimen>
+    <dimen name="radius_xl">28dp</dimen>
+    <dimen name="radius_full">999dp</dimen>
+
+    <dimen name="screen_margin">16dp</dimen>
+    <dimen name="touch_min">48dp</dimen>
+    <dimen name="button_height_l">56dp</dimen>
+    <dimen name="button_height_m">48dp</dimen>
+    <dimen name="button_height_s">40dp</dimen>
+    <dimen name="top_bar_height">64dp</dimen>
+    <dimen name="bottom_nav_height">80dp</dimen>
+    <dimen name="heritage_tab_height">72dp</dimen>
+
+    <dimen name="elev_0">0dp</dimen>
+    <dimen name="elev_1">1dp</dimen>
+    <dimen name="elev_2">3dp</dimen>
+    <dimen name="elev_3">6dp</dimen>
+    <dimen name="elev_4">8dp</dimen>
+    <dimen name="elev_5">12dp</dimen>
+</resources>

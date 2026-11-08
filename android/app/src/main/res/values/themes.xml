@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light/dark switch automatically: values-night/colors.xml overrides the tokens. -->
+    <style name="Theme.HanoiLens" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/on_secondary_container</item>
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="colorOnTertiary">@color/on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/on_tertiary_container</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorErrorContainer">@color/error_container</item>
+        <item name="android:colorBackground">@color/surface</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="colorOutlineVariant">@color/outline_variant</item>
+        <item name="colorSurfaceInverse">@color/inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/inverse_on_surface</item>
+
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.HanoiLens.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.HanoiLens.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.HanoiLens.Large</item>
+
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.HanoiLens.DisplayL</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.HanoiLens.DisplayS</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.HanoiLens.HeadlineM</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.HanoiLens.HeadlineS</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.HanoiLens.TitleL</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.HanoiLens.TitleM</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.HanoiLens.TitleS</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.HanoiLens.BodyL</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.HanoiLens.BodyM</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.HanoiLens.BodyS</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.HanoiLens.LabelL</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.HanoiLens.LabelM</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.HanoiLens.LabelS</item>
+
+        <item name="materialButtonStyle">@style/Widget.HanoiLens.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.HanoiLens.Card</item>
+    </style>
+</resources>

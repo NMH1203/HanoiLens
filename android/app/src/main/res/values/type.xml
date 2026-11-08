@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- docs/UI_DESIGN.md §3: Be Vietnam Pro (UI) + Noto Serif (display/quote). Weight 600→bold, 500/400→normal cho tới khi có file font.
+     TODO: add res/font/be_vietnam_pro*.ttf and noto_serif*.ttf, then point these two
+     strings at @font/be_vietnam_pro / @font/noto_serif. Fallbacks keep the build green. -->
+<resources>
+    <string name="font_ui" translatable="false">sans-serif</string>
+    <string name="font_display" translatable="false">serif</string>
+
+    <style name="TextAppearance.HanoiLens.DisplayL" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:fontFamily">@string/font_display</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:lineHeight">44sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.DisplayS" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:lineHeight">36sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.HeadlineM" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:lineHeight">32sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.HeadlineS" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:lineHeight">28sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.TitleL" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineHeight">26sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.TitleM" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.006</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.TitleS" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.007</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.BodyL" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">24sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0.009</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.BodyM" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0.011</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.BodyS" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineHeight">16sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0.017</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.LabelL" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.007</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.LabelM" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineHeight">16sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0.025</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.LabelS" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:fontFamily">@string/font_ui</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:lineHeight">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.036</item>
+    </style>
+    <style name="TextAppearance.HanoiLens.Quote" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@string/font_display</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">26sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+</resources>

@@ -26,7 +26,7 @@ module.exports = {
     { id: 'JOURNAL2', k: 'ref', x: 1240, y: 760, t: 'Travel journal', s: 'memories saved · 3/3' },
     { id: 'GO', k: 'dec', x: 700, y: 784, t: 'Want to go|there?' },
     { id: 'BACK', k: 'ref', x: 940, y: 784, t: 'Explore Hanoi', s: 'home · back to discovery' },
-    { id: 'MARK', k: 'ref', x: 700, y: 904, t: 'Mark heritage in trip', s: 'see 2/3' },
+    { id: 'MARK', k: 'ref', x: 700, y: 904, t: 'Go to the heritage', s: 'directions optional · 2/3' },
   ],
   edges: [
     { f: 'START.b', t: 'OPEN.t' },

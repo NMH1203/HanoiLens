@@ -70,4 +70,4 @@ Folder owners review pull requests for their folder ([CODEOWNERS](.github/CODEOW
 
 ## Status
 
-Documentation-first: the three code folders exist but no project has been scaffolded yet, so there are no build or run commands.
+The Android Gradle skeleton is in `android/`; its Java/XML foundation includes Navigation, the five-item bottom bar, Retrofit/OkHttp, Room destination caching, and an Explore MVVM example. Backend and AI runtime implementation remains under development. See each folder README for current setup details.

@@ -46,6 +46,7 @@ flowchart TD
     subgraph ExternalServices["External Technical Systems"]
         aiInference["Python AI Inference Runtime (No Business Ownership)"]
         mapProvider["Map Provider (Map SDK and Tile Servers)"]
+        routingEngine["Routing Engine (OSM walking routes, no user identity)"]
         eventSources["Official Cultural Sources (Museums and Heritage Portals)"]
         objectStorage["Object Storage (S3 / MinIO)"]
     end
@@ -56,6 +57,7 @@ flowchart TD
     hanoiLensApp -->|"Map Tiles"| mapProvider
     hanoiLensApp -->|"Direct Photo Upload (Presigned PUT)"| objectStorage
     hanoiLensBackend -->|"Vision Recognition and RAG Q&A"| aiInference
+    hanoiLensBackend -->|"Walking Routes (proxied)"| routingEngine
     hanoiLensBackend -->|"Crawls Event Feeds"| eventSources
     hanoiLensBackend -->|"Issues Presigned URLs and Manages Assets"| objectStorage
 ```
@@ -137,8 +139,10 @@ Module boundary rules:
 ### Destinations (`modules.destination`)
 
 - Owns destinations, landmarks, PostGIS geofences, and cultural narratives.
-- Supplies the heritage preview (with an always-visible entry point to the historical RAG assistant) and the on-site heritage explore page (history and landmarks of the unlocked heritage).
+- Owns the historical knowledge base (`KnowledgeChunk` embeddings) and Q&A history (`QAConversation`, `QAMessage`), and runs RAG retrieval (ADR 011).
+- Supplies the heritage preview (with an always-visible entry point to the historical RAG assistant) and the on-site heritage explore page (five tabs: overview, visit map, camera, landmarks, AI chat).
 - Executes geospatial queries via Hibernate Spatial for nearby discovery and boundary arrival checks.
+- Serves in-app walking directions (`POST /routes/walking`, ADR 012): resolves the target position (destination, or event venue through the `event` module's published service) and proxies the request to the routing engine through an adapter. Stores nothing.
 - Publishes stable destination identifiers used across journeys.
 
 ### Events (`modules.event`)
@@ -149,19 +153,21 @@ Module boundary rules:
 
 ### Visits (`modules.visit`)
 
-- Owns the exploration lifecycle (`ACTIVE`, `PAUSED`, `ENDED`).
-- Tracks visited landmarks and elapsed journey duration.
+- Owns the exploration lifecycle (`ACTIVE`, `PAUSED`, `ENDED`). A visit covers exactly one heritage (destination); it starts automatically when an arrival check at any published heritage returns `INSIDE`.
+- Tracks unlocked landmarks: a landmark is unlocked only with a `RECOGNIZED` recognition of that landmark on the user's own photo (checked through the `media` module's published service). Unlocked landmarks stay open to the user afterwards.
+- Owns the user's stamp collection (`UserStamp`): one heritage stamp when the heritage is unlocked on arrival and one landmark stamp per unlocked landmark. Stamps are collectibles only; there are no marked heritages, badges, or gifts (ADR 011).
 - Enforces the business rule: maximum one active visit per user at any time.
 
 ### Media (`modules.media`)
 
-- Owns photo metadata, upload sessions, derived thumbnails, and watermark stamp export jobs.
+- Owns photo metadata, upload sessions, derived thumbnails, edit recipes (adjustments, colour presets, stickers, captions), watermark stamp export jobs, and landmark recognition results (`LandmarkRecognition`, ADR 011).
 - Directs binary photo streams directly to S3-compatible object storage via presigned PUT URLs.
 - Treats original assets as immutable.
 
 ### Albums and recaps (`modules.recap`)
 
-- Owns destination albums, monthly recaps, and AI-assisted storytelling summaries.
+- Owns destination albums, user-created journey albums (photos the user selects from one or several of their own visits, possibly across different heritages, composed in a chosen layout), monthly recaps, and AI-assisted storytelling summaries.
+- Checks visit and photo ownership for journey albums through the published application services of `visit` and `media`; it never reads their tables directly.
 - Asynchronously compiles journey recap stories upon visit completion.
 
 ## 7. Backend internal layers
@@ -218,7 +224,7 @@ app/src/main/
 
 ### Mobile client state & networking rules
 
-- **Networking:** Built with **Retrofit 2** and **OkHttp 3**, utilizing interceptors for JWT token injection and automatic token refresh.
+- **Networking:** Built with **Retrofit 2** and **OkHttp**, utilizing an interceptor for JWT injection and an authenticator for rotating refresh tokens. HTTP logs must redact credentials and precise coordinates and must not log request bodies.
 - **View Binding:** All XML layouts are bound using Android Jetpack **ViewBinding**, eliminating `findViewById` boilerplate and preventing NullPointerExceptions.
 - **Asynchronous Execution:** Background data calls and Room operations are handled via Java `ExecutorService` / `CompletableFuture` or Android `LiveData`.
 - **Camera Pipeline:** Utilizes **CameraX** `Preview` and `ImageCapture` for ordinary photo capture. Real-time composition analysis is outside the project scope.
@@ -266,15 +272,15 @@ sequenceDiagram
     SB-->>APP: Recognition result or UNKNOWN
 
     U->>APP: Ask a historical question
-    APP->>SB: POST /v1/ai/qa (question, landmarkId)
-    SB->>VEC: Retrieve chunks filtered by landmarkId
+    APP->>SB: POST /v1/ai/qa (question, destinationId, optional landmarkId)
+    SB->>VEC: Retrieve chunks of the heritage and its unlocked landmarks
     VEC-->>SB: Top-K verified document chunks
     SB->>RAG: Question and retrieved evidence
     RAG-->>SB: Grounded answer with citation identifiers
     SB-->>APP: Display answer and verified sources
 ```
 
-RAG has two entry points. Before travel, the heritage preview asks with `destinationId` only, so RAG must work without a vision result. On site, the visit map has no direct AI entry: the chat opens from the landmark info screen after a `RECOGNIZED` result and is scoped to that `landmarkId`; afterwards the user returns to the visit map or the heritage explore page. A low-confidence vision result is returned as `UNKNOWN`, must not silently select a landmark, and does not open the chat.
+RAG has two scopes (team decision 2026-11-06, ADR 011). Before travel, the heritage preview asks with `destinationId` only, so RAG must work without a vision result. On site, the heritage explore page has an AI chat tab: retrieval is filtered to the heritage's general content plus the landmarks the user has unlocked in that heritage, so the assistant's knowledge grows as landmarks are unlocked. Landmark info also opens the same chat with that `landmarkId` as the focus. The visit map itself has no AI button. A low-confidence vision result is returned as `UNKNOWN`, must not silently select a landmark, and unlocks nothing.
 
 ### 9.3 Deterministic cultural event parsing (non-AI)
 
@@ -318,13 +324,17 @@ Event ingestion rules:
 | Landmark | id, destinationId, name, position, content | Destinations |
 | CulturalEvent | id, venueId, title, startsAt, endsAt, sourceUrl, status | Events |
 | Visit | id, userId, destinationId, status, startedAt, endedAt | Visits |
-| VisitLandmark | visitId, landmarkId, visitedAt | Visits |
+| VisitLandmark | visitId, landmarkId, recognitionId, unlockedAt | Visits |
+| Stamp | id, destinationId, landmarkId (null for the heritage stamp), name, artwork | Destinations (catalogue) |
+| UserStamp | userId, stampId, visitId, collectedAt | Visits |
 | Photo | id, userId, visitId, objectKey, capturedAt, locationPrecision | Media |
 | RecapPhoto | recapId, photoId, position | Albums and recaps |
-| KnowledgeChunk | id, destinationId, landmarkId, content, embedding (vector), sourceCitation | Cultural Knowledge |
-| QAConversation | id, userId, visitId, destinationId, landmarkId, title, createdAt | Cultural Knowledge |
-| QAMessage | id, conversationId, role (USER, ASSISTANT), content, citedChunkIds, createdAt | Cultural Knowledge |
-| LandmarkRecognition | id, photoId, recognizedLandmarkId, confidence, boundingBox, detectedAt | Media & AI |
+| Album | id, userId, kind (DESTINATION, JOURNEY), title, layout, locationPrecision, status, createdAt, readyAt | Albums and recaps |
+| AlbumPhoto | albumId, photoId, visitId, position | Albums and recaps |
+| KnowledgeChunk | id, destinationId, landmarkId, content, embedding (vector), sourceCitation | Destinations |
+| QAConversation | id, userId, visitId, destinationId, landmarkId, title, createdAt | Destinations |
+| QAMessage | id, conversationId, role (USER, ASSISTANT), content, citedChunkIds, createdAt | Destinations |
+| LandmarkRecognition | id, photoId, recognizedLandmarkId, confidence, result (RECOGNIZED, UNKNOWN), detectedAt | Media |
 
 ### Database rules
 
@@ -394,10 +404,10 @@ Ending a visit is a transaction. Recap generation is asynchronous:
 
 1. Validate that the visit belongs to the authenticated user and is active or paused.
 2. Set `endedAt` and status to `ENDED`.
-3. Create a recap record with status `PENDING`.
+3. If the user's `autoJourneyAlbum` profile setting is on (read through the `profile` module's published service), create a recap record with status `PENDING`. This recap is the automatic journey album shown in the journal.
 4. Commit the transaction.
 5. Publish a Spring Modulith application event for the in-process recap handler after the transaction commits.
-6. Gather photos, visited landmarks, and active cultural events; call the RAG and fine-tuned LLM (Model 2) for the story narrative.
+6. Gather photos, visited landmarks, and active cultural events; select the sharpest, non-duplicate photos for the album; call Model 2 (RAG) for the story narrative.
 7. Mark the recap `READY` or `FAILED` without altering the completed visit.
 
 ## 12. API and integration style
@@ -532,7 +542,7 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 
 ### ADR 008 Limit the AI scope to Landmark Vision and Historical RAG
 
-**Decision:** Implement exactly two AI capabilities: landmark image classification and domain-grounded historical RAG. The heritage preview always exposes the historical RAG entry point; on site, the chat opens from landmark info after recognition (see §9.2). Event extraction uses deterministic source-specific parsers, and real-time camera guidance is outside the project scope.
+**Decision:** Implement exactly two AI capabilities: landmark image classification and domain-grounded historical RAG. The heritage preview always exposes the historical RAG entry point; on site, the chat is a tab of the heritage explore page scoped to the heritage and its unlocked landmarks, and landmark info opens it focused on that landmark (see §9.2, ADR 011). Event extraction uses deterministic source-specific parsers, and real-time camera guidance is outside the project scope.
 
 **Reason:** Vision-to-RAG directly supports contextual cultural learning while remaining feasible for the project schedule. Deterministic event parsing is easier to verify than NLP extraction, and removing live camera analysis avoids device-performance work that does not serve the core objective.
 
@@ -554,16 +564,38 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 
 **Consequences:** No tips, photo prompts, or shooting-time guidance in the client, API, or data model. Destination pages carry cultural content and the RAG entry point only. Reintroducing tips requires a new ADR.
 
+### ADR 011 Stamp collection instead of marked heritages and rewards; AI data owners
+
+**Decision (team decision 2026-11-06):**
+
+- Remove marked heritages, the marked-vs-unlocked check, the Journey Stamp badge, and the random gift. A visit covers one heritage and starts automatically when the user arrives at any published heritage.
+- Keep a stamp collection owned by `visit`: one heritage stamp on arrival and one stamp per landmark. A landmark unlocks only with a `RECOGNIZED` result for that landmark on the user's own photo; once unlocked it stays open. The stamp catalogue (`Stamp`) is reference content owned by `destination`.
+- On-site RAG is a tab of the heritage explore page, scoped to the heritage plus the landmarks the user has unlocked there; landmark info opens it focused on that landmark.
+- `KnowledgeChunk`, `QAConversation`, `QAMessage` belong to `destination`; `LandmarkRecognition` belongs to `media`. No new module.
+- Visit states are `ACTIVE`, `PAUSED`, `ENDED`; `CANCELLED` is removed.
+
+**Reason:** Collecting stamps gives the same motivation as rewards without a planning step, gift logistics, or a cross-destination journey entity. Assigning AI data to existing modules keeps seven modules and gives every table one owner.
+
+**Consequences:** No mark or reward endpoints or tables. `PUT /visits/{id}/landmarks/{landmarkId}` requires a `recognitionId`. The `visit` module reads recognition results through the `media` module's published service. User albums may mix photos from several visits. Reintroducing marks or rewards requires a new ADR.
+
+### ADR 012 In-app walking directions through a backend routing proxy
+
+**Decision:** Directions run inside the app (team decision 2026-11-07) instead of opening an external map app. osmdroid draws the map but cannot compute routes, so the `destination` module exposes `POST /routes/walking` and calls an OSM-based routing engine (OSRM or GraphHopper, foot profile) through an adapter. The client sends its origin in the request body; the server resolves the target (destination or event venue) itself. Route following and off-route detection run on the device.
+
+**Reason:** A public routing server called from the app would receive the user's coordinates together with their IP and device. Proxying keeps the user anonymous to the engine and keeps one place for rate limits and log redaction. On-device routing was rejected because the offline graph makes the app much larger.
+
+**Consequences:** One new endpoint in the Location rate-limit group, no new table, no new module. The routing engine is an external technical system like the map tile provider; a self-hosted engine with a Hanoi OSM extract is preferred, and the adapter must allow switching. Origins are never stored, logged, cached, or sent to the AI runtime. The route never decides arrival; `arrival-checks` still does.
+
 ## 20. Implementation sequence
 
 1. Establish the Spring Boot + Spring Modulith project skeleton, module-boundary verification tests, OpenAPI configuration, database migrations (Flyway/Liquibase), and CI checks.
 2. Complete the five-flow threat model and implement the JWT/refresh-token foundation plus the first ownership-denial tests.
 3. Implement destination and landmark endpoints with PostGIS nearby spatial queries.
 4. Build the Android mobile skeleton (Navigation, BottomNav XML, Retrofit networking, Room cache, and Keystore-backed token storage).
-5. Implement arrival checks and the visit lifecycle with raw-coordinate non-retention and cross-user authorization tests.
+5. Implement arrival checks and the visit lifecycle with raw-coordinate non-retention and cross-user authorization tests; add the walking-route proxy (`POST /routes/walking`, ADR 012) behind the routing-engine adapter.
 6. Integrate CameraX photo capture and hardened S3 presigned uploads, including malicious-file, expiry, wrong-key, and ownership tests.
 7. Build scheduled ingestion and a deterministic parser for the first approved event source; validate, deduplicate, and queue drafts for administrator review.
-8. Implement landmark image classification (Model 1), historical RAG with citations (Model 2), the heritage-preview RAG entry, and the on-site Vision-to-RAG handoff from landmark info.
+8. Implement landmark image classification (Model 1), historical RAG with citations (Model 2), the heritage-preview RAG entry, recognition-based landmark unlocks and stamps, and the on-site AI chat tab scoped to the heritage and its unlocked landmarks.
 9. Add customizable photo watermarks (Journey Stamps) and verify that derived/shared files contain no disallowed EXIF or location data.
 10. Conduct end-to-end, privacy, authorization, and security testing with simulated GPS routes; resolve all `CRITICAL`/`HIGH` findings before submission.
 
