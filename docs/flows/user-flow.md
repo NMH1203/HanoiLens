@@ -4,8 +4,8 @@ What the user sees and decides. The system-side counterpart is [system-flow.md](
 
 Rules this flow encodes:
 
-- GPS arrival **unlocks** the marked heritage immediately (BRIEF §6.2). Landmark recognition is optional and never gates unlocking (BRIEF §6.4).
-- The Historical RAG entry point is visible on the heritage preview **before** travel; on site, AI chat opens from landmark info after a photo is identified (BRIEF §6.1, §6.3).
+- There is no marking step (team decision 2026-11-06, ARCHITECTURE ADR 011). GPS arrival at **any** heritage unlocks it immediately and collects its heritage stamp (BRIEF §6.2, §6.11). Landmark recognition is optional and never gates the heritage; a confident recognition lets the user unlock that landmark and collect its stamp (BRIEF §6.4).
+- The Historical RAG entry point is visible on the heritage preview **before** travel; on site, AI chat is a tab of the heritage explore page and knows the heritage plus the landmarks the user has unlocked; landmark info opens it focused on that landmark (BRIEF §6.3).
 - An event linked to a heritage continues as that heritage; an event without one opens the **event memory page** (BRIEF §6.7).
 - A trip can be **paused** and resumed later from the Explore Hanoi home page (BRIEF §6.1, §6.8).
 - Two different explore pages: **Explore Hanoi (home)** is the app-wide page shown after sign-in (all heritages, events, map, journal, resume trip); the **Heritage explore page** belongs to the heritage the user has arrived at (its history and landmarks) and is reached from the visit.
@@ -15,7 +15,7 @@ Rendered diagrams (diagram-design; source HTML next to each PNG, regenerate with
 | | |
 |---|---|
 | 1/3 Sign in and discover | ![](../Diagram/user-flow-1-discover.png) |
-| 2/3 Trip: arrive, unlock, visit, reward | ![](../Diagram/user-flow-2-trip.png) |
+| 2/3 Trip: arrive, unlock, visit, collect stamps | ![](../Diagram/user-flow-2-trip.png) |
 | 3/3 Travel journal | ![](../Diagram/user-flow-3-journal.png) |
 
 ## 1. Sign in and discover
@@ -56,40 +56,37 @@ flowchart TD
     ASK1 -.-> PREVIEW
     PREVIEW --> GO{Want to go there?}
     GO -- No --> EXPLORE
-    GO -- Yes --> MARK[[Mark heritage in trip - section 2]]
+    GO -- Yes --> GOTO[[Go to the heritage - section 2]]
 ```
 
-## 2. Trip: mark, arrive, unlock, visit, reward
+## 2. Trip: arrive, unlock, visit, collect stamps
 
 ```mermaid
 flowchart TD
-    MARK[Mark heritage in the trip] --> DIR{Need directions?}
-    DIR -- Yes --> ROUTE[Show route on map]
-    DIR -- No --> TRAVEL[Go to the heritage]
+    GOTO[Go to the heritage] --> DIR{Need directions?}
+    DIR -- Yes --> ROUTE[In-app walking directions]
+    DIR -- No --> TRAVEL[Go to any heritage]
     ROUTE --> TRAVEL
-    TRAVEL --> ARRIVE[GPS confirms arrival]
-    ARRIVE --> UNLOCK[Heritage unlocked automatically]
-    UNLOCK --> SITE["Heritage explore page<br/>history, landmarks of this site"]
+    TRAVEL --> ARRIVE[GPS confirms arrival - silent check]
+    ARRIVE --> UNLOCK[Heritage unlocked automatically, heritage stamp collected]
+    UNLOCK --> SITE["Heritage explore page<br/>info, map, camera, landmarks, Ask AI"]
     SITE -- Map --> VISITMAP["Visit map<br/>live position, on device only"]
+    SITE -- Ask AI tab --> ASK
 
     VISITMAP --> NEXT{What next?}
     NEXT -- Move or read history --> VISITMAP
     NEXT -- Take photo --> PHOTO[Take a photo]
     PHOTO --> IDENT{Identified?}
     IDENT -- No or UNKNOWN --> VISITMAP
-    IDENT -- Yes --> RESULT[Show landmark info]
-    RESULT -- Ask AI --> ASK["Chat with Historical AI<br/>about this landmark"]
+    IDENT -- Yes --> RESULT["Unlock landmark, collect its stamp<br/>show landmark info"]
+    RESULT -- Ask AI --> ASK["Chat with Historical AI<br/>heritage + unlocked landmarks"]
     ASK --> WHERE{Where next?}
     WHERE -- Map --> VISITMAP
     WHERE -- Explore site --> SITE
     NEXT -- Pause --> PAUSE[Trip saved as paused]
     PAUSE --> EXPLORE[[Explore Hanoi home - section 1]]
     NEXT -- Finish here --> STAMP[View stamp collection]
-    STAMP --> ALL{All marked heritages unlocked?}
-
-    ALL -- Yes --> GIFT[Collect Journey Stamp badge and random gift]
-    ALL -- No --> CONT{Continue exploring?}
-    GIFT --> CONT
+    STAMP --> CONT{Continue exploring?}
     CONT -- Yes --> SITE
     CONT -- No --> SAVE[Save progress and end trip]
     SAVE --> UPDATE[Travel journal updated]
@@ -127,3 +124,4 @@ flowchart TD
 | — | Team request (2026-10-22): order of on-site pages | `Heritage unlocked → Heritage explore page → Visit map`; resuming a paused trip also opens the Heritage explore page; `Finish here → Stamp collection → All marked heritages unlocked?` |
 | — | Team request (2026-10-22): "Explore page" meant two different pages | Renamed to **Explore Hanoi (home)** (after sign-in, after pause, journal) and **Heritage explore page** (on site: after unlock, "Where next? → Explore site", "Continue exploring? → Yes") |
 | — | Team request (2026-10-22): on the visit map, AI chat is only reachable after a photo identifies a landmark | `Take photo → Identified? → Landmark info → Chat with AI → Where next? (Map / Explore site)`; the visit map no longer has a direct "Ask AI" branch. The heritage preview keeps its Ask AI entry |
+| — | Team decision (2026-11-06, ADR 011) | No marking step: going to any heritage unlocks it and collects its heritage stamp; recognition unlocks a landmark and its stamp; badge, gift and the "all marked unlocked?" check removed; heritage explore page has an Ask AI tab scoped to the heritage and its unlocked landmarks; directions open an external map app (changed 2026-11-07: in-app walking directions) |

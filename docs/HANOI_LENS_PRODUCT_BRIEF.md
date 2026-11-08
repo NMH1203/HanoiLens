@@ -11,10 +11,10 @@
 
 Instead of prescribing fixed tour routes or rigid checklists, the application offers an open-ended experience:
 - **Presence-based arrival recognition (Privacy-First Geofencing):** The application only detects whether the user is inside or outside a destination area (zone presence). It does not track continuous movements or require knowing/storing exact coordinates, ensuring complete comfort and user privacy.
-- **Account-based journeys:** Users sign in or sign up before exploring, so journeys, unlocked heritages, photos, and rewards are kept in their account.
-- **Self-marked heritages & GPS unlock:** Users preview a heritage and mark it if they want to go; the app never prescribes routes. When GPS confirms arrival, the heritage is unlocked immediately and its **heritage explore page** (history, landmarks) opens; from there a visit map of the heritage area shows the user's live position so they can move around, explore, and take photos. Unlocking every marked heritage earns an in-app Journey Stamp badge and a random gift from that heritage site.
+- **Account-based journeys:** Users sign in or sign up before exploring, so journeys, unlocked heritages and landmarks, collected stamps, and photos are kept in their account.
+- **GPS unlock & stamp collection:** Users preview any heritage and go whenever they like; the app never prescribes routes and there is no planning or marking step. When GPS confirms arrival at a heritage, it is unlocked immediately, its heritage stamp is collected, and its **heritage explore page** opens; from there a visit map of the heritage area shows the user's live position so they can move around, explore, and take photos. Every landmark inside a heritage has its own stamp, collected when the user photographs it and it is recognized (for example Văn Miếu has stamps for the heritage itself, Khuê Văn Các, the drum tower, the bell tower, and so on).
 - **Cultural event discovery:** Collects and displays ongoing and upcoming events from approved official sources using deterministic, source-specific parsers and administrator review.
-- **Landmark recognition & historical Q&A:** Users can optionally photograph a scene or structure on site to identify what it is (image classification), then, from the landmark info page, ask a grounded RAG system about that landmark and get answers with verified citations.
+- **Landmark recognition & historical Q&A:** Users can optionally photograph a scene or structure on site to identify what it is (image classification), unlock that landmark, and ask a grounded RAG system about the heritage and the landmarks they have unlocked, with verified citations.
 - **Journey albums and personalized recaps:** Automatically organizes photos, visited locations, timestamps, and exploration progress into private journey albums with customizable location stamps, weather overlays, and destination-based or monthly recaps, allowing users to rediscover Hanoi through their own lens.
 - **Privacy-aware design:** Operates strictly on an area-presence model; users are completely free from location tracking and retain full control over how location names are displayed on exported photos.
 
@@ -47,7 +47,7 @@ Users need a seamless mobile experience to:
 4. **Capture and enhance safely:** Apply non-destructive adjustments (crop, straighten, exposure, color correction, filters) while preserving original images.
 5. **Preserve meaningful memories:** Keep photos, visited landmarks, timestamps, and journey progress organized in albums with customized journey stamps.
 6. **Resume unfinished explorations:** Pause an exploration session and pick it up later without losing progress.
-7. **Earn rewards for completed journeys:** Receive a Journey Stamp badge and a random gift from the heritage site after unlocking every heritage they marked.
+7. **Collect stamps:** Collect a stamp for each heritage they reach and for each landmark they recognize there.
 8. **Keep memories of events without a heritage site:** Capture and save photos on an event memory page that adapts to the event's details.
 9. **Protect privacy & explore comfortably:** Enjoy open-ended exploration without feeling monitored or tracked; the system only needs to verify presence within a destination zone, eliminating the need to log exact coordinates or continuous travel trails.
 
@@ -58,16 +58,16 @@ Users need a seamless mobile experience to:
 The Hanoi Lens journey consists of five interconnected phases:
 
 ```text
-[1. Discover & Mark] ---> [2. Arrive & Unlock] ---> [3. Visit & Explore] ---> [4. Capture & Edit] ---> [5. Remember & Reward]
+[1. Discover] ---> [2. Arrive & Unlock] ---> [3. Visit & Explore] ---> [4. Capture & Edit] ---> [5. Remember & Collect]
 ```
 
-1. **Discover & Mark:** Browse destinations and upcoming cultural events (also together on the map), preview a heritage, and mark it if the user wants to go.
-2. **Arrive & Unlock:** Walk into a destination's geographic zone where GPS geofencing automatically registers the arrival and unlocks the heritage.
-3. **Unlock & Explore:** Arrival unlocks the heritage and opens its heritage explore page (history, landmarks). The visit map of the heritage area shows the user's live position; users move around, take photos, and optionally identify what they photographed. When a landmark is identified, its landmark info page opens and the user can chat with the AI assistant about it, then return to the visit map or the heritage explore page.
+1. **Discover:** Browse destinations and upcoming cultural events (also together on the map), preview a heritage, ask the AI about it, and optionally get walking directions inside the app.
+2. **Arrive & Unlock:** Walk into any heritage's geographic zone where GPS geofencing automatically registers the arrival, unlocks the heritage, and collects its heritage stamp.
+3. **Unlock & Explore:** Arrival unlocks the heritage and opens its heritage explore page (history, landmarks). The visit map of the heritage area shows the user's live position; users move around, take photos, and optionally identify what they photographed. When a landmark is identified, the user unlocks it (collecting its stamp) and its landmark info page opens. The AI chat is a tab of the heritage explore page and knows the heritage plus every landmark the user has unlocked; landmark info opens it focused on that landmark.
 4. **Capture & Edit:** Take photos, optionally recognize supported landmarks, and perform non-destructive image edits.
-5. **Remember & Reward:** When finishing a visit, view the stamp collection, then collect a Journey Stamp badge and a random gift once every marked heritage is unlocked. Save progress to the travel journal (journey albums), attach customizable location and weather stamps, and view destination or monthly recaps.
+5. **Remember & Collect:** When finishing a visit, view the stamp collection. Save progress to the travel journal (an automatic album per heritage, plus albums the user builds from photos of one or several heritages), decorate photos with stickers, nostalgic colour presets and handwritten captions, attach customizable location and weather stamps, and view destination or monthly recaps.
 
-Users choose and mark heritages themselves; the app never prescribes routes or sequential stops. Users can stop at any time. Unlocking every marked heritage is an optional goal that earns a reward.
+Users choose where to go themselves; the app never prescribes routes or sequential stops. Users can stop at any time. Collecting stamps is an optional goal; there are no badges or gifts (team decision 2026-11-06).
 
 ---
 
@@ -81,11 +81,11 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 - Always show the historical RAG assistant entry point on each heritage preview.
 - Support continuing paused or unfinished exploration sessions from Explore Hanoi (home); resuming reopens the heritage explore page.
 - Show heritages and cultural events together on the map; choosing a point opens the heritage preview or the event detail.
-- Each heritage page works as a preview. If the user wants to go, the heritage is marked in the current trip. The app does not recommend which heritages to mark.
+- Each heritage page works as a preview with optional in-app walking directions (the app never opens another map app). There is no marking step: arriving at any heritage starts its visit (team decision 2026-11-06). The app does not recommend which heritages to visit.
 
 ### 6.2 GPS-based destination detection (GPS Geofencing)
 - Monitor destination boundaries solely to detect arrival and presence (binary zone check: inside/outside).
-- Keep cultural content and Historical RAG access visible before travel; geofence entry confirms arrival and immediately unlocks the marked heritage.
+- Keep cultural content and Historical RAG access visible before travel; geofence entry at any published heritage confirms arrival, immediately unlocks it, and collects its heritage stamp.
 - After unlocking, open the heritage explore page (history and landmarks of that heritage); from it the user opens the visit map. Pausing the trip returns to Explore Hanoi (home).
 - After arrival, show a visit map of the heritage area with the user's live position, computed on the device only; positions inside the heritage are not sent to or stored on the server.
 - **Privacy-by-Design:** Does not track continuous GPS trails or store exact coordinates; once presence is confirmed, raw location data is not retained.
@@ -97,19 +97,20 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 - **Interactive Historical Q&A (Domain RAG):** In-depth historical chat powered by a domain-specific RAG pipeline and fine-tuned LLM, strictly grounded in verified historical records of Hanoi heritage sites.
 - **Visual Landmark & Relic Recognition:** Fine-tuned Vision model identifies architectural structures and artifacts directly from user photos, immediately focusing the RAG context.
 - Before travel, information and Historical RAG access are available on the heritage preview.
-- On site, the AI chat is reached from the landmark info page after a photo is identified, and is scoped to that landmark. After chatting, the user returns to the visit map or the heritage explore page.
+- On site, the AI chat is a tab of the heritage explore page (team decision 2026-11-06). It answers about the heritage and every landmark the user has unlocked there; each newly unlocked landmark adds to what it can answer. Landmark info opens the same chat focused on that landmark.
 - Asking a question is always optional and non-intrusive.
 
 ### 6.4 Photo capture & landmark recognition
 - Capture or select a photo using the native Android camera flow.
 - Submit the image to the landmark classification model and return a supported `landmarkId` with confidence.
 - Return `UNKNOWN` below the configured confidence threshold instead of silently selecting a landmark.
-- Recognition is optional and does not affect unlocking: it tells the user what the photographed scene or structure is, opens the landmark info page, and supplies the `landmarkId` as context for Historical RAG questions. `UNKNOWN` returns the user to the visit map.
+- Recognition is optional and never affects unlocking the heritage. A confident result tells the user what the structure is and lets them unlock that landmark (collecting its stamp); the landmark then stays open, its landmark info page can be revisited freely, and the AI chat gains its knowledge. `UNKNOWN` unlocks nothing and returns the user to the visit map.
 - Real-time composition overlays, lighting analysis, and camera-position guidance are outside the project scope.
 
 ### 6.5 Digital image processing & non-destructive editing
-- In-app image processing tools: crop, straighten/rotate, exposure, brightness, contrast, saturation, and stylistic filters.
+- In-app image processing tools: crop, straighten/rotate, exposure, brightness, contrast, saturation, and ready-made nostalgic colour presets.
 - Non-destructive pipeline: original photo assets are preserved untouched; adjustments are stored as recipes or applied to exported copies.
+- Ready-made stickers (landmark stamps the user has unlocked, postmark, date, text, heart, category badge) can be placed, scaled and rotated on a photo, and captions can be written in ready-made handwriting styles. Stickers and captions are part of the edit recipe; the edited copy can be downloaded (GPS and device data removed) or added to an album.
 
 ### 6.6 Photo watermarking & customizable journey stamps
 - Apply customizable location stamps, timestamps, weather conditions, or commemorative journey badges to exported photos.
@@ -124,22 +125,25 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 - **Event memory page:** An event with no linked heritage opens a template page whose layout and details adapt to the event, where users take photos and save them to the travel journal as memories.
 
 ### 6.8 Journey tracking & session lifecycle
-- Track marked, visited, and unlocked heritages within an active session.
+- Track the unlocked heritage and its unlocked landmarks within a visit; one visit covers one heritage.
 - Save progress and update the travel journal when the user stops exploring.
 - Flexible session lifecycle: start, pause, resume, and conclude journeys at the user's discretion.
 - Unfinished explorations are persisted so users can resume their journey at any time.
 
 ### 6.9 Journey albums & personalized recaps
+- Every photo taken during a visit is kept in the travel journal automatically; there is no separate save step.
 - Automatic structuring of photos by destination, date, and exploration session into private albums.
+- Automatic journey album: when a journey ends, Hanoi Lens selects the sharpest, non-duplicate photos and arranges them into an album for that journey (for example "Hành trình Văn Miếu"). Users can turn this off in settings, edit it, save it as their own album, or ignore it.
+- Users can also pick photos themselves, from one or several heritages, and build an album in a chosen layout.
 - Metadata storage linking photos to timestamps, approximate locations, landmarks, and applied edit parameters.
 - Generation of destination-specific summaries and monthly exploration recaps to rediscover personal journeys.
 - Travel journal view: choose a past trip, see its details and photos, and download photos to the device.
 
-### 6.11 Heritage rewards
-- Finishing a visit first shows the user's stamp collection, then checks whether every marked heritage is unlocked.
-- If the user continues exploring, they stay on the heritage explore page; otherwise the trip ends and the travel journal is updated.
-- When every heritage marked in a trip is unlocked, the user collects an in-app Journey Stamp badge and a random gift from that heritage site.
-- Rewards are a bonus for finished journeys; exploring, capturing, and saving memories never require them.
+### 6.11 Stamp collection
+- Each heritage has one heritage stamp, collected automatically on arrival; each landmark inside it has its own stamp, collected when the user unlocks it after a confident recognition.
+- Finishing a visit shows the user's stamp collection for that heritage (collected and still missing). If the user continues exploring, they stay on the heritage explore page; otherwise the visit ends and the travel journal is updated.
+- Collected landmark stamps can be used as stickers in the photo editor.
+- Stamps are collectibles only. Marked heritages, the Journey Stamp badge, and the random gift were removed (team decision 2026-11-06, ARCHITECTURE ADR 011); exploring, capturing, and saving memories never require stamps.
 
 ### 6.10 Privacy-aware controls & presence-only model
 - **Presence-Only Geofencing:** The app operates strictly by verifying whether the user is inside a destination area; it does not require knowing or monitoring exact user coordinates.
@@ -155,15 +159,15 @@ Users choose and mark heritages themselves; the app never prescribes routes or s
 
 ## 7. Primary navigation structure
 
-- **Explore Hanoi (home):** Destination discovery, thematic collections, nearby recommendations, travel journal, and resuming a paused trip.
-- **Heritage explore page:** Page of the unlocked heritage (history, landmarks), shown after arrival and when resuming; opens the visit map.
+- **Explore Hanoi (home):** Destination discovery, thematic collections, a nearby filter (no recommendations), travel journal, and resuming a paused trip.
+- **Heritage explore page:** Page of the unlocked heritage, shown after arrival and when resuming. Its own bottom bar has five tabs (team decisions 2026-11-05 and 2026-11-06): **Thông tin** (overview, opening hours, landmark progress, stamps), **Bản đồ** (map of this heritage area = the visit map, with landmark pins), **Camera**, **Địa điểm** (the landmarks inside the heritage), and **Hỏi AI** (chat about the heritage and its unlocked landmarks). Landmarks start locked with a grey preview photo so the user can recognize them; photographing a landmark and getting a confident recognition lets the user unlock it, collect its stamp, and open its landmark info. Unlocking landmarks is optional and never affects unlocking the heritage.
 - **Map:** Interactive map showing heritages and cultural events together, plus user location and destination geofences.
 - **Visit map:** Map of the heritage area, opened from the heritage explore page, with the user's live position for moving around and taking photos.
-- **Landmark info:** Shown after a photo is identified; the only on-site entry to the AI chat for that landmark.
-- **Stamp collection:** Shown when finishing a visit, before the reward check.
+- **Landmark info:** Shown after a photo is identified and the landmark unlocked; reopened any time from the landmarks tab. Opens the AI chat focused on that landmark.
+- **Stamp collection:** Shown when finishing a visit and from the profile.
 - **Camera:** Photo capture, landmark-recognition submission, and quick-edit interface without real-time guidance overlays.
 - **Events:** Aggregated stream of ongoing and upcoming cultural events across Hanoi with venue linking.
-- **Travel journal (Album):** Past trips, photo collections and downloads, journey stamp exports, earned badges, and destination/monthly recaps.
+- **Travel journal (Album):** Past trips, photo collections and downloads, journey stamp exports, the stamp collection, and destination/monthly recaps.
 - **Account:** Sign in or sign up is required before exploring; a landing page introduces the app right after sign up.
 - **Profile & Settings:** Privacy preferences (location precision level), saved progress, and testing simulator controls.
 
@@ -183,10 +187,10 @@ Explore Hanoi (home) ──> Travel journal / Map (heritages + events) / Heritag
      ├──> Event without heritage ──> Event memory page -> Take photo -> Save memory
      │
      ▼
-Heritage preview -> Want to go? -> Mark heritage in trip
+Heritage preview (Ask AI) -> Want to go? -> Optional directions
      │
      ▼
-Optional directions -> Arrive -> GPS confirms arrival -> Unlock heritage
+Arrive at any heritage -> GPS confirms arrival -> Unlock heritage + heritage stamp
      │
      ▼
 Heritage explore page (history, landmarks)   <── also opened when resuming a paused trip
@@ -196,13 +200,10 @@ Visit map (area map + live position)
      ├──> Move around
      ├──> Take photo -> (optional) Identified?
      │        ├── No / UNKNOWN ──> Visit map
-     │        └── Yes ──> Landmark info -> Chat with AI -> Visit map or Heritage explore page
+     │        └── Yes ──> Unlock landmark + stamp -> Landmark info -> Chat with AI -> Visit map or Heritage explore page
      ├──> Pause ──> Explore Hanoi (home)
      ▼
 Finish here -> Stamp collection
-     │
-     ▼
-All marked heritages unlocked? ── Yes ──> Journey Stamp badge + random gift
      │
      ▼
 Continue exploring? ── Yes ──> Heritage explore page
@@ -258,24 +259,21 @@ Journey (Exploration Session)
   ├── id, userId, destinationId
   ├── status (ACTIVE, PAUSED, ENDED)
   ├── startedAt, pausedAt, endedAt
-  ├── markedHeritages [destinationId, markedAt]
-  ├── unlockedHeritages [destinationId, unlockedAt]
-  ├── visitedLandmarks [landmarkId, visitedAt]
+  ├── unlockedLandmarks [landmarkId, recognitionId, unlockedAt]
   └── photos [photoId]
 
-Reward
-  ├── id, userId, journeyId, destinationId
-  ├── journeyStampBadgeId
-  ├── giftDescription (random gift from the heritage site)
-  └── awardedAt
+UserStamp
+  ├── userId, stampId (heritage stamp or landmark stamp)
+  ├── journeyId
+  └── collectedAt
 
 Photo
   ├── id, userId, journeyId, destinationId
   ├── eventId (optional, for event memory photos)
   ├── originalAssetUrl (immutable)
   ├── capturedAt, deviceMetadata
-  ├── locationPrecision (EXACT, APPROXIMATE, NONE)
-  ├── editRecipe (crop, straighten, brightness, contrast, filter)
+  ├── locationPrecision (NONE, DESTINATION, DISTRICT, APPROXIMATE, EXACT)
+  ├── editRecipe (crop, straighten, adjustments, colorPreset, stickers, captions)
   └── appliedWatermark (stampStyle, weatherText, customLabel)
 
 Recap
@@ -313,9 +311,9 @@ The initial Minimum Viable Product (MVP) validates the entire end-to-end explora
 - Detailed pilot destination (e.g., Văn Miếu – Quốc Tử Giám / Hoàn Kiếm area) with full content and landmarks.
 - Always-visible historical RAG access on heritage previews, with a static fallback when AI is unavailable.
 - Simulated and live GPS geofence arrival checks.
-- Cultural cards and Historical RAG access on the heritage preview before travel; on site, the heritage explore page (history, landmarks) and AI chat from landmark info after identification.
+- Cultural cards and Historical RAG access on the heritage preview before travel; on site, the heritage explore page with an AI chat tab scoped to the heritage and its unlocked landmarks.
 - Photo capture/upload and landmark image classification with an `UNKNOWN` confidence fallback.
-- In-browser digital image processing: crop, straighten, brightness, contrast, and color filters.
+- On-device digital image processing: crop, straighten, brightness, contrast, nostalgic colour presets, stickers, and handwritten captions.
 - Photo watermarking engine supporting customizable Journey Stamps (Minimal, Postcard, Heritage).
 - Journey session lifecycle: Start, Pause, Resume, and Complete.
 - Private journey album containing captured photos, timestamps, and visited landmarks.
@@ -323,9 +321,9 @@ The initial Minimum Viable Product (MVP) validates the entire end-to-end explora
 - Curated cultural event feed with structured metadata (title, dates, venue, source).
 - Combined map of heritages and events.
 - Required sign in / sign up with a post-sign-up landing page.
-- Self-marked heritages, GPS arrival confirmation that unlocks the heritage, and an on-device visit map with the user's live position.
-- Optional landmark recognition on photos taken on site, feeding Historical RAG Q&A.
-- Journey Stamp badge and random heritage gift after all marked heritages are unlocked.
+- GPS arrival confirmation that unlocks any heritage, and an on-device visit map with the user's live position.
+- Optional landmark recognition on photos taken on site, unlocking landmarks and feeding Historical RAG Q&A.
+- Stamp collection: one stamp per heritage and one per landmark.
 - Event memory page for events without a linked heritage.
 - Travel journal with past trips and photo download.
 - User-selectable location privacy preferences.
@@ -345,7 +343,7 @@ The initial Minimum Viable Product (MVP) validates the entire end-to-end explora
 
 ## 13. Success indicators
 
-- **Rewarding Unlocks:** Users understand that arriving unlocks a marked heritage, can find their way on the visit map, and receive their badge and gift.
+- **Rewarding Unlocks:** Users understand that arriving unlocks a heritage and recognizing a landmark unlocks its stamp, and can find their way on the visit map.
 - **Fluid Exploration:** Users can navigate from destination discovery to arrival and session completion without confusion.
 - **Grounded Cultural Assistance:** Landmark recognition and historical answers support exploration without interrupting the physical experience.
 - **Reliable Journey Tracking:** Explorations can be paused and resumed cleanly without losing photos or visited checkpoints.
@@ -361,7 +359,7 @@ The initial Minimum Viable Product (MVP) validates the entire end-to-end explora
 - **Free Exploration over Fixed Routes:** Support spontaneous curiosity instead of enforcing linear itineraries.
 - **Context at the Right Moment:** Present cultural and historical knowledge exactly when the user reaches the site.
 - **Assistance, Not Intrusion:** Landmark recognition runs only when the user asks to identify a photo, and cultural cards stay optional; there is no continuous camera analysis.
-- **Personal Memories first, Rewards as a Bonus:** Users mark their own heritages; unlocking them all earns a Journey Stamp badge and a random gift, but the journey and visual record remain the focus.
+- **Personal Memories first, Stamps as a Bonus:** Users collect heritage and landmark stamps as they explore, but the journey and visual record remain the focus.
 - **Presence over Tracking (Privacy-by-Design):** The system only checks presence within destination boundaries (`inside / outside`). It does not track continuous movements or store exact coordinates, ensuring users feel completely relaxed and free from surveillance.
 - **Privacy by Choice:** Users maintain full control over how their physical location is displayed or shared on exported photo stamps.
 - **Authentic and Traceable Content:** Historical data and event details remain accurate, concise, and attributed to verified sources.

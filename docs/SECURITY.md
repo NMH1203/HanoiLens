@@ -113,6 +113,7 @@ For each private resource endpoint, verify:
 - Photos and visits store destination-level association by default. More precise display requires an explicit user-selected privacy level.
 - API DTOs and exports apply the privacy policy on the server; the Android UI is not a security boundary.
 - Exact coordinates are never sent to the vision/RAG runtime.
+- Walking routes (`POST /routes/walking`, ADR 012): the origin travels only in the request body, is forwarded to the routing engine without user ID, token, or device data, and is never stored, cached, or logged. Targets are resolved server-side from a destination or event ID, so the endpoint cannot be used as an open routing proxy.
 
 ### EXIF handling
 
@@ -125,7 +126,7 @@ For each private resource endpoint, verify:
 
 - Inspect generated files with an EXIF reader and assert that GPS/device fields are absent.
 - Verify every location-precision option against API responses, stamps, recap assets, and exports.
-- Inspect structured logs during nearby search, arrival checks, uploads, and exports for prohibited values.
+- Inspect structured logs during nearby search, arrival checks, walking routes, uploads, and exports for prohibited values, and check that requests to the routing engine carry no user identifier.
 - Verify User B cannot infer User A's location through filenames, object keys, URLs, error messages, or album metadata.
 
 ## 7. Security acceptance criteria for the MVP
