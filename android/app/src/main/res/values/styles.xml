@@ -21,6 +21,17 @@
         <item name="android:textAppearance">@style/TextAppearance.HanoiLens.LabelL</item>
     </style>
 
+    <style name="Widget.HanoiLens.Button.Large" parent="Widget.HanoiLens.Button">
+        <item name="android:minHeight">@dimen/hl_button_height_l</item>
+    </style>
+    <style name="Widget.HanoiLens.Button.Small" parent="Widget.HanoiLens.Button">
+        <item name="android:minHeight">@dimen/hl_button_height_s</item>
+    </style>
+    <style name="Widget.HanoiLens.Button.Destructive" parent="Widget.HanoiLens.Button">
+        <item name="backgroundTint">@color/hl_error</item>
+        <item name="android:textColor">@color/hl_on_error</item>
+    </style>
+    
     <!-- Cards -->
     <style name="Widget.HanoiLens.Card" parent="Widget.Material3.CardView.Filled">
         <item name="cardBackgroundColor">@color/surface_container_low</item>
