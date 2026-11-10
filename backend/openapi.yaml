@@ -1,0 +1,2446 @@
+openapi: 3.0.3
+info:
+  title: Hanoi Lens REST API
+  version: 1.0.0
+  description: |
+    Contract for the Hanoi Lens MVP, converted from `docs/API.md` (task T01).
+    The backend is one Spring Boot modular monolith; the module that owns each tag is noted in the tag description.
+
+    Conventions
+    - Base path `/v1`; JSON `camelCase`; enums `UPPER_SNAKE_CASE`; opaque string IDs; ISO 8601 UTC timestamps.
+    - Success envelope `{ "data": ... }`; collections add `pagination`. Every non-success response uses `ErrorResponse`.
+    - `X-Request-Id` is returned on every response.
+    - `Idempotency-Key` is required where the operation lists it. Same key + same request replays the result;
+      same key + different request is `422 IDEMPOTENCY_KEY_REUSED`; same key while running is `409 REQUEST_IN_PROGRESS` with `Retry-After`.
+    - Private resources: every operation marked "Ownership" filters by the authenticated user. A resource of another user
+      is reported as `404` so that existence does not leak. Clients cannot set `ownerId`, role, object key or status.
+    - Privacy: exact coordinates are used for the request only and are not stored or logged; derived and exported images
+      never carry GPS or device EXIF; location in responses follows `LocationPrecision`.
+    - Rate-limit groups (headers `RateLimit-*`, `Retry-After`): public discovery (high), location (medium), media (lower),
+      AI inference (low), authentication (strict), administration (strict). Operations carry `x-rate-limit-group`.
+    - Async resources (`PENDING|PROCESSING|READY|FAILED`) are polled with 1, 2, 4, 8 s backoff and respect `Retry-After`.
+servers:
+  - url: https://api.hanoilens.example/v1
+    description: Production
+  - url: https://api.staging.hanoilens.example/v1
+    description: Staging
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: identity module. Access JWT (<= 15 min) and rotating opaque refresh token.
+  - name: Profile
+    description: profile module.
+  - name: Destinations
+    description: destination module. Heritages, landmarks, arrival checks, stamps catalogue.
+  - name: Events
+    description: event module. Published cultural events only.
+  - name: Visits
+    description: visit module. One visit covers one heritage; at most one ACTIVE or PAUSED visit per user.
+  - name: Media
+    description: media module. Uploads, photos, edits, exports, stickers.
+  - name: Albums
+    description: recap module. Albums, recaps and album exports.
+  - name: AI
+    description: Landmark recognition (media) and historical RAG (destination). Exactly two AI capabilities.
+  - name: Admin
+    description: Role ADMIN only, audited. Imported content stays PENDING_REVIEW until published.
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: registerUser
+      summary: Create a USER account
+      description: Allowlisted registration DTO. Clients cannot assign roles or account status.
+      security: []
+      x-rate-limit-group: AUTHENTICATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Account created.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserEnvelope' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: loginUser
+      summary: Exchange credentials for tokens
+      description: Failures return one generic message and are strictly rate-limited.
+      security: []
+      x-rate-limit-group: AUTHENTICATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Token pair.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshToken
+      summary: Rotate the refresh token
+      description: The submitted refresh token is invalidated immediately. Reuse revokes the token family and requires a new login.
+      security: []
+      x-rate-limit-group: AUTHENTICATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: New token pair.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutUser
+      summary: Revoke the current refresh-token family
+      x-rate-limit-group: AUTHENTICATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '204':
+          description: Logged out.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /me:
+    get:
+      tags: [Profile]
+      operationId: getMe
+      summary: Authenticated user and profile
+      description: "Ownership: returns only the caller."
+      responses:
+        '200':
+          description: The user.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    patch:
+      tags: [Profile]
+      operationId: updateMe
+      summary: Update supplied profile fields
+      description: |
+        Ownership: updates only the caller. `autoJourneyAlbum` (default true) controls whether ending a visit creates the
+        automatic journey album (DESTINATION recap).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200':
+          description: Updated user.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /me/stamps:
+    get:
+      tags: [Visits]
+      operationId: listMyStamps
+      summary: Stamp collection grouped by destination
+      description: "Ownership: owner only. Stamps are collectibles; there are no badges or gifts."
+      responses:
+        '200':
+          description: Collection.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StampCollectionEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /destinations:
+    get:
+      tags: [Destinations]
+      operationId: listDestinations
+      summary: List published destinations
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+        - name: area
+          in: query
+          schema: { $ref: '#/components/schemas/DestinationArea' }
+        - name: district
+          in: query
+          description: Exact normalized district identifier.
+          schema: { type: string }
+        - name: isFeatured
+          in: query
+          schema: { type: boolean }
+        - name: search
+          in: query
+          description: Free-text name or summary search.
+          schema: { type: string, maxLength: 100 }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [FEATURED, NAME, NEWEST], default: FEATURED }
+      responses:
+        '200':
+          description: Cursor-paginated destination summaries.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /destinations/nearby:
+    get:
+      tags: [Destinations]
+      operationId: listNearbyDestinations
+      summary: Destinations ordered by distance from a point
+      description: Privacy - coordinates are used for the query and are not retained as visit history or logged.
+      security: []
+      x-rate-limit-group: LOCATION
+      parameters:
+        - { $ref: '#/components/parameters/Latitude' }
+        - { $ref: '#/components/parameters/Longitude' }
+        - { $ref: '#/components/parameters/RadiusMeters' }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: Cursor-paginated destinations with `distanceMeters`.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /destinations/{destinationId}:
+    get:
+      tags: [Destinations]
+      operationId: getDestination
+      summary: Destination details
+      description: |
+        Used by the heritage preview (always shows the historical RAG entry point) and the on-site heritage explore page.
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - { $ref: '#/components/parameters/DestinationId' }
+      responses:
+        '200':
+          description: Destination.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationDetailEnvelope' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /destinations/{destinationId}/landmarks:
+    get:
+      tags: [Destinations]
+      operationId: listDestinationLandmarks
+      summary: Published landmarks of a destination
+      description: Ordering is editorial, not a required route.
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - { $ref: '#/components/parameters/DestinationId' }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: Landmarks.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LandmarkPage' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /landmarks/{landmarkId}:
+    get:
+      tags: [Destinations]
+      operationId: getLandmark
+      summary: Cultural information for one landmark
+      description: Feeds the landmark info screen after a RECOGNIZED result.
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - { $ref: '#/components/parameters/LandmarkId' }
+      responses:
+        '200':
+          description: Landmark with parent destination.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LandmarkEnvelope' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /destinations/{destinationId}/arrival-checks:
+    post:
+      tags: [Destinations]
+      operationId: createArrivalCheck
+      summary: Check a device position against the destination geofence
+      description: |
+        Authentication required. The raw coordinate is not stored or logged after evaluation. A successful `INSIDE`
+        result with `canStartVisit=true` yields a short-lived, one-time `id` used by `POST /visits`.
+      x-rate-limit-group: LOCATION
+      parameters:
+        - { $ref: '#/components/parameters/DestinationId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ArrivalCheckRequest' }
+      responses:
+        '200':
+          description: Arrival result.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ArrivalCheckEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /events:
+    get:
+      tags: [Events]
+      operationId: listEvents
+      summary: Published events ordered by startsAt, then id
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ONGOING, UPCOMING, ENDED] }
+        - name: district
+          in: query
+          schema: { type: string }
+        - name: destinationId
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string, maxLength: 100 }
+      responses:
+        '200':
+          description: Events.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /events/nearby:
+    get:
+      tags: [Events]
+      operationId: listNearbyEvents
+      summary: Events near a point
+      description: Coordinates are not stored or logged.
+      security: []
+      x-rate-limit-group: LOCATION
+      parameters:
+        - { $ref: '#/components/parameters/Latitude' }
+        - { $ref: '#/components/parameters/Longitude' }
+        - { $ref: '#/components/parameters/RadiusMeters' }
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: Events.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /events/{eventId}:
+    get:
+      tags: [Events]
+      operationId: getEvent
+      summary: Event with source provenance
+      description: Clients must display the event source and verification time.
+      security: []
+      x-rate-limit-group: PUBLIC_DISCOVERY
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Event.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventEnvelope' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /visits:
+    post:
+      tags: [Visits]
+      operationId: createVisit
+      summary: Start a visit and unlock the heritage
+      description: |
+        Requires `Idempotency-Key`. Called automatically after an arrival check returns INSIDE with `canStartVisit=true`.
+        The first visit to a heritage also collects its heritage stamp (`stampCollected`; null if already owned).
+        Errors: `409 ACTIVE_VISIT_EXISTS`, `422 ARRIVAL_REQUIRED`, `422 ARRIVAL_CHECK_EXPIRED`.
+        Ownership: the arrival check must belong to the caller.
+      parameters:
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartVisitRequest' }
+      responses:
+        '201':
+          description: Visit created.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StartVisitEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [Visits]
+      operationId: listVisits
+      summary: The caller's visits, startedAt descending
+      description: "Ownership: only the caller's visits."
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/VisitStatus' }
+        - name: destinationId
+          in: query
+          schema: { type: string }
+        - name: startedAfter
+          in: query
+          schema: { type: string, format: date-time }
+        - name: startedBefore
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Visits.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VisitPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/active:
+    get:
+      tags: [Visits]
+      operationId: getActiveVisit
+      summary: Current ACTIVE or PAUSED visit
+      description: "Ownership: the caller's visit. `data` is null when none exists."
+      responses:
+        '200':
+          description: Visit or null.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NullableVisitEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}:
+    get:
+      tags: [Visits]
+      operationId: getVisit
+      summary: A visit with visited landmarks and photo summaries
+      description: "Ownership: another user's visit returns 404."
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+      responses:
+        '200':
+          description: Visit detail.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VisitDetailEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}/pause:
+    post:
+      tags: [Visits]
+      operationId: pauseVisit
+      summary: ACTIVE to PAUSED
+      description: "Requires `Idempotency-Key`. Ownership: another user's visit returns 404."
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      responses:
+        '200':
+          description: Updated visit.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VisitEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}/resume:
+    post:
+      tags: [Visits]
+      operationId: resumeVisit
+      summary: PAUSED to ACTIVE
+      description: "Requires `Idempotency-Key`. Ownership: another user's visit returns 404."
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      responses:
+        '200':
+          description: Updated visit.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VisitEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}/end:
+    post:
+      tags: [Visits]
+      operationId: endVisit
+      summary: End the visit
+      description: |
+        Requires `Idempotency-Key`. `ENDED` is terminal. When profile `autoJourneyAlbum` is true a PENDING recap is created
+        in the same transaction; otherwise `recap` is null. Recap failure never alters the visit.
+        Ownership: another user's visit returns 404.
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EndVisitRequest' }
+      responses:
+        '202':
+          description: Visit ended; recap generation is asynchronous.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EndVisitEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}/landmarks/{landmarkId}:
+    put:
+      tags: [Visits]
+      operationId: unlockVisitLandmark
+      summary: Unlock a landmark with a RECOGNIZED recognition and collect its stamp
+      description: |
+        Idempotent. `recognitionId` must be a RECOGNIZED result for this `landmarkId` on a photo owned by the caller and
+        taken in this visit, else `422 RECOGNITION_REQUIRED`. The landmark must belong to the visit's destination
+        (`422 VALIDATION_ERROR`). A recognition or visit of another user returns `404`. A repeated request returns the
+        existing record with `200`. Unlocked landmarks stay unlocked in later visits.
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+        - { $ref: '#/components/parameters/LandmarkId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnlockLandmarkRequest' }
+      responses:
+        '200':
+          description: Already unlocked; existing record returned.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UnlockLandmarkEnvelope' }
+        '201':
+          description: Landmark unlocked now.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UnlockLandmarkEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /visits/{visitId}/photos:
+    get:
+      tags: [Media]
+      operationId: listVisitPhotos
+      summary: Photos of a visit in capture order
+      description: "Ownership: another user's visit returns 404."
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/VisitId' }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: Photos.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /media/uploads:
+    post:
+      tags: [Media]
+      operationId: createUpload
+      summary: Create an upload session
+      description: |
+        Requires `Idempotency-Key` and ownership of the target visit. Allowed types `image/jpeg` and `image/png`, default
+        maximum 25 MB; the server validates magic bytes, decoded content, dimensions and pixel count. The server creates
+        the object key; the presigned URL accepts one PUT to one key and expires in 5-10 minutes.
+        Photos auto-save to the private journal; there is no save step.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateUploadRequest' }
+      responses:
+        '201':
+          description: Upload session.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UploadSessionEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '413': { $ref: '#/components/responses/PayloadTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /media/uploads/{uploadId}/complete:
+    post:
+      tags: [Media]
+      operationId: completeUpload
+      summary: Confirm that the client uploaded the file
+      description: |
+        Requires `Idempotency-Key`, ownership of the upload session, the expected state and matching object
+        metadata/checksum. Repeated valid completion returns the original result without duplicate processing.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - name: uploadId
+          in: path
+          required: true
+          schema: { type: string }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CompleteUploadRequest' }
+      responses:
+        '202':
+          description: Photo with status PROCESSING.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /photos/{photoId}:
+    get:
+      tags: [Media]
+      operationId: getPhoto
+      summary: Photo metadata, processing status and short-lived variant URLs
+      description: "Ownership: another user's photo returns 404. Private object keys are never returned."
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/PhotoId' }
+      responses:
+        '200':
+          description: Photo.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    patch:
+      tags: [Media]
+      operationId: updatePhoto
+      summary: Update editable metadata
+      description: "Ownership: another user's photo returns 404. `locationPrecision` cannot exceed the permitted precision."
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/PhotoId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePhotoRequest' }
+      responses:
+        '200':
+          description: Updated photo.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Media]
+      operationId: deletePhoto
+      summary: Delete a photo
+      description: "Ownership: owner only. Idempotent from the client's perspective."
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/PhotoId' }
+      responses:
+        '204':
+          description: Deleted.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /photos/{photoId}/edits:
+    post:
+      tags: [Media]
+      operationId: createPhotoEdit
+      summary: Create a non-destructive edit variant
+      description: |
+        Requires `Idempotency-Key`. The original is never modified; the rendered variant strips GPS and device EXIF.
+        A landmark stamp sticker is accepted only if the user unlocked that landmark (`422 STICKER_NOT_AVAILABLE`).
+        Ownership: another user's photo returns 404.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/PhotoId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhotoEditRequest' }
+      responses:
+        '202':
+          description: PhotoVariant in PENDING state.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhotoVariantEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /photos/{photoId}/exports:
+    post:
+      tags: [Media]
+      operationId: createPhotoExport
+      summary: Export a variant with an optional journey stamp
+      description: |
+        Requires `Idempotency-Key`. Location detail beyond the photo's permitted precision is rejected. GPS and device
+        EXIF are stripped. Ownership: another user's photo or source variant returns 404.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/PhotoId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhotoExportRequest' }
+      responses:
+        '202':
+          description: Export in PENDING state.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /exports/{exportId}:
+    get:
+      tags: [Media]
+      operationId: getExport
+      summary: Export status and short-lived download URL
+      description: "Ownership: another user's export returns 404."
+      x-rate-limit-group: MEDIA
+      parameters:
+        - name: exportId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Export.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /stickers:
+    get:
+      tags: [Media]
+      operationId: listStickers
+      summary: Sticker catalogue for the photo editor
+      description: Cacheable. Landmark stamps carry `available` for the current user.
+      responses:
+        '200':
+          description: Stickers.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StickerListEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /edit-presets:
+    get:
+      tags: [Media]
+      operationId: listEditPresets
+      summary: Colour presets and handwriting caption fonts
+      description: Cacheable.
+      responses:
+        '200':
+          description: Presets.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EditPresetsEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /albums:
+    get:
+      tags: [Albums]
+      operationId: listAlbums
+      summary: The caller's albums
+      description: "Ownership: only the caller's albums."
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+        - name: destinationId
+          in: query
+          schema: { type: string }
+        - name: kind
+          in: query
+          schema: { $ref: '#/components/schemas/AlbumKind' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ProcessingStatus' }
+      responses:
+        '200':
+          description: Albums.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlbumPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      tags: [Albums]
+      operationId: createAlbum
+      summary: Create a JOURNEY album from selected photos
+      description: |
+        Requires `Idempotency-Key`; composition is asynchronous (poll `GET /albums/{albumId}`).
+        Ownership: a visit or photo that does not exist or belongs to another user returns `404` without revealing which
+        ID failed; a photo outside the listed visits is `422 VALIDATION_ERROR`. Visits may be at different heritages.
+        `locationPrecision` must not exceed any selected photo's permitted precision; assets carry no GPS or device EXIF.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAlbumRequest' }
+      responses:
+        '202':
+          description: Album PENDING.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlbumCreatedEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /albums/{albumId}:
+    get:
+      tags: [Albums]
+      operationId: getAlbum
+      summary: Album metadata, visits and ordered photos
+      description: "Ownership: another user's album returns 404. Image URLs are short-lived signed URLs."
+      parameters:
+        - { $ref: '#/components/parameters/AlbumId' }
+      responses:
+        '200':
+          description: Album.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlbumEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    patch:
+      tags: [Albums]
+      operationId: updateAlbum
+      summary: Update title, layout or ordered photos of a JOURNEY album
+      description: |
+        Layout or photo changes return `202` and recompose; a title-only change returns `200`.
+        `DESTINATION` albums are read-only (`409 ALBUM_READ_ONLY`). Ownership: another user's album returns 404.
+      parameters:
+        - { $ref: '#/components/parameters/AlbumId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateAlbumRequest' }
+      responses:
+        '200':
+          description: Updated.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlbumEnvelope' }
+        '202':
+          description: Recomposition started.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlbumCreatedEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [Albums]
+      operationId: deleteAlbum
+      summary: Delete a JOURNEY album and its derived assets
+      description: "Original photos are never deleted. Ownership: owner only. `DESTINATION` albums return 409 ALBUM_READ_ONLY."
+      parameters:
+        - { $ref: '#/components/parameters/AlbumId' }
+      responses:
+        '204':
+          description: Deleted.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /albums/{albumId}/exports:
+    post:
+      tags: [Albums]
+      operationId: createAlbumExport
+      summary: Export a READY album
+      description: |
+        Requires `Idempotency-Key`. Exported files have GPS and device EXIF stripped and show location only at the album's
+        `locationPrecision`. Ownership: another user's album returns 404; a non-READY album is `409`.
+      x-rate-limit-group: MEDIA
+      parameters:
+        - { $ref: '#/components/parameters/AlbumId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AlbumExportRequest' }
+      responses:
+        '202':
+          description: Export in PENDING state; poll `GET /exports/{exportId}`.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExportEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /recaps:
+    get:
+      tags: [Albums]
+      operationId: listRecaps
+      summary: The caller's recaps, period descending
+      description: "Ownership: only the caller's recaps."
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+        - name: type
+          in: query
+          schema: { $ref: '#/components/schemas/RecapType' }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/ProcessingStatus' }
+      responses:
+        '200':
+          description: Recaps.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecapPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /recaps/{recapId}:
+    get:
+      tags: [Albums]
+      operationId: getRecap
+      summary: Recap status and content
+      description: "Ownership: another user's recap returns 404."
+      parameters:
+        - { $ref: '#/components/parameters/RecapId' }
+      responses:
+        '200':
+          description: Recap.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecapEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    patch:
+      tags: [Albums]
+      operationId: updateRecap
+      summary: Update user-controlled recap fields
+      description: Title, note or ordered photo selection. Never modifies original photos. Ownership applies.
+      parameters:
+        - { $ref: '#/components/parameters/RecapId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateRecapRequest' }
+      responses:
+        '200':
+          description: Updated recap.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecapEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /recaps/{recapId}/regenerate:
+    post:
+      tags: [Albums]
+      operationId: regenerateRecap
+      summary: Regenerate a failed or outdated recap
+      description: "Requires `Idempotency-Key`. Ownership applies."
+      parameters:
+        - { $ref: '#/components/parameters/RecapId' }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      responses:
+        '202':
+          description: Regeneration started.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecapEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+  /ai/recognize-landmark:
+    post:
+      tags: [AI]
+      operationId: recognizeLandmark
+      summary: Landmark image classification (Model 1)
+      description: |
+        Runs against a private photo owned by the caller (another user's photo returns 404). Below the confidence
+        threshold the result is `UNKNOWN` with `landmarkId` null; a landmark is never silently chosen. No bounding boxes
+        or live camera analysis. Exact coordinates are never sent to the AI runtime. The result `id` is the
+        `recognitionId` used by `PUT /visits/{visitId}/landmarks/{landmarkId}`.
+      x-rate-limit-group: AI_INFERENCE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RecognizeLandmarkRequest' }
+      responses:
+        '200':
+          description: Recognition result.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RecognitionEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /ai/qa:
+    post:
+      tags: [AI]
+      operationId: askHistoricalQuestion
+      summary: Historical RAG question (Model 2)
+      description: |
+        Heritage preview scope: `destinationId` only, works without a vision result. On-site scope (AI tab): `destinationId`
+        of the caller's visit; retrieval covers the heritage plus landmarks the user unlocked there. An optional
+        `landmarkId` focuses one unlocked landmark; a locked or foreign landmark is `422 LANDMARK_LOCKED`. Answers come only
+        from retrieved evidence with citations. Prompts, credentials and raw provider output are never exposed.
+        If inference is unavailable the response is `503`; static content stays usable.
+      x-rate-limit-group: AI_INFERENCE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/QaRequest' }
+      responses:
+        '200':
+          description: Answer with sources.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QaEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /admin/destinations:
+    post:
+      tags: [Admin]
+      operationId: adminCreateDestination
+      summary: Create a draft destination
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminDestinationRequest' }
+      responses:
+        '201':
+          description: Draft created.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationDetailEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/destinations/{id}:
+    patch:
+      tags: [Admin]
+      operationId: adminUpdateDestination
+      summary: Update destination content or boundary
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminDestinationRequest' }
+      responses:
+        '200':
+          description: Updated.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationDetailEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/destinations/{id}/publish:
+    post:
+      tags: [Admin]
+      operationId: adminPublishDestination
+      summary: Publish a validated destination
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      responses:
+        '200':
+          description: Published.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DestinationDetailEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/event-sources:
+    post:
+      tags: [Admin]
+      operationId: adminCreateEventSource
+      summary: Register an approved event source
+      description: Event imports use deterministic source-specific parsers (JSON-LD, RSS, CSS selectors, date rules), not an NLP model.
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventSourceRequest' }
+      responses:
+        '201':
+          description: Source registered.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventSourceEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/event-sources/{id}/imports:
+    post:
+      tags: [Admin]
+      operationId: adminStartEventImport
+      summary: Start an ingestion job
+      description: Imported events stay PENDING_REVIEW until an administrator publishes them.
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      responses:
+        '202':
+          description: Job accepted.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventImportEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/event-imports/{id}:
+    get:
+      tags: [Admin]
+      operationId: adminGetEventImport
+      summary: Job status and validation errors
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      responses:
+        '200':
+          description: Job.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventImportEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/events/{id}:
+    patch:
+      tags: [Admin]
+      operationId: adminUpdateEvent
+      summary: Correct normalized event data
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminEventUpdateRequest' }
+      responses:
+        '200':
+          description: Updated.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/events/{id}/publish:
+    post:
+      tags: [Admin]
+      operationId: adminPublishEvent
+      summary: Publish a reviewed event
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      responses:
+        '200':
+          description: Published.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access JWT, at most 15 minutes. Claims sub, role, iat, exp, iss, aud. Roles USER and ADMIN.
+
+  headers:
+    XRequestId:
+      description: Request correlation ID, always returned.
+      schema: { type: string }
+    RetryAfter:
+      description: Seconds to wait before retrying.
+      schema: { type: integer, minimum: 0 }
+
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque continuation token. Clients must not construct or parse it.
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: One stable key per intended operation, reused for retries.
+      schema: { type: string, minLength: 8, maxLength: 128 }
+    Latitude:
+      name: latitude
+      in: query
+      required: true
+      schema: { type: number, format: double, minimum: -90, maximum: 90 }
+    Longitude:
+      name: longitude
+      in: query
+      required: true
+      schema: { type: number, format: double, minimum: -180, maximum: 180 }
+    RadiusMeters:
+      name: radiusMeters
+      in: query
+      schema: { type: integer, minimum: 100, maximum: 50000, default: 5000 }
+    From:
+      name: from
+      in: query
+      description: Default range is now through the next 30 days.
+      schema: { type: string, format: date-time }
+    To:
+      name: to
+      in: query
+      schema: { type: string, format: date-time }
+    DestinationId:
+      name: destinationId
+      in: path
+      required: true
+      schema: { type: string }
+    LandmarkId:
+      name: landmarkId
+      in: path
+      required: true
+      schema: { type: string }
+    VisitId:
+      name: visitId
+      in: path
+      required: true
+      schema: { type: string }
+    PhotoId:
+      name: photoId
+      in: path
+      required: true
+      schema: { type: string }
+    AlbumId:
+      name: albumId
+      in: path
+      required: true
+      schema: { type: string }
+    RecapId:
+      name: recapId
+      in: path
+      required: true
+      schema: { type: string }
+    AdminId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    BadRequest:
+      description: Malformed request or unsupported query combination.
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: Missing, expired or invalid authentication.
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Authenticated user is not allowed (for example USER calling an ADMIN route).
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: Resource does not exist or is not visible to the caller.
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: State conflict, or an identical request is in progress (`REQUEST_IN_PROGRESS`, with `Retry-After`).
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    PayloadTooLarge:
+      description: Upload exceeds the allowed limit.
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    UnsupportedMediaType:
+      description: Unsupported media type (only image/jpeg and image/png).
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unprocessable:
+      description: Valid syntax but violates validation or business rules (for example IDEMPOTENCY_KEY_REUSED, ARRIVAL_REQUIRED, RECOGNITION_REQUIRED, LANDMARK_LOCKED, STICKER_NOT_AVAILABLE).
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    InternalError:
+      description: Unexpected server error without internal details.
+      headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ServiceUnavailable:
+      description: A required dependency is temporarily unavailable (AI inference).
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/XRequestId' }
+        Retry-After: { $ref: '#/components/headers/RetryAfter' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+    # ---- shared ----
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string, example: VALIDATION_ERROR }
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                required: [reason]
+                properties:
+                  field: { type: string }
+                  reason: { type: string }
+            requestId: { type: string }
+    Pagination:
+      type: object
+      required: [nextCursor, hasMore]
+      properties:
+        nextCursor: { type: string, nullable: true }
+        hasMore: { type: boolean }
+    GeoPoint:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+    LocationPrecision:
+      type: string
+      description: APPROXIMATE is generalized by the server; the transformation is not a client contract.
+      enum: [NONE, DESTINATION, DISTRICT, APPROXIMATE, EXACT]
+    AlbumLocationPrecision:
+      type: string
+      enum: [NONE, DESTINATION, DISTRICT]
+    ProcessingStatus:
+      type: string
+      enum: [PENDING, PROCESSING, READY, FAILED]
+    VisitStatus:
+      type: string
+      description: ENDED is terminal; there is no cancelled state.
+      enum: [ACTIVE, PAUSED, ENDED]
+    DestinationArea:
+      type: string
+      enum: [CENTRAL, WEST, NORTH, OUTSKIRTS]
+    AlbumKind:
+      type: string
+      enum: [DESTINATION, JOURNEY]
+    RecapType:
+      type: string
+      enum: [DESTINATION, MONTHLY]
+    AlbumLayout:
+      type: string
+      enum: [TIMELINE, BY_DESTINATION, POSTCARD, FILM]
+    NamedRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+
+    # ---- auth / profile ----
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, format: password, minLength: 10, maxLength: 128 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        locale: { type: string, example: vi-VN }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      additionalProperties: false
+      properties:
+        refreshToken: { type: string, description: Opaque; stored hashed by the backend. }
+    TokenPair:
+      type: object
+      required: [accessToken, expiresAt, refreshToken]
+      properties:
+        accessToken: { type: string }
+        expiresAt: { type: string, format: date-time }
+        refreshToken: { type: string }
+    TokenEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/TokenPair' }
+    User:
+      type: object
+      required: [id, displayName, email, locale, defaultLocationPrecision, autoJourneyAlbum, createdAt]
+      properties:
+        id: { type: string, example: usr_01 }
+        displayName: { type: string }
+        email: { type: string, format: email }
+        locale: { type: string, example: vi-VN }
+        defaultLocationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        autoJourneyAlbum: { type: boolean, default: true }
+        createdAt: { type: string, format: date-time }
+    UserEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/User' }
+    UpdateProfileRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        locale: { type: string }
+        defaultLocationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        autoJourneyAlbum: { type: boolean }
+
+    # ---- destinations ----
+    DestinationSummary:
+      type: object
+      required: [id, slug, name, area, district, summary]
+      properties:
+        id: { type: string, example: dst_van_mieu }
+        slug: { type: string }
+        name: { type: string }
+        area: { $ref: '#/components/schemas/DestinationArea' }
+        district: { type: string }
+        summary: { type: string }
+        coverImageUrl: { type: string, format: uri, nullable: true, description: Short-lived signed URL. }
+        bestTime: { type: string, example: EARLY_MORNING }
+        estimatedMinutes: { type: integer }
+        landmarkCount: { type: integer }
+        distanceMeters: { type: integer, nullable: true, description: Present on nearby queries only. }
+        isFeatured: { type: boolean }
+    DestinationPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/DestinationSummary' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    Geofence:
+      type: object
+      required: [type, center, radiusMeters]
+      properties:
+        type: { type: string, enum: [CIRCLE] }
+        center: { $ref: '#/components/schemas/GeoPoint' }
+        radiusMeters: { type: integer, minimum: 1 }
+    DestinationDetail:
+      allOf:
+        - $ref: '#/components/schemas/DestinationSummary'
+        - type: object
+          properties:
+            description: { type: string }
+            geofence: { $ref: '#/components/schemas/Geofence' }
+            aiFeatures:
+              type: object
+              properties:
+                historicalRagAvailable: { type: boolean }
+                landmarkRecognitionAvailable: { type: boolean }
+    DestinationDetailEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/DestinationDetail' }
+    Landmark:
+      type: object
+      required: [id, destinationId, name]
+      properties:
+        id: { type: string, example: lmk_khue_van_cac }
+        destinationId: { type: string }
+        name: { type: string }
+        summary: { type: string }
+        description: { type: string }
+        imageUrl: { type: string, format: uri, nullable: true }
+        position: { $ref: '#/components/schemas/GeoPoint' }
+        destination: { $ref: '#/components/schemas/NamedRef' }
+    LandmarkPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Landmark' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    LandmarkEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Landmark' }
+    ArrivalCheckRequest:
+      type: object
+      required: [position, accuracyMeters, observedAt]
+      additionalProperties: false
+      properties:
+        position: { $ref: '#/components/schemas/GeoPoint' }
+        accuracyMeters: { type: number, minimum: 0 }
+        observedAt: { type: string, format: date-time }
+    ArrivalCheck:
+      type: object
+      required: [id, destinationId, status, canStartVisit, checkedAt]
+      properties:
+        id: { type: string, example: arr_01 }
+        destinationId: { type: string }
+        status: { type: string, enum: [OUTSIDE, NEARBY, INSIDE, INDETERMINATE] }
+        distanceMeters: { type: integer }
+        accuracyMeters: { type: number }
+        canStartVisit: { type: boolean }
+        checkedAt: { type: string, format: date-time }
+    ArrivalCheckEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/ArrivalCheck' }
+    # ---- events ----
+    EventVenue:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        district: { type: string }
+        position: { $ref: '#/components/schemas/GeoPoint' }
+    Event:
+      type: object
+      required: [id, title, startsAt, endsAt, timezone, status]
+      properties:
+        id: { type: string, example: evt_01 }
+        title: { type: string }
+        summary: { type: string }
+        venue: { $ref: '#/components/schemas/EventVenue' }
+        destinationId: { type: string, nullable: true }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        timezone: { type: string, example: Asia/Ho_Chi_Minh }
+        sourceUrl: { type: string, format: uri }
+        lastVerifiedAt: { type: string, format: date-time }
+        status: { type: string, enum: [SCHEDULED, ONGOING, ENDED, CANCELLED] }
+    EventEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Event' }
+    EventPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Event' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+
+    # ---- visits ----
+    StartVisitRequest:
+      type: object
+      required: [destinationId, arrivalCheckId, locationPrecision]
+      additionalProperties: false
+      properties:
+        destinationId: { type: string }
+        arrivalCheckId: { type: string }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+    Visit:
+      type: object
+      required: [id, destination, status, startedAt, locationPrecision, createdAt, updatedAt]
+      properties:
+        id: { type: string, example: vst_01 }
+        destination: { $ref: '#/components/schemas/NamedRef' }
+        status: { $ref: '#/components/schemas/VisitStatus' }
+        startedAt: { type: string, format: date-time }
+        pausedAt: { type: string, format: date-time, nullable: true }
+        endedAt: { type: string, format: date-time, nullable: true }
+        unlockedLandmarkCount: { type: integer }
+        landmarkCount: { type: integer }
+        photoCount: { type: integer }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StampRef:
+      type: object
+      required: [id, kind]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [HERITAGE, LANDMARK] }
+        landmarkId: { type: string, nullable: true }
+        artworkUrl: { type: string, format: uri }
+    VisitEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Visit' }
+    NullableVisitEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Visit'
+          nullable: true
+    StartVisitEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Visit'
+            - type: object
+              properties:
+                stampCollected:
+                  allOf:
+                    - $ref: '#/components/schemas/StampRef'
+                  nullable: true
+    VisitPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Visit' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    VisitLandmark:
+      type: object
+      required: [landmarkId, unlockedAt]
+      properties:
+        landmarkId: { type: string }
+        recognitionId: { type: string }
+        unlockedAt: { type: string, format: date-time }
+    VisitDetail:
+      allOf:
+        - $ref: '#/components/schemas/Visit'
+        - type: object
+          properties:
+            landmarks:
+              type: array
+              items: { $ref: '#/components/schemas/VisitLandmark' }
+            photos:
+              type: array
+              items: { $ref: '#/components/schemas/PhotoSummary' }
+    VisitDetailEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/VisitDetail' }
+    EndVisitRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        endedAt: { type: string, format: date-time }
+        note: { type: string, maxLength: 500 }
+    EndVisitEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [visit, recap]
+          properties:
+            visit:
+              type: object
+              required: [id, status, endedAt]
+              properties:
+                id: { type: string }
+                status: { $ref: '#/components/schemas/VisitStatus' }
+                endedAt: { type: string, format: date-time }
+            recap:
+              type: object
+              nullable: true
+              description: Null when the profile setting autoJourneyAlbum is false.
+              required: [id, status]
+              properties:
+                id: { type: string }
+                status: { $ref: '#/components/schemas/ProcessingStatus' }
+    UnlockLandmarkRequest:
+      type: object
+      required: [recognitionId]
+      additionalProperties: false
+      properties:
+        recognitionId: { type: string, example: rec_01 }
+    UnlockLandmarkEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [landmark]
+          properties:
+            landmark: { $ref: '#/components/schemas/Landmark' }
+            stampCollected:
+              allOf:
+                - $ref: '#/components/schemas/StampRef'
+              nullable: true
+    StampCollectionEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required: [destination, heritageStamp, landmarkStamps]
+            properties:
+              destination: { $ref: '#/components/schemas/NamedRef' }
+              heritageStamp: { $ref: '#/components/schemas/CollectedStamp' }
+              landmarkStamps:
+                type: array
+                items: { $ref: '#/components/schemas/CollectedStamp' }
+    CollectedStamp:
+      type: object
+      required: [id, collected]
+      properties:
+        id: { type: string }
+        landmarkId: { type: string, nullable: true }
+        collected: { type: boolean }
+        collectedAt: { type: string, format: date-time, nullable: true }
+        artworkUrl: { type: string, format: uri }
+
+    # ---- media ----
+    CreateUploadRequest:
+      type: object
+      required: [visitId, fileName, contentType, sizeBytes, sha256]
+      additionalProperties: false
+      properties:
+        visitId: { type: string }
+        fileName: { type: string, maxLength: 255, description: Metadata only; never a storage path. }
+        contentType: { type: string, enum: [image/jpeg, image/png] }
+        sizeBytes: { type: integer, minimum: 1, maximum: 26214400, description: Default maximum 25 MB. }
+        sha256: { type: string, description: Base64-encoded SHA-256 of the file. }
+        capturedAt: { type: string, format: date-time }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+    UploadSession:
+      type: object
+      required: [uploadId, uploadUrl, method, requiredHeaders, expiresAt]
+      properties:
+        uploadId: { type: string, example: upl_01 }
+        uploadUrl: { type: string, format: uri, description: Presigned, single-key, single PUT; expires within 5-10 minutes. Never logged. }
+        method: { type: string, enum: [PUT] }
+        requiredHeaders:
+          type: object
+          additionalProperties: { type: string }
+        expiresAt: { type: string, format: date-time }
+    UploadSessionEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/UploadSession' }
+    CompleteUploadRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        etag: { type: string, description: Storage ETag if available. }
+    PhotoSummary:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string, example: pht_01 }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        capturedAt: { type: string, format: date-time }
+        thumbnailUrl: { type: string, format: uri, nullable: true }
+    PhotoVariant:
+      type: object
+      required: [id, kind, status]
+      properties:
+        id: { type: string, example: var_01 }
+        kind: { type: string, enum: [THUMBNAIL, PREVIEW, EDIT] }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        url: { type: string, format: uri, nullable: true, description: Short-lived signed URL, EXIF stripped. }
+    PhotoVariantEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/PhotoVariant' }
+    Photo:
+      type: object
+      required: [id, visitId, status, locationPrecision]
+      properties:
+        id: { type: string }
+        visitId: { type: string }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        caption: { type: string, nullable: true }
+        landmarkId: { type: string, nullable: true }
+        capturedAt: { type: string, format: date-time }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        location:
+          allOf:
+            - $ref: '#/components/schemas/GeoPoint'
+          nullable: true
+          description: Present only as allowed by locationPrecision; never original EXIF GPS.
+        techniqueTags:
+          type: array
+          items: { type: string }
+        variants:
+          type: array
+          items: { $ref: '#/components/schemas/PhotoVariant' }
+    PhotoEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Photo' }
+    PhotoPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Photo' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    UpdatePhotoRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        caption: { type: string, maxLength: 280 }
+        landmarkId: { type: string, nullable: true }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        techniqueTags:
+          type: array
+          items: { type: string }
+    EditLayer:
+      type: object
+      required: [x, y]
+      properties:
+        x: { type: number, minimum: 0, maximum: 1 }
+        y: { type: number, minimum: 0, maximum: 1 }
+        scale: { type: number, minimum: 0.2, maximum: 3, default: 1 }
+        rotationDegrees: { type: number, minimum: -180, maximum: 180, default: 0 }
+    Sticker:
+      allOf:
+        - $ref: '#/components/schemas/EditLayer'
+        - type: object
+          required: [stickerId]
+          properties:
+            stickerId: { type: string }
+            text: { type: string, maxLength: 40 }
+    Caption:
+      allOf:
+        - $ref: '#/components/schemas/EditLayer'
+        - type: object
+          required: [text, fontId]
+          properties:
+            text: { type: string, maxLength: 80 }
+            fontId: { type: string }
+            color: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+    PhotoEditRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        crop:
+          type: object
+          required: [x, y, width, height]
+          properties:
+            x: { type: number, minimum: 0, maximum: 1 }
+            y: { type: number, minimum: 0, maximum: 1 }
+            width: { type: number, exclusiveMinimum: true, minimum: 0, maximum: 1 }
+            height: { type: number, exclusiveMinimum: true, minimum: 0, maximum: 1 }
+        rotationDegrees: { type: number, minimum: -180, maximum: 180 }
+        adjustments:
+          type: object
+          properties:
+            exposure: { type: number, minimum: -1, maximum: 1 }
+            highlights: { type: number, minimum: -1, maximum: 1 }
+            shadows: { type: number, minimum: -1, maximum: 1 }
+            temperature: { type: number, minimum: -1, maximum: 1 }
+        colorPreset: { type: string, description: ID from GET /edit-presets, applied before manual adjustments. }
+        stickers:
+          type: array
+          maxItems: 20
+          items: { $ref: '#/components/schemas/Sticker' }
+        captions:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/Caption' }
+    PhotoExportRequest:
+      type: object
+      required: [style, locationPrecision, format]
+      additionalProperties: false
+      properties:
+        sourceVariantId: { type: string }
+        style: { type: string, example: POSTCARD }
+        fields:
+          type: array
+          items: { type: string, enum: [DESTINATION, DISTRICT, CAPTURED_AT, WEATHER] }
+        locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
+        format: { type: string, enum: [JPEG] }
+        quality: { type: integer, minimum: 1, maximum: 100, default: 90 }
+    Export:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string, example: exp_01 }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        statusUrl: { type: string }
+        downloadUrl: { type: string, format: uri, nullable: true, description: Short-lived; present when READY. }
+        expiresAt: { type: string, format: date-time, nullable: true }
+    ExportEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Export' }
+    StickerEntry:
+      type: object
+      required: [id, type, imageUrl, allowsText]
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [STAMP, POSTMARK, DATE, TEXT, HEART, BADGE] }
+        imageUrl: { type: string, format: uri }
+        allowsText: { type: boolean }
+        landmarkId: { type: string, nullable: true }
+        available: { type: boolean, description: For landmark stamps, whether the caller unlocked the landmark. }
+    StickerListEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/StickerEntry' }
+    EditPresetsEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [colorPresets, captionFonts]
+          properties:
+            colorPresets:
+              type: array
+              items: { $ref: '#/components/schemas/PresetEntry' }
+            captionFonts:
+              type: array
+              items: { $ref: '#/components/schemas/PresetEntry' }
+    PresetEntry:
+      type: object
+      required: [id, name, previewUrl]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        previewUrl: { type: string, format: uri }
+
+    # ---- albums / recaps ----
+    CreateAlbumRequest:
+      type: object
+      required: [title, visitIds, photoIds, layout, locationPrecision]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        visitIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items: { type: string }
+        photoIds:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { type: string }
+        layout: { $ref: '#/components/schemas/AlbumLayout' }
+        locationPrecision: { $ref: '#/components/schemas/AlbumLocationPrecision' }
+    UpdateAlbumRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        layout: { $ref: '#/components/schemas/AlbumLayout' }
+        photoIds:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { type: string }
+    AlbumExportRequest:
+      type: object
+      required: [format]
+      additionalProperties: false
+      properties:
+        format: { type: string, enum: [JPEG_ZIP, PDF] }
+    AlbumCreatedEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, kind, status, statusUrl]
+          properties:
+            id: { type: string, example: alb_01 }
+            kind: { $ref: '#/components/schemas/AlbumKind' }
+            status: { $ref: '#/components/schemas/ProcessingStatus' }
+            statusUrl: { type: string, example: /v1/albums/alb_01 }
+    AlbumSection:
+      type: object
+      required: [destination, photos]
+      properties:
+        destination:
+          type: object
+          required: [name]
+          properties:
+            name: { type: string }
+        capturedAt: { type: string, format: date-time }
+        photos:
+          type: array
+          items:
+            type: object
+            required: [photoId, imageUrl]
+            properties:
+              photoId: { type: string }
+              imageUrl: { type: string, format: uri }
+    Album:
+      type: object
+      required: [id, kind, status]
+      properties:
+        id: { type: string }
+        kind: { $ref: '#/components/schemas/AlbumKind' }
+        title: { type: string }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        layout: { $ref: '#/components/schemas/AlbumLayout' }
+        locationPrecision: { $ref: '#/components/schemas/AlbumLocationPrecision' }
+        visitIds:
+          type: array
+          items: { type: string }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/PhotoSummary' }
+        sections:
+          type: array
+          description: Present for JOURNEY albums when READY.
+          items: { $ref: '#/components/schemas/AlbumSection' }
+        createdAt: { type: string, format: date-time }
+    AlbumEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Album' }
+    AlbumPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Album' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    Recap:
+      type: object
+      required: [id, type, status]
+      properties:
+        id: { type: string, example: rcp_01 }
+        type: { $ref: '#/components/schemas/RecapType' }
+        status: { $ref: '#/components/schemas/ProcessingStatus' }
+        destination: { $ref: '#/components/schemas/NamedRef' }
+        periodStart: { type: string, format: date-time }
+        periodEnd: { type: string, format: date-time }
+        summary: { type: string }
+        photoCount: { type: integer }
+        photos:
+          type: array
+          items:
+            type: object
+            required: [photoId, position, imageUrl]
+            properties:
+              photoId: { type: string }
+              position: { type: integer, minimum: 1 }
+              imageUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }
+        readyAt: { type: string, format: date-time, nullable: true }
+    RecapEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Recap' }
+    RecapPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Recap' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    UpdateRecapRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: { type: string, maxLength: 120 }
+        note: { type: string, maxLength: 500 }
+        photoIds:
+          type: array
+          maxItems: 50
+          items: { type: string }
+
+    # ---- AI ----
+    RecognizeLandmarkRequest:
+      type: object
+      required: [photoId]
+      additionalProperties: false
+      properties:
+        photoId: { type: string }
+    Recognition:
+      type: object
+      required: [id, result, confidence]
+      properties:
+        id: { type: string, example: rec_01, description: Used as recognitionId when unlocking a landmark. }
+        landmarkId: { type: string, nullable: true, description: Null when result is UNKNOWN. }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        result: { type: string, enum: [RECOGNIZED, UNKNOWN] }
+    RecognitionEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Recognition' }
+    QaRequest:
+      type: object
+      required: [destinationId, question]
+      additionalProperties: false
+      properties:
+        destinationId: { type: string }
+        landmarkId: { type: string, description: Optional focus; must be unlocked by the caller. }
+        question: { type: string, minLength: 1, maxLength: 1000 }
+        locale: { type: string, example: en-US }
+    QaAnswer:
+      type: object
+      required: [answer, sources, isAiGenerated, generatedAt]
+      properties:
+        answer: { type: string }
+        sources:
+          type: array
+          items:
+            type: object
+            required: [title]
+            properties:
+              title: { type: string }
+              url: { type: string, format: uri }
+        isAiGenerated: { type: boolean }
+        generatedAt: { type: string, format: date-time }
+    QaEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/QaAnswer' }
+
+    # ---- admin ----
+    AdminDestinationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        area: { $ref: '#/components/schemas/DestinationArea' }
+        district: { type: string }
+        summary: { type: string }
+        description: { type: string }
+        geofence: { $ref: '#/components/schemas/Geofence' }
+        estimatedMinutes: { type: integer }
+        isFeatured: { type: boolean }
+    EventSourceRequest:
+      type: object
+      required: [name, url, parserType]
+      additionalProperties: false
+      properties:
+        name: { type: string }
+        url: { type: string, format: uri }
+        parserType: { type: string, enum: [JSON_LD, RSS, CSS_SELECTOR] }
+        parserConfig: { type: object, additionalProperties: true }
+    EventSourceEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/EventSourceRequest'
+            - type: object
+              required: [id]
+              properties:
+                id: { type: string }
+    EventImportEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [id, status]
+          properties:
+            id: { type: string }
+            sourceId: { type: string }
+            status: { $ref: '#/components/schemas/ProcessingStatus' }
+            importedCount: { type: integer }
+            validationErrors:
+              type: array
+              items:
+                type: object
+                required: [reason]
+                properties:
+                  field: { type: string }
+                  reason: { type: string }
+    AdminEventUpdateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        title: { type: string }
+        summary: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        timezone: { type: string }
+        destinationId: { type: string, nullable: true }
+        sourceUrl: { type: string, format: uri }
