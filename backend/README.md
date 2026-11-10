@@ -18,4 +18,8 @@ Java 17 + Spring Boot 3.x **modular monolith** (Spring Modulith): one JVM proces
 - [docs/PROJECT_STRUCTURE_AND_NAMING.md](../docs/PROJECT_STRUCTURE_AND_NAMING.md) — package layout and naming
 - [docs/GIT_WORKFLOW.md](../docs/GIT_WORKFLOW.md) — branches, commits, pull requests
 
-The project skeleton (build files, packages) is not created yet; the folder owner sets it up.
+## Status and commands
+
+- T02: Maven skeleton (Spring Boot 3.3.5, Spring Modulith 1.2.5, Java 17) with the seven module packages `modules.*` (each declared with `@ApplicationModule`; `spring.modulith.detection-strategy=explicitly-annotated`) and `ModularityTests` (`ApplicationModules.verify()` plus the exact module list).
+- Run the architecture test: `cd backend && mvn test` (no database needed).
+- The `database/` folder (task T03) holds a separate Flyway/JPA project with the same artifactId; the team still has to merge the two into this folder.
