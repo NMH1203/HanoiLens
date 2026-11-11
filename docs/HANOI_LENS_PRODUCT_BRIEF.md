@@ -61,7 +61,7 @@ The Hanoi Lens journey consists of five interconnected phases:
 [1. Discover] ---> [2. Arrive & Unlock] ---> [3. Visit & Explore] ---> [4. Capture & Edit] ---> [5. Remember & Collect]
 ```
 
-1. **Discover:** Browse destinations and upcoming cultural events (also together on the map), preview a heritage, ask the AI about it, and optionally get walking directions inside the app.
+1. **Discover:** Browse destinations and upcoming cultural events (also together on the map), preview a heritage, ask the AI about it, and optionally open directions in a map app such as Google Maps; the app detects on the device when the user arrives.
 2. **Arrive & Unlock:** Walk into any heritage's geographic zone where GPS geofencing automatically registers the arrival, unlocks the heritage, and collects its heritage stamp.
 3. **Unlock & Explore:** Arrival unlocks the heritage and opens its heritage explore page (history, landmarks). The visit map of the heritage area shows the user's live position; users move around, take photos, and optionally identify what they photographed. When a landmark is identified, the user unlocks it (collecting its stamp) and its landmark info page opens. The AI chat is a tab of the heritage explore page and knows the heritage plus every landmark the user has unlocked; landmark info opens it focused on that landmark.
 4. **Capture & Edit:** Take photos, optionally recognize supported landmarks, and perform non-destructive image edits.
@@ -81,7 +81,7 @@ Users choose where to go themselves; the app never prescribes routes or sequenti
 - Always show the historical RAG assistant entry point on each heritage preview.
 - Support continuing paused or unfinished exploration sessions from Explore Hanoi (home); resuming reopens the heritage explore page.
 - Show heritages and cultural events together on the map; choosing a point opens the heritage preview or the event detail.
-- Each heritage page works as a preview with optional in-app walking directions (the app never opens another map app). There is no marking step: arriving at any heritage starts its visit (team decision 2026-11-06). The app does not recommend which heritages to visit.
+- Each heritage page works as a preview with optional directions that open an external map app (Google Maps or similar) and then watch for arrival on the device (ADR 013). There is no marking step: arriving at any heritage starts its visit (team decision 2026-11-06). The app does not recommend which heritages to visit.
 
 ### 6.2 GPS-based destination detection (GPS Geofencing)
 - Monitor destination boundaries solely to detect arrival and presence (binary zone check: inside/outside).
@@ -187,7 +187,7 @@ Explore Hanoi (home) ──> Travel journal / Map (heritages + events) / Heritag
      ├──> Event without heritage ──> Event memory page -> Take photo -> Save memory
      │
      ▼
-Heritage preview (Ask AI) -> Want to go? -> Optional directions
+Heritage preview (Ask AI) -> Want to go? -> Optional directions in an external map app -> auto unlock on arrival
      │
      ▼
 Arrive at any heritage -> GPS confirms arrival -> Unlock heritage + heritage stamp

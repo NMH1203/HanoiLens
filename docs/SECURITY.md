@@ -208,7 +208,8 @@ For each private resource endpoint, the reusable test template (`T13`) must veri
 
 - Inspect generated files with an EXIF reader and assert that GPS/device fields are absent.
 - Verify every location-precision option against API responses, stamps, recap assets, and exports.
-- Inspect structured logs during nearby search, arrival checks, walking routes, uploads, and exports for prohibited values, and check that requests to the routing engine carry no user identifier.
+- Inspect structured logs during nearby search, arrival checks, uploads, and exports for prohibited values.
+- Directions open an external map app with the public destination coordinates only. The app arms a single on-device geofence around that destination for a limited time and keeps no position history; verify that no origin or route data is sent to, stored by, or logged on the backend (ADR 013).
 - Verify User B cannot infer User A's location through filenames, object keys, URLs, error messages, or album metadata.
 
 ## 7. Security acceptance criteria for the MVP

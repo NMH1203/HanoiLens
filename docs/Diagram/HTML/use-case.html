@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Who does what in Hanoi Lens</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper: #f5f5f5; --color-ink: #2d3142; --color-muted: #4f5d75; --color-accent: #bf4520;
+      --font-sans: 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1360px; width: 100%; min-width: 0; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 1360px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Use case diagram · Hanoi Lens</p>
+    <h1>Who does what in Hanoi Lens</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1360 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="use-case-title use-case-desc">
+        <title id="use-case-title">Who does what in Hanoi Lens</title>
+        <desc id="use-case-desc">Use case diagram: a signed-in Traveler uses account, discovery, visit and memory features; an Admin manages destinations and publishes events.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/></pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+<rect x="190" y="36" width="280" height="376" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="202" y="54" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">ACCOUNT &amp; DISCOVER</text>
+<rect x="190" y="432" width="280" height="264" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="202" y="450" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">REMEMBER</text>
+<rect x="730" y="36" width="280" height="264" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="742" y="54" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">VISIT A HERITAGE</text>
+<rect x="730" y="432" width="280" height="152" rx="8" fill="#ececec" fill-opacity="0.55" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+<text x="742" y="450" fill="#5a6580" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">ADMINISTRATION</text>
+<path d="M 540 90 L 450 90" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 146 L 450 146" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 202 L 450 202" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 258 L 450 258" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 314 L 450 314" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 370 L 450 370" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 486 L 450 486" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 542 L 450 542" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 598 L 450 598" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 540 654 L 450 654" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 660 90 L 750 90" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 660 146 L 750 146" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 660 202 L 750 202" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 660 258 L 750 258" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1150 486 L 990 486" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<path d="M 1150 542 L 990 542" fill="none" stroke="#4f5d75" stroke-width="1.2"/>
+<rect x="540" y="70" width="120" height="604" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="600" y="370" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Traveler</text>
+<text x="600" y="384" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">role USER</text>
+<rect x="1150" y="464" width="120" height="100" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="1210" y="512" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Admin</text>
+<text x="1210" y="526" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">role ADMIN</text>
+<ellipse cx="330" cy="90" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Sign up / sign in</text>
+<ellipse cx="330" cy="146" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="150" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Manage profile &amp; privacy</text>
+<ellipse cx="330" cy="202" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="206" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Browse heritages &amp; events</text>
+<ellipse cx="330" cy="258" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="262" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">View heritage preview</text>
+<ellipse cx="330" cy="314" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="318" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ask historical AI</text>
+<ellipse cx="330" cy="370" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="374" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Open directions in map app</text>
+<ellipse cx="330" cy="486" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="490" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">View stamp collection</text>
+<ellipse cx="330" cy="542" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="546" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Edit photo &amp; add stickers</text>
+<ellipse cx="330" cy="598" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="595" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Build journey album</text>
+<text x="330" y="609" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">and export it</text>
+<ellipse cx="330" cy="654" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="330" y="658" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">View journey recap</text>
+<ellipse cx="870" cy="90" rx="120" ry="22" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="870" y="94" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Arrive &amp; unlock heritage</text>
+<ellipse cx="870" cy="146" rx="120" ry="22" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="870" y="143" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Photograph &amp; recognize</text>
+<text x="870" y="157" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">a landmark</text>
+<ellipse cx="870" cy="202" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="870" y="199" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Unlock landmark</text>
+<text x="870" y="213" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">&amp; collect stamp</text>
+<ellipse cx="870" cy="258" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="870" y="255" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Pause, resume or</text>
+<text x="870" y="269" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">finish the visit</text>
+<ellipse cx="870" cy="486" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="870" y="490" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Manage destinations</text>
+<ellipse cx="870" cy="542" rx="120" ry="22" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="870" y="546" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review &amp; publish events</text>
+<line x1="40" y1="748" x2="1320" y2="748" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="40" y="764" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND · SHAPE CARRIES TYPE</text>
+<rect x="40" y="776" width="24" height="12" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/><text x="72" y="786" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Actor</text>
+<ellipse cx="145" cy="782" rx="12" ry="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/><text x="165" y="786" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Use case</text>
+<rect x="241" y="776" width="24" height="12" rx="2" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/><text x="273" y="786" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Core loop: arrive, then recognize</text>
+<line x1="474" y1="782" x2="498" y2="782" stroke="#4f5d75" stroke-width="1.2"/><text x="506" y="786" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Actor takes part in use case</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

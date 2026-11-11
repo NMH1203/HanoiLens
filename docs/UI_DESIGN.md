@@ -410,7 +410,7 @@ Quy tắc chọn hình thức hiển thị:
 | Spacing, radius, size | Collection `Dimension` (number) | `res/values/dimens.xml`: `hl_space_5`, `hl_radius_lg`… ; `ShapeAppearance.HanoiLens.*` |
 | Bóng | Effect styles `Elevation/1…5` | `app:elevation` + tonal surface |
 | Chuyển động | Ghi chú trong component | `res/values/integers.xml` (`hl_motion_medium`) + interpolator Material |
-| Bản đồ | Style tile OSM chỉnh màu theo §2.3 (Light + Dark) | **osmdroid** (OpenStreetMap, quyết định 2026-11-06); chỉ đường đi bộ ngay trong app (quyết định 2026-11-07): vẽ tuyến trên osmdroid, thẻ chỉ hướng rẽ kế tiếp; tuyến lấy từ backend `POST /routes/walking` (ADR 012) |
+| Bản đồ | Style tile OSM chỉnh màu theo §2.3 (Light + Dark) | **osmdroid** (OpenStreetMap, quyết định 2026-11-06); chỉ đường mở ứng dụng bản đồ ngoài như Google Maps (quyết định 2026-11-10, ADR 013), không vẽ tuyến trong app |
 
 ## 9. Kế hoạch thực hiện
 
@@ -644,11 +644,11 @@ Mỗi trang ghi: **Vào từ** · **Nội dung** · **Chức năng → đi đế
 - Trạng thái và lỗi: L2, E6.
 
 **P16 Chỉ đường (tùy chọn)** (T3)
-- Vào từ: P10, P13.
-- Nội dung (đổi 2026-11-07: chỉ đường ngay trong app, không mở ứng dụng khác): bản đồ OSM với tuyến đi bộ vẽ từ vị trí của bạn tới điểm đến, thẻ hướng rẽ kế tiếp ở trên ("Rẽ trái vào phố Văn Miếu · sau 200 m"), nút về vị trí của tôi; sheet dưới: tên điểm đến, thời gian đi bộ, quãng đường, giờ tới nơi, nút **Dừng** và **Bắt đầu đi**, ghi chú riêng tư. Một điểm đến, không có lộ trình nhiều điểm.
-- Chức năng: Bắt đầu đi → theo dõi vị trí trên máy, cập nhật hướng rẽ; Dừng / ← về trang trước; tới nơi → P17 (kiểm tra ngầm). P16b dùng cùng giao diện cho sự kiện → P13c.
-- API: `POST /routes/walking` (backend gọi routing engine thay app, ADR 012); gọi lại khi đi lệch tuyến. `422 ROUTE_NOT_FOUND` → khoảng cách đường chim bay; `503 ROUTING_UNAVAILABLE` → thông báo và thử lại. Vị trí chỉ dùng trên máy, không lưu đường đi.
-- Trạng thái và lỗi: F1, ngoại tuyến (N2 cho vùng bản đồ; không tính được tuyến → "Không tải được đường đi. Kiểm tra kết nối rồi thử lại."), không tìm được tuyến → hiện khoảng cách đường chim bay, đi lệch tuyến → tính lại tuyến.
+- Không còn màn chỉ đường trong app (đổi 2026-11-10, ADR 013). Nút **Chỉ đường** trên P10 và P13 mở ứng dụng bản đồ đã cài (Google Maps hoặc ứng dụng khác) tới tọa độ công khai của điểm đến; không có ứng dụng nào thì mở bản đồ trên web.
+- Khi quay lại Hanoi Lens: banner "Đang theo dõi để tự mở khóa khi bạn tới {di sản}" kèm nút **Dừng theo dõi** hiện ở P06 và P10.
+- Chức năng: sau khi bấm Chỉ đường, app đặt một geofence trên máy quanh điểm đến (giới hạn thời gian, mặc định 3 giờ; gỡ khi Dừng, đã tới hoặc hết hạn). Khi thiết bị vào vùng → kiểm tra tới nơi → tự mở khóa → P17. Sự kiện: tương tự, chờ quyết định open-issues #28.
+- API: không có endpoint riêng; dùng `POST /destinations/{id}/arrival-checks`. Không lưu đường đi.
+- Trạng thái và lỗi: chưa cấp quyền vị trí → P44; không có ứng dụng bản đồ → mở bản đồ web; GPS tắt → nhắc bật; quyền vị trí nền bị từ chối → chỉ phát hiện khi mở app (đã chốt #30, màn P44b). Figma v3: P16 và P16b đã chuyển sang trang Archive; thêm component `Feedback / Tracking banner` `2186:1707`, frame **P10b Heritage preview — đang theo dõi** `2186:1712` (banner dưới thanh tiêu đề) và **P44b** `2187:1733`. Prototype: P10 Chỉ đường mở Google Maps rồi vào P10b (sau 4 giây mô phỏng tới nơi → P17; Dừng → P10); P13 Chỉ đường → P17; P13b Chỉ đường → P13c.
 
 **P17 Đã mở khóa di sản** (T8)
 - Vào từ: kiểm tra ngầm trả `INSIDE` ở **bất kỳ** di sản đã công bố (không cần đánh dấu trước); hiện thông báo trong app rồi mở trang này.
@@ -828,6 +828,7 @@ Mỗi trang ghi: **Vào từ** · **Nội dung** · **Chức năng → đi đế
 #### G. Trang hệ thống dùng chung
 
 **P44 Giải thích quyền** (T10): vị trí (để tự mở khóa, không lưu lộ trình), camera, lưu ảnh, thông báo. Nút "Cho phép" → hộp thoại hệ thống; "Để sau". Bị từ chối hẳn → "Mở cài đặt".
+**P44b Giải thích quyền vị trí nền** (quyết định 2026-11-10, ADR 013, open-issues #30): hiện trước khi xin `ACCESS_BACKGROUND_LOCATION` lần đầu bấm Chỉ đường. Nội dung: "Cho phép vị trí cả khi không mở app — để Hanoi Lens tự mở khóa khi bạn tới nơi, kể cả lúc bạn đang dùng Google Maps. App chỉ canh một vùng quanh di sản trong 3 giờ, không lưu lộ trình của bạn." Nút **Cho phép mọi lúc** → hộp thoại hệ thống; **Chỉ khi dùng app** → chỉ phát hiện khi mở app (vẫn mở được Google Maps). Từ chối hẳn → "Mở cài đặt".
 
 **P45 Trạng thái toàn màn** (T10): ngoại tuyến N2, máy chủ N5/N6, bảo trì N7, không có quyền A5, không tìm thấy A6. Một component, đổi illustration và chữ.
 
@@ -863,7 +864,7 @@ Tất cả 8 chỗ lệch ghi ở bản trước đã được nhóm chốt ngà
 | 5 | Tem theo công trình hay theo di sản | **Cả hai**: một tem di sản + một tem mỗi công trình (#22) |
 | 6 | Chuyến đi nhiều di sản | Một chuyến = một di sản; album người dùng có thể gộp nhiều di sản (#11) |
 | 7 | "nearby recommendations" | Đổi thành bộ lọc gần tôi (#26) |
-| 8 | Chỉ đường không có trong API | Chỉ đường đi bộ ngay trong app (2026-11-07); tuyến lấy từ backend `POST /routes/walking` (ADR 012) |
+| 8 | Chỉ đường không có trong API | Chỉ đường mở ứng dụng bản đồ ngoài và tự phát hiện tới nơi trên máy (2026-11-10, ADR 013); không có endpoint chỉ đường |
 
 ## 12. Bản Figma v3 (2026-11-06)
 
