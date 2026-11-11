@@ -1,11 +1,11 @@
 module.exports = {
   slug: 'system-flow-3-arrival', width: 720, height: 1080,
   eyebrow: 'System flow 3/5 · Hanoi Lens', title: 'Arrive and unlock',
-  desc: 'System flow with no marking step: optional directions, GPS read on the device, a silent server arrival check near any published heritage, then the heritage is unlocked, its visit started and its heritage stamp collected while raw coordinates are discarded, and the heritage explore page opens.',
+  desc: 'System flow with no marking step: optional external map app, GPS read on the device, a silent server arrival check near any published heritage, then the heritage is unlocked, its visit started and its heritage stamp collected while raw coordinates are discarded, and the heritage explore page opens.',
   nodes: [
     { id: 'MIN', k: 'ref', x: 200, y: 96, t: 'Heritage preview', s: 'user wants to go · 2/5' },
     { id: 'DIR', k: 'dec', x: 200, y: 232, t: 'Directions|requested?' },
-    { id: 'ROUTE', k: 'step', x: 480, y: 232, t: 'In-app directions', s: 'walking route on the device' },
+    { id: 'ROUTE', k: 'step', x: 480, y: 232, t: 'Open map app', s: 'arm device geofence' },
     { id: 'GPS', k: 'step', x: 200, y: 432, t: 'Read GPS location', s: 'on the device · any heritage' },
     { id: 'CHECK', k: 'step', x: 200, y: 528, w: 256, t: 'Arrival check', s: 'POST /destinations/{id}/arrival-checks' },
     { id: 'INSIDE', k: 'dec', x: 200, y: 640, t: 'Inside the|heritage zone?' },

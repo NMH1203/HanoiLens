@@ -5,7 +5,7 @@ module.exports = {
   nodes: [
     { id: 'ENTRY', k: 'ref', x: 160, y: 96, t: 'Heritage preview', s: 'want to go: yes · 1/3' },
     { id: 'DIR', k: 'dec', x: 160, y: 208, t: 'Need|directions?' },
-    { id: 'ROUTE', k: 'step', x: 380, y: 208, t: 'In-app directions', s: 'walking route' },
+    { id: 'ROUTE', k: 'step', x: 380, y: 208, t: 'Open map app', s: 'Google Maps etc.' },
     { id: 'TRAVEL', k: 'step', x: 160, y: 320, t: 'Go to any heritage', s: 'no marking step' },
     { id: 'ARRIVE', k: 'step', x: 160, y: 432, t: 'GPS confirms arrival', s: 'silent check · inside zone' },
     { id: 'UNLOCK', k: 'step', x: 160, y: 544, w: 176, t: 'Heritage unlocked', s: '+ heritage stamp', accent: true },
