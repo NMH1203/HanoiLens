@@ -21,6 +21,8 @@
         <spring-modulith.version>1.2.5</spring-modulith.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <uuid-creator.version>5.3.7</uuid-creator.version>
+        <!-- Docker Engine 29+ rejects the old API version used by Testcontainers < 1.21.4 -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencyManagement>

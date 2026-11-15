@@ -32,13 +32,14 @@ public final class DestinationDtos {
     }
 
     /** {@code position} is the landmark's public location (null when not surveyed yet). */
-    public record LandmarkSummary(UUID id, UUID destinationId, String name, String description, boolean isCheckpoint) {
+    public record LandmarkSummary(UUID id, UUID destinationId, String name, String description, boolean isCheckpoint,
+            GeoPoint position) {
     }
 
     public record DestinationRefDto(UUID id, String slug, String name, String district) {
     }
 
-    public record LandmarkDetail(UUID id, String name, String description, boolean isCheckpoint,
+    public record LandmarkDetail(UUID id, String name, String description, boolean isCheckpoint, GeoPoint position,
             DestinationRefDto destination) {
     }
 
