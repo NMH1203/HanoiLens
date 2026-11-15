@@ -1839,6 +1839,7 @@ components:
       required: [data]
       properties:
         data:
+          type: object
           allOf:
             - $ref: '#/components/schemas/Visit'
           nullable: true
@@ -1852,6 +1853,7 @@ components:
             - type: object
               properties:
                 stampCollected:
+                  type: object
                   allOf:
                     - $ref: '#/components/schemas/StampRef'
                   nullable: true
@@ -1931,6 +1933,7 @@ components:
           properties:
             landmark: { $ref: '#/components/schemas/Landmark' }
             stampCollected:
+              type: object
               allOf:
                 - $ref: '#/components/schemas/StampRef'
               nullable: true
@@ -1977,7 +1980,7 @@ components:
       required: [uploadId, uploadUrl, method, requiredHeaders, expiresAt]
       properties:
         uploadId: { type: string, example: upl_01 }
-        uploadUrl: { type: string, format: uri, description: Presigned, single-key, single PUT; expires within 5-10 minutes. Never logged. }
+        uploadUrl: { type: string, format: uri, description: 'Presigned, single-key, single PUT; expires within 5-10 minutes. Never logged.' }
         method: { type: string, enum: [PUT] }
         requiredHeaders:
           type: object
@@ -2008,7 +2011,7 @@ components:
         id: { type: string, example: var_01 }
         kind: { type: string, enum: [THUMBNAIL, PREVIEW, EDIT] }
         status: { $ref: '#/components/schemas/ProcessingStatus' }
-        url: { type: string, format: uri, nullable: true, description: Short-lived signed URL, EXIF stripped. }
+        url: { type: string, format: uri, nullable: true, description: 'Short-lived signed URL, EXIF stripped.' }
     PhotoVariantEnvelope:
       type: object
       required: [data]
@@ -2026,6 +2029,7 @@ components:
         capturedAt: { type: string, format: date-time }
         locationPrecision: { $ref: '#/components/schemas/LocationPrecision' }
         location:
+          type: object
           allOf:
             - $ref: '#/components/schemas/GeoPoint'
           nullable: true
@@ -2105,7 +2109,7 @@ components:
             highlights: { type: number, minimum: -1, maximum: 1 }
             shadows: { type: number, minimum: -1, maximum: 1 }
             temperature: { type: number, minimum: -1, maximum: 1 }
-        colorPreset: { type: string, description: ID from GET /edit-presets, applied before manual adjustments. }
+        colorPreset: { type: string, description: 'ID from GET /edit-presets, applied before manual adjustments.' }
         stickers:
           type: array
           maxItems: 20
@@ -2150,7 +2154,7 @@ components:
         imageUrl: { type: string, format: uri }
         allowsText: { type: boolean }
         landmarkId: { type: string, nullable: true }
-        available: { type: boolean, description: For landmark stamps, whether the caller unlocked the landmark. }
+        available: { type: boolean, description: 'For landmark stamps, whether the caller unlocked the landmark.' }
     StickerListEnvelope:
       type: object
       required: [data]

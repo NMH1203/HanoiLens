@@ -27,6 +27,7 @@ import vn.edu.usth.hanoilens.modules.destination.repository.DestinationQueryRepo
 import vn.edu.usth.hanoilens.modules.destination.repository.LandmarkRepository;
 import vn.edu.usth.hanoilens.modules.destination.repository.ReferenceImageRepository;
 import vn.edu.usth.hanoilens.modules.destination.repository.DestinationRepository;
+import vn.edu.usth.hanoilens.modules.destination.repository.LandmarkGeoRepository;
 import vn.edu.usth.hanoilens.shared.ApiException;
 import vn.edu.usth.hanoilens.shared.Cursors;
 import vn.edu.usth.hanoilens.shared.PagedResponse;
@@ -39,14 +40,17 @@ public class DestinationService {
     private final DestinationQueryRepository query;
     private final DestinationGeoRepository geo;
     private final LandmarkRepository landmarks;
+    private final LandmarkGeoRepository landmarkGeo;
     private final ReferenceImageRepository images;
 
     DestinationService(DestinationRepository destinations, DestinationQueryRepository query,
-            DestinationGeoRepository geo, LandmarkRepository landmarks, ReferenceImageRepository images) {
+            DestinationGeoRepository geo, LandmarkRepository landmarks, LandmarkGeoRepository landmarkGeo,
+            ReferenceImageRepository images) {
         this.destinations = destinations;
         this.query = query;
         this.geo = geo;
         this.landmarks = landmarks;
+        this.landmarkGeo = landmarkGeo;
         this.images = images;
     }
 
@@ -96,9 +100,12 @@ public class DestinationService {
     public List<LandmarkSummary> landmarksOf(UUID destinationId) {
         destinations.findByIdAndStatus(destinationId, Destination.STATUS_PUBLISHED)
                 .orElseThrow(() -> ApiException.notFound("Destination not found."));
-        return landmarks.findByDestinationIdOrderByNameAscIdAsc(destinationId).stream()
+        List<Landmark> rows = landmarks.findByDestinationIdOrderByNameAscIdAsc(destinationId);
+        Map<UUID, LandmarkGeoRepository.Position> positions =
+                landmarkGeo.positionsOf(rows.stream().map(Landmark::getId).toList());
+        return rows.stream()
                 .map(l -> new LandmarkSummary(l.getId(), l.getDestinationId(), l.getName(), l.getDescription(),
-                        l.isCheckpoint()))
+                        l.isCheckpoint(), toGeoPoint(positions.get(l.getId()))))
                 .toList();
     }
 
@@ -107,6 +114,7 @@ public class DestinationService {
         Destination d = destinations.findByIdAndStatus(l.getDestinationId(), Destination.STATUS_PUBLISHED)
                 .orElseThrow(() -> ApiException.notFound("Landmark not found."));   // hidden with its draft parent
         return new LandmarkDetail(l.getId(), l.getName(), l.getDescription(), l.isCheckpoint(),
+                toGeoPoint(landmarkGeo.positionsOf(List.of(l.getId())).get(l.getId())),
                 new DestinationRefDto(d.getId(), d.getSlug(), d.getName(), d.getDistrict()));
     }
 
@@ -117,6 +125,10 @@ public class DestinationService {
     }
 
     // ---- mapping -----------------------------------------------------------------------------------
+
+    private static GeoPoint toGeoPoint(LandmarkGeoRepository.Position position) {
+        return position == null ? null : new GeoPoint(position.latitude(), position.longitude());
+    }
 
     private List<DestinationSummary> summaries(List<Destination> page, Map<UUID, Integer> distances) {
         List<UUID> ids = page.stream().map(Destination::getId).toList();

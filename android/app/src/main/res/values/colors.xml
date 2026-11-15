@@ -60,4 +60,7 @@
     <color name="nav_inactive_icon">@color/on_surface_variant</color>
     <color name="nav_inactive_label">@color/on_surface_variant</color>
     <color name="nav_inactive_bg">@android:color/transparent</color>
+    <color name="nav_active_coral">@color/primary</color>
+    <color name="nav_inactive_text">@color/on_surface_variant</color>
+    <color name="nav_inactive_icon_bg">@color/surface_container_highest</color>
 </resources>

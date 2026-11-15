@@ -45,6 +45,10 @@ Files live in `src/main/resources/db/migration/`, one per owner, ordered by fore
 | `V4__media_and_recap.sql` | Lương Quỳnh Anh | `photos`, `upload_sessions`, `photo_exports`, `recaps`, `recap_photos`, `recognition_results` |
 | `V5__knowledge_and_rag.sql` | Nguyễn Minh Lương | `knowledge_chunks` (`vector(768)` + HNSW cosine), `qa_conversations`, `qa_messages` |
 | `V6__processing_status_and_event_ingestion.sql` | Quỳnh Anh, Ninh | `photos`/`photo_exports`/`recaps` processing `status`, `event_sources`, `event_imports`, dedupe + review columns on `cultural_events` |
+| `V7__visit_arrival_and_destination_catalogue.sql` | Ninh, Hiền Anh, Tiệp | `LocationPrecision` values, visit `CANCELLED` state, `arrival_checks`, destination catalogue columns |
+| `V8__destination_and_landmark_geometry.sql` | Lê Hiền Anh | `destinations.boundary_geom` limited to valid POLYGON/MULTIPOLYGON, `landmarks.location_geom` (POINT) |
+| `V9__seed_hanoi_heritage_destinations.sql` | Lê Hiền Anh | seed: 9 published Hanoi heritage destinations (CIRCLE geofence + boundary) and 35 landmarks with positions |
+| `V10__destination_nearby_indexes.sql` | Lê Hiền Anh | GIST index on `boundary_geom::geography` and an index on circle radii, used by `GET /destinations/nearby` |
 
 A merged file is never edited — changes go into a new `V6__…` file. When the Spring Boot skeleton is added, include `org.flywaydb:flyway-core` and `org.flywaydb:flyway-database-postgresql`; Spring Boot runs these migrations on startup (`spring.flyway.enabled=true` is the default).
 
