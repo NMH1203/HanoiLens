@@ -31,6 +31,7 @@ public final class DestinationDtos {
             AiFeatures aiFeatures, long landmarkCount) {
     }
 
+    /** {@code position} is the landmark's public location (null when not surveyed yet). */
     public record LandmarkSummary(UUID id, UUID destinationId, String name, String description, boolean isCheckpoint) {
     }
 

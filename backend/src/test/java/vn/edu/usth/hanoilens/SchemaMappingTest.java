@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Loading the context already proves Flyway V1..V7 applied and {@code ddl-auto=validate} accepts every entity;
+ * Loading the context already proves Flyway V1..V10 applied and {@code ddl-auto=validate} accepts every entity;
  * this adds explicit checks on the extensions and on the guarantees the application relies on.
  */
 class SchemaMappingTest extends IntegrationTestBase {
