@@ -10,6 +10,10 @@ public interface DestinationApi {
     record DestinationRef(UUID id, String slug, String name, String district) {
     }
 
+    /** Public place data for other modules (event venues). Coordinates are null for polygon-only geofences. */
+    record PlaceRef(UUID id, String name, String district, Double latitude, Double longitude) {
+    }
+
     record LandmarkRef(UUID id, UUID destinationId, String name, boolean checkpoint) {
     }
 
@@ -22,6 +26,11 @@ public interface DestinationApi {
 
     /** Landmarks the user must check in to complete a visit (landmarks.is_checkpoint). */
     List<LandmarkRef> findCheckpoints(UUID destinationId);
+
+    List<PlaceRef> findPublishedPlaces(java.util.Collection<UUID> destinationIds);
+
+    /** Ids of published destinations whose geofence is within {@code radiusMeters} of the point, nearest first. */
+    List<UUID> findPublishedDestinationIdsNear(double latitude, double longitude, int radiusMeters, int limit);
 
     /** Ids of published destinations in a district (exact, case-insensitive match). */
     List<UUID> findPublishedDestinationIdsByDistrict(String district);

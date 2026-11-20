@@ -43,6 +43,15 @@ class EventController {
                 search, cursor, limit);
     }
 
+    /** Coordinates are used for this query only; they are not stored or logged (openapi listNearbyEvents). */
+    @GetMapping("/nearby")
+    PagedResponse<EventView> nearby(@RequestParam double latitude, @RequestParam double longitude,
+            @RequestParam(required = false) Integer radiusMeters, @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to, @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) Integer limit) {
+        return events.nearby(latitude, longitude, radiusMeters, from, to, cursor, limit);
+    }
+
     @GetMapping("/{eventId}")
     ApiResponse<EventView> get(@PathVariable String eventId) {
         return ApiResponse.of(events.get(Ids.parseOrNotFound(eventId)));

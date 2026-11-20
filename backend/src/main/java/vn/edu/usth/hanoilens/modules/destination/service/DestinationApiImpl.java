@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.usth.hanoilens.modules.destination.DestinationApi;
 import vn.edu.usth.hanoilens.modules.destination.entity.Destination;
+import vn.edu.usth.hanoilens.modules.destination.repository.DestinationGeoRepository;
 import vn.edu.usth.hanoilens.modules.destination.repository.DestinationRepository;
 import vn.edu.usth.hanoilens.modules.destination.repository.LandmarkRepository;
 
@@ -17,11 +18,14 @@ class DestinationApiImpl implements DestinationApi {
     private final DestinationRepository destinations;
     private final LandmarkRepository landmarks;
     private final ArrivalService arrivals;
+    private final DestinationGeoRepository geo;
 
-    DestinationApiImpl(DestinationRepository destinations, LandmarkRepository landmarks, ArrivalService arrivals) {
+    DestinationApiImpl(DestinationRepository destinations, LandmarkRepository landmarks, ArrivalService arrivals,
+            DestinationGeoRepository geo) {
         this.destinations = destinations;
         this.landmarks = landmarks;
         this.arrivals = arrivals;
+        this.geo = geo;
     }
 
     @Override
@@ -38,6 +42,27 @@ class DestinationApiImpl implements DestinationApi {
         }
         return destinations.findByIdInAndStatus(destinationIds, Destination.STATUS_PUBLISHED).stream()
                 .map(DestinationApiImpl::ref).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PlaceRef> findPublishedPlaces(Collection<UUID> destinationIds) {
+        if (destinationIds.isEmpty()) {
+            return List.of();
+        }
+        return destinations.findByIdInAndStatus(destinationIds, Destination.STATUS_PUBLISHED).stream()
+                .map(d -> new PlaceRef(d.getId(), d.getName(), d.getDistrict(),
+                        d.getCenterLat() == null ? null : d.getCenterLat().doubleValue(),
+                        d.getCenterLng() == null ? null : d.getCenterLng().doubleValue()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> findPublishedDestinationIdsNear(double latitude, double longitude, int radiusMeters, int limit) {
+        // The point is bound as a query parameter and never stored or logged (openapi: /events/nearby).
+        return geo.findNearbyPublished(latitude, longitude, radiusMeters, 0, limit).stream()
+                .map(DestinationGeoRepository.Distance::destinationId).toList();
     }
 
     @Override
