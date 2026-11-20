@@ -3,6 +3,8 @@ package vn.edu.usth.hanoilens;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -189,14 +191,14 @@ class EventIngestionTest extends EventAdminTestBase {
         String admin = adminToken();
         UUID source = registerOk(admin, "JSON_LD");
 
-        when(client.fetch(any())).thenThrow(new FetchException("SOURCE_TOO_LARGE"));
+        doThrow(new FetchException("SOURCE_TOO_LARGE")).when(client).fetch(any());
         UUID tooLarge = startImport(admin, source);
         imports.run(tooLarge);
         mvc.perform(get("/v1/admin/event-imports/" + tooLarge).header("Authorization", "Bearer " + admin))
                 .andExpect(jsonPath("$.data.status").value("FAILED"))
                 .andExpect(jsonPath("$.data.validationErrors[0].reason").value("SOURCE_TOO_LARGE"));
 
-        when(client.fetch(any())).thenReturn("<script type=\"application/ld+json\">{broken</script>");
+        doReturn("<script type=\"application/ld+json\">{broken</script>").when(client).fetch(any());
         UUID malformed = startImport(admin, source);
         imports.run(malformed);
         mvc.perform(get("/v1/admin/event-imports/" + malformed).header("Authorization", "Bearer " + admin))
