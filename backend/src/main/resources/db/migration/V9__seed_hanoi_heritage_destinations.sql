@@ -12,6 +12,8 @@
 -- * District names are the pre-2025 urban districts (quận/huyện), as used elsewhere in the project.
 -- * Fixed UUIDv7-shaped ids (prefix 0193b6a0-) so other seeds and tests can reference these rows. A destination
 --   whose slug already exists is left untouched, and landmarks attach to it by slug.
+-- * 15 sites in total: 9 historical relics (ids ...0001-0009) + 6 more (ids ...000a-000f): Nhà hát Lớn, Nhà thờ Lớn,
+--   Lăng Chủ tịch Hồ Chí Minh - Quảng trường Ba Đình, Khu di tích Phủ Chủ tịch, Đền Bạch Mã, Chùa Láng.
 -- * Content (summary, history, ...) is English; proper names stay in Vietnamese.
 -- =============================================================================
 
@@ -102,7 +104,54 @@ FROM (VALUES
      'Special National Relic.',
      'MORNING', 120,
      CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
-     'POLYGON((105.869000 21.112000, 105.878000 21.112000, 105.878000 21.119000, 105.869000 21.119000, 105.869000 21.112000))')
+     'POLYGON((105.869000 21.112000, 105.878000 21.112000, 105.878000 21.119000, 105.869000 21.119000, 105.869000 21.112000))'),
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.856800 21.023600, 105.858600 21.023600, 105.858600 21.025100, 105.856800 21.025100, 105.856800 21.023600))'),
+    -- 10. Nhà thờ Lớn Hà Nội
+    (CAST('0193b6a0-0000-7000-8000-00000000000b' AS uuid), 'nha-tho-lon-ha-noi', 'Nhà thờ Lớn Hà Nội', 'Hoàn Kiếm', 'CENTRAL',
+     FALSE, 'St. Joseph''s Cathedral, the neo-Gothic cathedral of Hanoi, inaugurated in 1887.',
+     'Built on the site of the Báo Thiên pagoda, one of the Four Great Works of the Lý dynasty, and inaugurated at Christmas 1887 as the seat of the Archdiocese of Hanoi.',
+     'A neo-Gothic church inspired by Notre-Dame de Paris, with two 31-metre bell towers, a stone-grey facade, pointed arches and stained-glass windows, standing on a plaza at the end of Nhà Thờ street.',
+     'Architectural landmark of the French colonial period and the main Catholic church of Hanoi.',
+     'MORNING', 30,
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.848200 21.028200, 105.849600 21.028200, 105.849600 21.029200, 105.848200 21.029200, 105.848200 21.028200))'),
+    -- 11. Lăng Chủ tịch Hồ Chí Minh - Quảng trường Ba Đình
+    (CAST('0193b6a0-0000-7000-8000-00000000000c' AS uuid), 'lang-chu-tich-ho-chi-minh-quang-truong-ba-dinh', 'Lăng Chủ tịch Hồ Chí Minh - Quảng trường Ba Đình', 'Ba Đình', 'CENTRAL',
+     TRUE, 'Ho Chi Minh Mausoleum and Ba Đình Square, where President Hồ Chí Minh read the Declaration of Independence on 2 September 1945.',
+     'On 2 September 1945, Hồ Chí Minh read the Declaration of Independence of the Democratic Republic of Vietnam on Ba Đình Square. The mausoleum was built from 1973 to 1975 and opened on 2 September 1975.',
+     'A granite mausoleum with a colonnade and a tiered roof, facing the square on its west side; the square is marked by a grid of grass plots, with the Hanoi flag staff and the Monument to War Heroes nearby.',
+     'National political and historical site of modern Vietnam.',
+     'EARLY_MORNING', 60,
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.834000 21.036500, 105.836500 21.036500, 105.836500 21.039000, 105.834000 21.039000, 105.834000 21.036500))'),
+    -- 12. Khu di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch
+    (CAST('0193b6a0-0000-7000-8000-00000000000d' AS uuid), 'khu-di-tich-phu-chu-tich', 'Khu di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch', 'Ba Đình', 'CENTRAL',
+     FALSE, 'Presidential Palace relic site, with the stilt house where Hồ Chí Minh lived and worked from 1958 to 1969.',
+     'The palace was built between 1901 and 1906 as the residence of the Governor-General of French Indochina. Hồ Chí Minh chose not to live in it; from 1958 he lived and worked in a simple stilt house in the garden until his death in 1969.',
+     'The yellow French colonial palace stands in a park of fruit trees and a carp pond; the stilt house of wood and bamboo overlooks the pond.',
+     'Special National Relic (2012).',
+     'MORNING', 75,
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.831000 21.037500, 105.833800 21.037500, 105.833800 21.040500, 105.831000 21.040500, 105.831000 21.037500))'),
+    -- 13. Đền Bạch Mã
+    (CAST('0193b6a0-0000-7000-8000-00000000000e' AS uuid), 'den-bach-ma', 'Đền Bạch Mã', 'Hoàn Kiếm', 'CENTRAL',
+     FALSE, 'Bạch Mã Temple, the eastern guardian of Thăng Long among the Four Sacred Temples, dedicated to the White Horse deity.',
+     'Founded in the 9th century according to tradition, the temple is linked to the legend that King Lý Thái Tổ saw a white horse show him the line of the citadel walls when he founded Thăng Long in 1010. The current buildings date mostly from the 18th and 19th centuries.',
+     'A small temple in the old quarter on Hàng Buồm street, with a front gate, a ceremonial hall and a sanctuary holding a bronze statue of the guardian deity and a white horse.',
+     'National Relic; one of the Four Sacred Temples (Thăng Long Tứ Trấn).',
+     'MORNING', 20,
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.850100 21.034700, 105.850700 21.034700, 105.850700 21.035200, 105.850100 21.035200, 105.850100 21.034700))'),
+    -- 14. Chùa Láng
+    (CAST('0193b6a0-0000-7000-8000-00000000000f' AS uuid), 'chua-lang', 'Chùa Láng', 'Đống Đa', 'WEST',
+     FALSE, 'Láng Pagoda (Chiêu Thiền), a 12th-century temple dedicated to the monk Từ Đạo Hạnh.',
+     'Founded in the 12th century under Emperor Lý Anh Tông, and dedicated to the Zen master Từ Đạo Hạnh, regarded as a patron of the Láng village. It was rebuilt several times, notably in the 17th century.',
+     'A walled courtyard with a three-entrance gate, a main hall with carved wooden beams, an ancestor hall, and the shrine of Từ Đạo Hạnh in a quiet garden.',
+     'National Relic (1962).',
+     'MORNING', 40,
+     CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
+     'POLYGON((105.799500 21.023000, 105.800800 21.023000, 105.800800 21.024200, 105.799500 21.024200, 105.799500 21.023000))')
 ) AS v (id, slug, name, district, area, is_featured, summary, history_text, architecture_text,
          significance_text, best_time, estimated_minutes, center_lat, center_lng, radius_m, boundary_wkt)
 CROSS JOIN LATERAL (SELECT ST_GeomFromText(v.boundary_wkt, 4326) AS geom) g
@@ -200,7 +249,40 @@ FROM (VALUES
     (CAST('0193b6a0-0001-7000-8000-000009000003' AS uuid), 'thanh-co-loa', 'Đình Ngự Triều Di Quy',
      'Communal house of Cổ Loa village.', FALSE, 21.115200, 105.873500),
     (CAST('0193b6a0-0001-7000-8000-000009000004' AS uuid), 'thanh-co-loa', 'Am Bà Chúa',
-     'Shrine of Princess Mỵ Châu.', TRUE, 21.115450, 105.872850)
+     'Shrine of Princess Mỵ Châu.', TRUE, 21.115450, 105.872850),
+    -- Nhà thờ lớn Hà Nội
+    (CAST('0193b6a0-0001-7000-8000-00000a000001' AS uuid), 'nha-hat-lon-ha-noi', 'Quảng trường Cách mạng Tháng Tám',
+     'Revolution Square in front of the Opera House, a gathering place in August 1945.', FALSE, 21.024800, 105.857750),
+    (CAST('0193b6a0-0001-7000-8000-00000a000002' AS uuid), 'nha-hat-lon-ha-noi', 'Mặt tiền Nhà hát Lớn',
+     'The colonnaded facade and entrance steps of the Opera House.', TRUE, 21.024350, 105.857700),
+    (CAST('0193b6a0-0001-7000-8000-00000a000003' AS uuid), 'nha-hat-lon-ha-noi', 'Phòng khán giả',
+     'The horseshoe-shaped main auditorium.', FALSE, 21.023950, 105.857700),
+    (CAST('0193b6a0-0001-7000-8000-00000b000001' AS uuid), 'nha-tho-lon-ha-noi', 'Sân Nhà thờ',
+     'The plaza in front of the cathedral.', FALSE, 21.028900, 105.848950),
+    (CAST('0193b6a0-0001-7000-8000-00000b000002' AS uuid), 'nha-tho-lon-ha-noi', 'Mặt tiền Nhà thờ Lớn',
+     'The neo-Gothic facade with its two bell towers.', TRUE, 21.028700, 105.848900),
+    -- Lăng Chủ tịch Hồ Chí Minh - Quảng trường Ba Đình
+    (CAST('0193b6a0-0001-7000-8000-00000c000001' AS uuid), 'lang-chu-tich-ho-chi-minh-quang-truong-ba-dinh', 'Lăng Chủ tịch Hồ Chí Minh',
+     'The granite mausoleum on the west side of Ba Đình Square.', TRUE, 21.036850, 105.834700),
+    (CAST('0193b6a0-0001-7000-8000-00000c000002' AS uuid), 'lang-chu-tich-ho-chi-minh-quang-truong-ba-dinh', 'Quảng trường Ba Đình',
+     'The square where the Declaration of Independence was read on 2 September 1945.', TRUE, 21.037600, 105.835600),
+    -- Khu di tích Chủ tịch Hồ Chí Minh tại Phủ Chủ tịch
+    (CAST('0193b6a0-0001-7000-8000-00000d000001' AS uuid), 'khu-di-tich-phu-chu-tich', 'Phủ Chủ tịch',
+     'The yellow French colonial palace (1901-1906).', TRUE, 21.039000, 105.832800),
+    (CAST('0193b6a0-0001-7000-8000-00000d000002' AS uuid), 'khu-di-tich-phu-chu-tich', 'Nhà sàn Bác Hồ',
+     'The stilt house where Hồ Chí Minh lived from 1958 to 1969.', TRUE, 21.038300, 105.832200),
+    (CAST('0193b6a0-0001-7000-8000-00000d000003' AS uuid), 'khu-di-tich-phu-chu-tich', 'Ao cá',
+     'The carp pond between the palace and the stilt house.', FALSE, 21.038600, 105.832500),
+    -- Đền Bạch Mã
+    (CAST('0193b6a0-0001-7000-8000-00000e000001' AS uuid), 'den-bach-ma', 'Cổng đền Bạch Mã',
+     'The front gate of the temple on Hàng Buồm street.', FALSE, 21.034800, 105.850400),
+    (CAST('0193b6a0-0001-7000-8000-00000e000002' AS uuid), 'den-bach-ma', 'Chính điện đền Bạch Mã',
+     'The sanctuary with the statue of the White Horse deity.', TRUE, 21.035000, 105.850400),
+    -- Chùa Láng
+    (CAST('0193b6a0-0001-7000-8000-00000f000001' AS uuid), 'chua-lang', 'Cổng Tam Quan chùa Láng',
+     'The three-entrance gate of the pagoda.', FALSE, 21.023200, 105.800100),
+    (CAST('0193b6a0-0001-7000-8000-00000f000002' AS uuid), 'chua-lang', 'Chính điện chùa Láng',
+     'The main hall with carved wooden beams.', TRUE, 21.023600, 105.800150)
 ) AS v (id, destination_slug, name, description, is_checkpoint, lat, lng)
 JOIN destinations d ON d.slug = v.destination_slug
 ON CONFLICT (id) DO NOTHING;

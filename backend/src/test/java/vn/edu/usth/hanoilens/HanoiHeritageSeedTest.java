@@ -23,7 +23,8 @@ class HanoiHeritageSeedTest extends IntegrationTestBase {
 
     private static final List<String> SEEDED_SLUGS = List.of("van-mieu-quoc-tu-giam", "hoang-thanh-thang-long",
             "ho-hoan-kiem-den-ngoc-son", "chua-mot-cot", "chua-tran-quoc", "den-quan-thanh", "nha-tu-hoa-lo",
-            "o-quan-chuong", "thanh-co-loa");
+            "o-quan-chuong", "thanh-co-loa", "nha-hat-lon-ha-noi", "nha-tho-lon-ha-noi",
+            "lang-chu-tich-ho-chi-minh-quang-truong-ba-dinh", "khu-di-tich-phu-chu-tich", "den-bach-ma", "chua-lang");
 
     @Autowired
     JdbcTemplate jdbc;
@@ -51,6 +52,15 @@ class HanoiHeritageSeedTest extends IntegrationTestBase {
             assertThat(r.get("srid")).isEqualTo(4326);
             assertThat(r.get("valid")).isEqualTo(true);
         });
+    }
+
+    @Test
+    void atLeastTenSeededDestinationsHaveABoundary() {
+        Integer withBoundary = jdbc.queryForObject("""
+                SELECT count(*) FROM destinations
+                WHERE CAST(id AS text) LIKE ? AND status = 'PUBLISHED' AND boundary_geom IS NOT NULL
+                """, Integer.class, SEED_PREFIX + "%");
+        assertThat(withBoundary).isGreaterThanOrEqualTo(10);
     }
 
     @Test
