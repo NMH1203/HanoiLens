@@ -4,6 +4,8 @@
 > **Hệ quản trị cơ sở dữ liệu:** PostgreSQL 16 kết hợp tiện ích mở rộng **PostGIS** (không gian địa lý) & **pgvector** (vector similarity)  
 > **Số lượng bảng:** 21 bảng thực thể (Entities) chia làm 5 nhóm chức năng chính (Zones)  
 
+> **Cập nhật (T57, migration `V8`, ADR 011):** thiết kế gốc bên dưới còn tên cũ. Trong cơ sở dữ liệu thật: `JOURNEYS` → `visits`, `JOURNEY_LANDMARK_VISITS` → `visit_landmarks`, mọi cột `journey_id` → `visit_id` (`visit_landmarks`, `user_stamps`, `photos`, `upload_sessions`, `recaps`, `qa_conversations`, `arrival_checks`); bảng `REWARDS` và `USER_REWARDS` **đã bị bỏ** (không còn phần thưởng). Nguồn đúng về tên bảng là `docs/ARCHITECTURE.md` §10 và các file `db/migration`.
+
 ---
 
 ## 1. Kiến Trúc Tổng Quan & Sơ Đồ Thực Thể (ERD)

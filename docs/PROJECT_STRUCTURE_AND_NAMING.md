@@ -62,9 +62,10 @@ Modules: `identity`, `profile`, `destination`, `event`, `visit`, `media`, `recap
 |---|---|---|
 | `V1__identity_and_profile.sql` | Lê Bá Tiệp | `users`, `refresh_tokens`, `profiles` |
 | `V2__destination_and_landmarks.sql` | Lê Hiền Anh | `destinations`, `landmarks` |
-| `V3__visit_event_and_reward.sql` | Lê Bá Ninh | `cultural_events`, `visits`, `rewards` |
+| `V3__visit_event_and_reward.sql` | Lê Bá Ninh | `cultural_events`, `journeys` (now `visits`), `stamps`, `user_stamps`; `rewards` was dropped in V8 |
 | `V4__media_and_recap.sql` | Lương Quỳnh Anh | `upload_sessions`, `photos`, `recaps` |
 | `V5__knowledge_and_rag.sql` | Nguyễn Minh Lương | `knowledge_chunks`, `qa_conversations`, `qa_messages` |
+| `V8__visits_rename_and_drop_rewards.sql` | Lê Bá Ninh | renames `journeys` → `visits`, `journey_landmark_visits` → `visit_landmarks`, every `journey_id` → `visit_id`; drops `rewards`, `user_rewards` (ADR 011) |
 
 After a file is merged it is never edited; changes go into a new `V6__…` file.
 
