@@ -21,7 +21,7 @@ class RecapOnVisitEnded {
     @EventListener
     void on(VisitEnded event) {
         jdbc.update("""
-                INSERT INTO recaps (id, user_id, journey_id, recap_type, status, created_at)
+                INSERT INTO recaps (id, user_id, visit_id, recap_type, status, created_at)
                 VALUES (?, ?, ?, 'JOURNEY', 'PENDING', now())
                 """, event.recapId(), event.userId(), event.visitId());
     }

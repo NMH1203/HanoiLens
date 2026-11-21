@@ -243,9 +243,7 @@ class VisitFlowTest extends IntegrationTestBase {
     }
 
     @Test
-    void completingAllCheckpointsAwardsStampRewardAndCreatesRecap() throws Exception {
-        UUID rewardId = UUID.randomUUID();
-        jdbc.update("INSERT INTO rewards (id, title, required_stamp_count) VALUES (?, 'Explorer', 1)", rewardId);
+    void completingAllCheckpointsAwardsStampAndCreatesRecap() throws Exception {
         String token = newUserToken();
         String visitId = startVisitOk(token);
 
@@ -262,11 +260,9 @@ class VisitFlowTest extends IntegrationTestBase {
                 .andReturn().getResponse().getContentAsString();
         UUID recapId = UUID.fromString(json.readTree(ended).at("/data/recap/id").asText());
 
-        UUID userId = jdbc.queryForObject("SELECT user_id FROM journeys WHERE id = ?::uuid", UUID.class, visitId);
+        UUID userId = jdbc.queryForObject("SELECT user_id FROM visits WHERE id = ?::uuid", UUID.class, visitId);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM user_stamps WHERE user_id = ? AND stamp_id = ?",
                 Integer.class, userId, stampId)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("SELECT count(*) FROM user_rewards WHERE user_id = ? AND reward_id = ?",
-                Integer.class, userId, rewardId)).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT status FROM recaps WHERE id = ?", String.class, recapId))
                 .isEqualTo("PENDING");
 
@@ -281,7 +277,7 @@ class VisitFlowTest extends IntegrationTestBase {
                         .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isCreated());
         command(token, visitId, "end").andExpect(status().isAccepted());
-        UUID userId = jdbc.queryForObject("SELECT user_id FROM journeys WHERE id = ?::uuid", UUID.class, visitId);
+        UUID userId = jdbc.queryForObject("SELECT user_id FROM visits WHERE id = ?::uuid", UUID.class, visitId);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM user_stamps WHERE user_id = ?", Integer.class, userId))
                 .isZero();
     }

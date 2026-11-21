@@ -74,7 +74,7 @@ public class ArrivalService {
 
     /** See {@link vn.edu.usth.hanoilens.modules.destination.DestinationApi#consumeArrivalCheck}. */
     @Transactional
-    public void consume(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID journeyId) {
+    public void consume(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID visitId) {
         // Not found / someone else's / other destination are indistinguishable to the caller (BOLA).
         ArrivalCheck check = checks.findById(arrivalCheckId)
                 .filter(c -> c.getUserId().equals(userId) && c.getDestinationId().equals(destinationId))
@@ -85,7 +85,7 @@ public class ArrivalService {
             throw ApiException.unprocessable("ARRIVAL_CHECK_EXPIRED", "The arrival check has expired.");
         }
         if (!check.isCanStartVisit() || !ArrivalCheck.INSIDE.equals(check.getStatus())
-                || checks.consume(arrivalCheckId, now, journeyId) == 0) {
+                || checks.consume(arrivalCheckId, now, visitId) == 0) {
             throw ApiException.unprocessable("ARRIVAL_REQUIRED",
                     "A valid arrival check at this destination is required.");
         }

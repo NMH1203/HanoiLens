@@ -9,8 +9,8 @@ import java.util.UUID;
 
 /** A visit. Has no coordinate columns by design (SECURITY TM-2.3). */
 @Entity
-@Table(name = "journeys")
-public class Journey {
+@Table(name = "visits")
+public class Visit {
 
     public static final String ACTIVE = "ACTIVE";
     public static final String PAUSED = "PAUSED";
@@ -47,10 +47,10 @@ public class Journey {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected Journey() {
+    protected Visit() {
     }
 
-    public Journey(UUID id, UUID userId, UUID destinationId, String locationPrecision, Instant now) {
+    public Visit(UUID id, UUID userId, UUID destinationId, String locationPrecision, Instant now) {
         this.id = id;
         this.userId = userId;
         this.destinationId = destinationId;
