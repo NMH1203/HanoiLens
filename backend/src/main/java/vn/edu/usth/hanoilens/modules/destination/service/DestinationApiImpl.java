@@ -87,8 +87,8 @@ class DestinationApiImpl implements DestinationApi {
 
     @Override
     @Transactional
-    public void consumeArrivalCheck(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID journeyId) {
-        arrivals.consume(userId, destinationId, arrivalCheckId, journeyId);
+    public void consumeArrivalCheck(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID visitId) {
+        arrivals.consume(userId, destinationId, arrivalCheckId, visitId);
     }
 
     private static DestinationRef ref(Destination d) {

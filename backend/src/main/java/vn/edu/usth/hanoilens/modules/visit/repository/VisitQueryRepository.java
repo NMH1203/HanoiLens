@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
-import vn.edu.usth.hanoilens.modules.visit.entity.Journey;
+import vn.edu.usth.hanoilens.modules.visit.entity.Visit;
 import vn.edu.usth.hanoilens.shared.Cursors;
 
 /** The caller's own visits, newest first (startedAt desc, id desc) with keyset paging. */
 @Repository
-public class JourneyQueryRepository {
+public class VisitQueryRepository {
 
     public record Filter(String status, UUID destinationId, Instant startedAfter, Instant startedBefore,
             Cursors.Keyset before) {
@@ -25,10 +25,10 @@ public class JourneyQueryRepository {
     @PersistenceContext
     private EntityManager em;
 
-    public List<Journey> findForUser(UUID userId, Filter f, int limit) {
+    public List<Visit> findForUser(UUID userId, Filter f, int limit) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Journey> q = cb.createQuery(Journey.class);
-        Root<Journey> j = q.from(Journey.class);
+        CriteriaQuery<Visit> q = cb.createQuery(Visit.class);
+        Root<Visit> j = q.from(Visit.class);
 
         List<Predicate> where = new ArrayList<>();
         where.add(cb.equal(j.get("userId"), userId));

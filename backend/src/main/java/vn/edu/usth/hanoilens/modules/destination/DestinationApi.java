@@ -41,5 +41,5 @@ public interface DestinationApi {
      * @throws vn.edu.usth.hanoilens.shared.ApiException 422 ARRIVAL_REQUIRED if the check is missing, not owned,
      *         for another destination, not INSIDE or already used; 422 ARRIVAL_CHECK_EXPIRED if it expired.
      */
-    void consumeArrivalCheck(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID journeyId);
+    void consumeArrivalCheck(UUID userId, UUID destinationId, UUID arrivalCheckId, UUID visitId);
 }
