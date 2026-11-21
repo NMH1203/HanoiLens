@@ -45,7 +45,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ErrorResponse> handleIntegrity(DataIntegrityViolationException ex) {
         String cause = String.valueOf(ex.getMostSpecificCause().getMessage());
-        if (cause.contains("uq_journeys_one_open_per_user")) {
+        if (cause.contains("uq_visits_one_open_per_user")) {
             return conflict("ACTIVE_VISIT_EXISTS", "An active or paused visit already exists.");
         }
         if (cause.contains("uq_users_email_lower")) {

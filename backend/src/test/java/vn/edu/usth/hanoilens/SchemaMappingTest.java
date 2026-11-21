@@ -27,8 +27,8 @@ class SchemaMappingTest extends IntegrationTestBase {
         List<String> tables = jdbc.queryForList(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'", String.class);
         assertThat(tables).contains("users", "refresh_tokens", "idempotency_keys", "admin_audit_logs",
-                "destinations", "landmarks", "arrival_checks", "journeys", "journey_landmark_visits", "stamps",
-                "user_stamps", "rewards", "user_rewards", "cultural_events", "event_sources", "event_imports",
+                "destinations", "landmarks", "arrival_checks", "visits", "visit_landmarks", "stamps",
+                "user_stamps", "cultural_events", "event_sources", "event_imports",
                 "photos", "upload_sessions", "photo_exports", "recaps", "recap_photos", "recognition_results",
                 "knowledge_chunks", "qa_conversations", "qa_messages");
     }
@@ -41,9 +41,41 @@ class SchemaMappingTest extends IntegrationTestBase {
     }
 
     @Test
-    void journeysStoreNoCoordinates() {
+    void visitsStoreNoCoordinates() {
         List<String> columns = jdbc.queryForList(
-                "SELECT column_name FROM information_schema.columns WHERE table_name = 'journeys'", String.class);
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'visits'", String.class);
         assertThat(columns).noneMatch(c -> c.contains("lat") || c.contains("lng") || c.contains("lon"));
+    }
+
+    /** ADR 011: no rewards and no "journey" entity; every visit reference is called visit_id (ARCHITECTURE §10). */
+    @Test
+    void noRewardOrJourneyNamesRemainInTheSchema() {
+        List<String> tables = jdbc.queryForList(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'", String.class);
+        assertThat(tables).noneMatch(t -> t.contains("reward") || t.contains("journey"));
+        assertThat(jdbc.queryForList("""
+                SELECT table_name || '.' || column_name FROM information_schema.columns
+                 WHERE table_schema = 'public' AND column_name LIKE '%journey%'
+                """, String.class)).isEmpty();
+        assertThat(jdbc.queryForList("""
+                SELECT table_name || '.' || column_name FROM information_schema.columns
+                 WHERE table_schema = 'public' AND column_name = 'visit_id' ORDER BY 1
+                """, String.class)).contains("visit_landmarks.visit_id", "user_stamps.visit_id", "photos.visit_id",
+                "upload_sessions.visit_id", "recaps.visit_id", "qa_conversations.visit_id", "arrival_checks.visit_id");
+        assertThat(jdbc.queryForList("""
+                SELECT conname FROM pg_constraint WHERE connamespace = 'public'::regnamespace
+                   AND (conname LIKE '%journey%' OR conname LIKE '%jlv%' OR conname LIKE '%reward%')
+                """, String.class)).isEmpty();
+        assertThat(jdbc.queryForList("""
+                SELECT indexname FROM pg_indexes WHERE schemaname = 'public'
+                   AND (indexname LIKE '%journey%' OR indexname LIKE '%jlv%' OR indexname LIKE '%reward%')
+                """, String.class)).isEmpty();
+    }
+
+    @Test
+    void oneOpenVisitPerUserIsEnforcedByTheDatabase() {
+        assertThat(jdbc.queryForList(
+                "SELECT indexname FROM pg_indexes WHERE tablename = 'visits'", String.class))
+                .contains("uq_visits_one_open_per_user");
     }
 }
