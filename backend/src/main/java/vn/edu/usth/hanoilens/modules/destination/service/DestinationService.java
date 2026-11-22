@@ -97,23 +97,29 @@ public class DestinationService {
                 landmarks.countByDestinationId(d.getId()));
     }
 
-    public List<LandmarkSummary> landmarksOf(UUID destinationId) {
+    /** Editorial (name) order, offset-cursor paginated like the other catalogue lists (openapi LandmarkPage). */
+    public PagedResponse<LandmarkSummary> landmarksOf(UUID destinationId, String cursor, Integer requestedLimit) {
+        int limit = Cursors.limit(requestedLimit);
+        int offset = Cursors.decodeOffset(cursor);
         destinations.findByIdAndStatus(destinationId, Destination.STATUS_PUBLISHED)
                 .orElseThrow(() -> ApiException.notFound("Destination not found."));
-        List<Landmark> rows = landmarks.findByDestinationIdOrderByNameAscIdAsc(destinationId);
+        List<Landmark> all = landmarks.findByDestinationIdOrderByNameAscIdAsc(destinationId);
+        List<Landmark> rows = all.subList(Math.min(offset, all.size()), Math.min(offset + limit, all.size()));
+        boolean hasMore = offset + limit < all.size();
         Map<UUID, LandmarkGeoRepository.Position> positions =
                 landmarkGeo.positionsOf(rows.stream().map(Landmark::getId).toList());
-        return rows.stream()
+        List<LandmarkSummary> page = rows.stream()
                 .map(l -> new LandmarkSummary(l.getId(), l.getDestinationId(), l.getName(), l.getDescription(),
                         l.isCheckpoint(), toGeoPoint(positions.get(l.getId()))))
                 .toList();
+        return PagedResponse.of(page, hasMore ? Cursors.encodeOffset(offset + limit) : null);
     }
 
     public LandmarkDetail landmark(UUID landmarkId) {
         Landmark l = landmarks.findById(landmarkId).orElseThrow(() -> ApiException.notFound("Landmark not found."));
         Destination d = destinations.findByIdAndStatus(l.getDestinationId(), Destination.STATUS_PUBLISHED)
                 .orElseThrow(() -> ApiException.notFound("Landmark not found."));   // hidden with its draft parent
-        return new LandmarkDetail(l.getId(), l.getName(), l.getDescription(), l.isCheckpoint(),
+        return new LandmarkDetail(l.getId(), l.getDestinationId(), l.getName(), l.getDescription(), l.isCheckpoint(),
                 toGeoPoint(landmarkGeo.positionsOf(List.of(l.getId())).get(l.getId())),
                 new DestinationRefDto(d.getId(), d.getSlug(), d.getName(), d.getDistrict()));
     }

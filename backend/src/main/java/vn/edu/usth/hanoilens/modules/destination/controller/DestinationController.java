@@ -5,7 +5,6 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -82,8 +81,9 @@ class DestinationController {
     }
 
     @GetMapping("/destinations/{destinationId}/landmarks")
-    ApiResponse<List<LandmarkSummary>> landmarks(@PathVariable String destinationId) {
-        return ApiResponse.of(destinations.landmarksOf(Ids.parseOrNotFound(destinationId)));
+    PagedResponse<LandmarkSummary> landmarks(@PathVariable String destinationId,
+            @RequestParam(required = false) String cursor, @RequestParam(required = false) Integer limit) {
+        return destinations.landmarksOf(Ids.parseOrNotFound(destinationId), cursor, limit);
     }
 
     @GetMapping("/landmarks/{landmarkId}")
