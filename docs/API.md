@@ -4,7 +4,7 @@
 
 This document defines the proposed HTTP API for the Hanoi Lens MVP. It is a contract for the native Android client and future administrative tools; it does not claim that the backend endpoints already exist.
 
-The API covers authentication, profiles, destinations, geofence arrival checks, in-app walking routes, events, visits, photos, editing, albums, recaps, and exports. Administrative ingestion and moderation endpoints are listed separately.
+The API covers authentication, profiles, destinations, geofence arrival checks, events, visits, photos, editing, albums, recaps, and exports. Administrative ingestion and moderation endpoints are listed separately.
 
 ## 2. Conventions
 
@@ -312,7 +312,7 @@ Returns cultural information and the parent destination for one landmark. The cl
 
 ### `POST /destinations/{destinationId}/arrival-checks`
 
-Checks whether a device position is inside or close enough to a destination geofence. Authentication is required. The raw coordinate is not stored after evaluation unless the user explicitly starts a visit with exact-location history enabled in a future version.
+Checks whether a device position is inside or close enough to a destination geofence. Authentication is required. The raw coordinate is not stored after \1 The client calls it when its on-device geofence for the destination fires after the user opened directions in an external map app (ADR 013), or when the user is already near the site; the API does not distinguish the two.
 
 **Request**
 
@@ -382,45 +382,6 @@ Lists published events ordered by `startsAt`, then `id`.
 - `district`
 - `destinationId`
 - `search`
-
-### `POST /routes/walking`
-
-In-app walking directions to a heritage or an event venue (team decision 2026-11-07, ARCHITECTURE ADR 012). The backend proxies the request to the routing engine so the engine never sees the user's identity, device, or token. Authentication is required. The origin travels in the body, never in the URL or query string, and is neither stored nor logged; the response is not cached server-side.
-
-**Request**
-
-```json
-{
-  "origin": { "latitude": 21.0302, "longitude": 105.8366 },
-  "accuracyMeters": 20,
-  "target": { "type": "DESTINATION", "id": "dst_van_mieu" }
-}
-```
-
-- `target.type` is `DESTINATION` or `EVENT`; the server resolves the target position (destination entrance or event venue). Clients cannot send a free target coordinate, so the endpoint is not a general routing proxy.
-- An unpublished or unknown target returns `404`. An origin farther than the configured service radius from the target (default 30 km) returns `422 ORIGIN_OUT_OF_RANGE`.
-
-**Response `200`**
-
-```json
-{
-  "data": {
-    "mode": "WALKING",
-    "distanceMeters": 1200,
-    "durationSeconds": 1080,
-    "geometry": { "type": "LineString", "coordinates": [[105.8366, 21.0302], [105.8352, 21.0288]] },
-    "steps": [
-      { "maneuver": "TURN_LEFT", "instruction": "Rẽ trái vào phố Văn Miếu", "streetName": "Văn Miếu", "distanceMeters": 200 }
-    ],
-    "attribution": "© OpenStreetMap contributors"
-  }
-}
-```
-
-- `geometry` is GeoJSON (SRID 4326, `[longitude, latitude]`). `maneuver` values: `DEPART`, `STRAIGHT`, `TURN_LEFT`, `TURN_RIGHT`, `SLIGHT_LEFT`, `SLIGHT_RIGHT`, `U_TURN`, `ARRIVE`.
-- Following the route, the next-turn card, and off-route detection run on the device; the client calls again only to re-route (Location rate-limit group).
-- No path found returns `422 ROUTE_NOT_FOUND` (the client shows the straight-line distance); routing engine down returns `503 ROUTING_UNAVAILABLE` with `Retry-After`.
-- Arrival is still decided by `POST /destinations/{destinationId}/arrival-checks`, never by reaching the end of the route.
 
 ### `GET /events/nearby`
 
@@ -940,7 +901,7 @@ Exact quotas are deployment configuration, but responses use standard `RateLimit
 | Group | Example endpoints | Relative policy |
 | --- | --- | --- |
 | Public discovery | destinations and events | High |
-| Location | nearby, arrival checks, walking routes | Medium per user and device |
+| Location | nearby, arrival checks | Medium per user and device |
 | Media | uploads, edits, exports | Lower and storage-aware |
 | AI inference | landmark recognition and historical Q&A | Low and cost-aware |
 | Authentication | login and token operations | Strict per account and IP |
@@ -1001,7 +962,6 @@ The first backend increment should implement these endpoints before advanced edi
 - `GET /destinations/{destinationId}`
 - `GET /destinations/{destinationId}/landmarks`
 - `POST /destinations/{destinationId}/arrival-checks`
-- `POST /routes/walking`
 - `GET /events`
 - `GET /events/{eventId}`
 - `POST /visits`

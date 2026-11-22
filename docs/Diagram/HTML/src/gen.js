@@ -3,7 +3,7 @@
 const fs = require('fs');
 const spec = require(require('path').resolve(process.argv[2]));
 const C = { paper: '#f5f5f5', paper2: '#ececec', ink: '#2d3142', muted: '#4f5d75', soft: '#5a6580', accent: '#bf4520', rule: 'rgba(45,49,66,0.12)' };
-const SIZE = { step: [160, 48], dec: [168, 72], term: [120, 40], ref: [168, 48], dot: [8, 8] };
+const SIZE = { step: [160, 48], dec: [168, 72], term: [120, 40], ref: [168, 48], dot: [8, 8], uc: [240, 44] };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const nodes = {};
@@ -114,7 +114,7 @@ for (const z of spec.zones || []) {
 for (const [i, a] of (spec.zones || []).entries()) for (const b of (spec.zones || []).slice(i + 1)) if (inter(a.box, b.box)) warns.push(`zones overlap ${a.label}/${b.label}`);
 for (const e of edges) {
   const col = e.accent ? C.accent : C.muted;
-  svg += `<path d="${pathD(e.pts)}" fill="none" stroke="${col}" stroke-width="${e.accent ? 1.4 : 1.2}"${e.dash ? ' stroke-dasharray="5,4"' : ''}${spec.er ? '' : ` marker-end="url(#${e.accent ? 'arrow-accent' : 'arrow'})"`}/>\n`;
+  svg += `<path d="${pathD(e.pts)}" fill="none" stroke="${col}" stroke-width="${e.accent ? 1.4 : 1.2}"${e.dash ? ' stroke-dasharray="5,4"' : ''}${spec.er || spec.plain ? '' : ` marker-end="url(#${e.accent ? 'arrow-accent' : 'arrow'})"`}/>\n`;
 }
 for (const L of labels) {
   svg += `<rect x="${L.x0}" y="${L.y0}" width="${L.w}" height="${L.h}" rx="2" fill="${C.paper}"/>\n`;
@@ -133,6 +133,8 @@ for (const n of Object.values(nodes)) {
   }
   if (n.k === 'dot') { svg += `<circle cx="${n.x}" cy="${n.y}" r="4" fill="${C.ink}"/>\n`; continue; }
   if (n.k === 'dec') svg += `<polygon points="${n.x},${n.y0} ${n.x1},${n.y} ${n.x},${n.y1} ${n.x0},${n.y}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>\n`;
+  else if (n.k === 'uc') svg += `<ellipse cx="${n.x}" cy="${n.y}" rx="${n.w / 2}" ry="${n.h / 2}" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+`;
   else if (n.k === 'term') svg += `<rect x="${n.x0}" y="${n.y0}" width="${n.w}" height="${n.h}" rx="20" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>\n`;
   else if (n.k === 'ref') svg += `<rect x="${n.x0}" y="${n.y0}" width="${n.w}" height="${n.h}" rx="6" fill="${C.paper}" stroke="${C.muted}" stroke-width="1" stroke-dasharray="4,3"/>\n`;
   else svg += `<rect x="${n.x0}" y="${n.y0}" width="${n.w}" height="${n.h}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1"/>\n`;
@@ -146,17 +148,20 @@ for (const n of Object.values(nodes)) {
 const ly = spec.height - 52;
 const used = new Set(Object.values(nodes).map((n) => n.k));
 const items = [
-  ['term', (x) => `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>`, 'Start / end'],
+  ['term', (x) => `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>`, spec.termLabel || 'Start / end'],
+  ['uc', (x) => `<ellipse cx="${x + 12}" cy="${ly + 34}" rx="12" ry="6" fill="#ffffff" stroke="${C.ink}" stroke-width="1"/>`, 'Use case'],
   ['step', (x) => `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="2" fill="#ffffff" stroke="${C.ink}" stroke-width="1"/>`, 'Step'],
   ['dec', (x) => `<polygon points="${x},${ly + 34} ${x + 12},${ly + 28} ${x + 24},${ly + 34} ${x + 12},${ly + 40}" fill="#ffffff" stroke="${C.ink}" stroke-width="1"/>`, 'Decision'],
   ['ref', (x) => `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="2" fill="${C.paper}" stroke="${C.muted}" stroke-width="1" stroke-dasharray="4,3"/>`, 'Jump to another step or diagram'],
   ['dot', (x) => `<circle cx="${x + 12}" cy="${ly + 34}" r="4" fill="${C.ink}"/>`, 'Merge'],
   ['ent', (x) => `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="2" fill="#ffffff" stroke="${C.ink}" stroke-width="1"/>`, 'Table · # primary key · → foreign key'],
   ['erline', (x) => `<line x1="${x}" y1="${ly + 34}" x2="${x + 24}" y2="${ly + 34}" stroke="${C.muted}" stroke-width="1.2"/>`, 'Relationship · 1 one · N many'],
-  ['accent', (x) => spec.er ? `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="2" fill="rgba(191,69,32,0.08)" stroke="${C.accent}" stroke-width="1"/>` : `<line x1="${x}" y1="${ly + 34}" x2="${x + 24}" y2="${ly + 34}" stroke="${C.accent}" stroke-width="1.4" marker-end="url(#arrow-accent)"/>`, spec.accentLabel || 'Fixed after review'],
+  ['accent', (x) => spec.er || spec.plain ? `<rect x="${x}" y="${ly + 28}" width="24" height="12" rx="2" fill="rgba(191,69,32,0.08)" stroke="${C.accent}" stroke-width="1"/>` : `<line x1="${x}" y1="${ly + 34}" x2="${x + 24}" y2="${ly + 34}" stroke="${C.accent}" stroke-width="1.4" marker-end="url(#arrow-accent)"/>`, spec.accentLabel || 'Fixed after review'],
+  ['assoc', (x) => `<line x1="${x}" y1="${ly + 34}" x2="${x + 24}" y2="${ly + 34}" stroke="${C.muted}" stroke-width="1.2"/>`, 'Actor takes part in use case'],
   ['dash', (x) => `<line x1="${x}" y1="${ly + 34}" x2="${x + 24}" y2="${ly + 34}" stroke="${C.muted}" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>`, 'Optional'],
 ];
 if (spec.er) used.add('erline');
+if (spec.plain) used.add('assoc');
 if (edges.some((e) => e.accent) || Object.values(nodes).some((n) => n.accent)) used.add('accent');
 if (edges.some((e) => e.dash)) used.add('dash');
 svg += `<line x1="40" y1="${ly}" x2="${spec.width - 40}" y2="${ly}" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>

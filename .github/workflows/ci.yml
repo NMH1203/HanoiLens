@@ -1,0 +1,205 @@
+name: Hanoi Lens CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  openapi-lint:
+    name: OpenAPI Contract Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate backend/openapi.yaml (Structure & MVP Rules)
+        run: |
+          OPENAPI_FILE="backend/openapi.yaml"
+          if [ ! -f "$OPENAPI_FILE" ]; then
+            echo "::error::File $OPENAPI_FILE not found!"
+            exit 1
+          fi
+
+          npx --yes @redocly/cli@^1 lint "$OPENAPI_FILE" \
+            --extends=minimal \
+            --format=stylish
+
+          pip install pyyaml
+          python3 - "$OPENAPI_FILE" << 'EOF'
+          import sys, yaml
+
+          path = sys.argv[1]
+          with open(path, 'r', encoding='utf-8') as f:
+              spec = yaml.safe_load(f)
+
+          errors = []
+          op_ids = set()
+          http_methods = {'get', 'post', 'put', 'patch', 'delete', 'options', 'head'}
+
+          if not str(spec.get('openapi', '')).startswith('3.'):
+              errors.append(f"Invalid or missing openapi version: {spec.get('openapi')}")
+
+          paths = spec.get('paths') or {}
+          if not paths:
+              errors.append("OpenAPI document has no paths defined.")
+
+          for route, operations in paths.items():
+              if not isinstance(operations, dict):
+                  continue
+              for method, details in operations.items():
+                  if method.lower() not in http_methods or not isinstance(details, dict):
+                      continue
+                  op_id = details.get('operationId')
+                  if not op_id:
+                      errors.append(f"Missing operationId on {method.upper()} {route}")
+                  elif op_id in op_ids:
+                      errors.append(f"Duplicate operationId '{op_id}' on {method.upper()} {route}")
+                  else:
+                      op_ids.add(op_id)
+
+                  responses = details.get('responses') or {}
+                  if not responses:
+                      errors.append(f"No responses defined on {method.upper()} {route}")
+
+          schemas = (spec.get('components') or {}).get('schemas') or {}
+          if 'ErrorResponse' not in schemas:
+              errors.append("Missing shared 'ErrorResponse' schema in components.schemas.")
+
+          if errors:
+              print("OpenAPI contract validation failed:")
+              for e in errors:
+                  print(f"  - {e}")
+              sys.exit(1)
+
+          print(f"SUCCESS: Verified {len(op_ids)} unique operationIds and shared ErrorResponse schema in {path}.")
+          EOF
+
+  backend-build-test:
+    name: Backend Build & Modulith / Integration Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Spring Modulith Architecture Guard (ModularityTests)
+        run: mvn -B test -Dtest=ModularityTests
+
+      - name: Build PostgreSQL 16 + PostGIS 3.4 + pgvector Image for Testcontainers
+        run: docker build -t hanoilens/postgres-postgis-pgvector:16-3.4 ./docker/postgres
+
+      - name: Run Full Backend Build & Integration Test Suite
+        run: mvn -B verify
+
+      - name: Upload Surefire Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  android-build-test:
+    name: Android Client Build & Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: android
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build Debug APK & Run Unit Tests
+        run: ./gradlew assembleDebug testDebugUnitTest --stacktrace
+
+      - name: Upload Debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+      - name: Upload Android Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          path: android/app/build/reports/
+          retention-days: 7
+
+  ci-gate:
+    name: CI Gatekeeper (All Checks Passed)
+    if: always()
+    needs:
+      - openapi-lint
+      - backend-build-test
+      - android-build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate CI Pipeline Status
+        run: |
+          echo "OpenAPI Lint: ${{ needs.openapi-lint.result }}"
+          echo "Backend Build & Test: ${{ needs.backend-build-test.result }}"
+          echo "Android Build & Test: ${{ needs.android-build-test.result }}"
+
+          if [[ "${{ needs.openapi-lint.result }}" != "success" ]] || \
+             [[ "${{ needs.backend-build-test.result }}" != "success" ]] || \
+             [[ "${{ needs.android-build-test.result }}" != "success" ]]; then
+            echo "::error::One or more CI checks failed. Merge into main blocked!"
+            exit 1
+          fi
+
+          echo "All CI checks passed successfully!"

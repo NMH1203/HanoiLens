@@ -46,7 +46,7 @@ flowchart TD
     subgraph ExternalServices["External Technical Systems"]
         aiInference["Python AI Inference Runtime (No Business Ownership)"]
         mapProvider["Map Provider (Map SDK and Tile Servers)"]
-        routingEngine["Routing Engine (OSM walking routes, no user identity)"]
+        externalMapApp["External Map App (Google Maps or similar, opened by the Android app)"]
         eventSources["Official Cultural Sources (Museums and Heritage Portals)"]
         objectStorage["Object Storage (S3 / MinIO)"]
     end
@@ -57,7 +57,7 @@ flowchart TD
     hanoiLensApp -->|"Map Tiles"| mapProvider
     hanoiLensApp -->|"Direct Photo Upload (Presigned PUT)"| objectStorage
     hanoiLensBackend -->|"Vision Recognition and RAG Q&A"| aiInference
-    hanoiLensBackend -->|"Walking Routes (proxied)"| routingEngine
+    hanoiLensApp -->|"Opens directions (Android intent)"| externalMapApp
     hanoiLensBackend -->|"Crawls Event Feeds"| eventSources
     hanoiLensBackend -->|"Issues Presigned URLs and Manages Assets"| objectStorage
 ```
@@ -142,7 +142,7 @@ Module boundary rules:
 - Owns the historical knowledge base (`KnowledgeChunk` embeddings) and Q&A history (`QAConversation`, `QAMessage`), and runs RAG retrieval (ADR 011).
 - Supplies the heritage preview (with an always-visible entry point to the historical RAG assistant) and the on-site heritage explore page (five tabs: overview, visit map, camera, landmarks, AI chat).
 - Executes geospatial queries via Hibernate Spatial for nearby discovery and boundary arrival checks.
-- Serves in-app walking directions (`POST /routes/walking`, ADR 012): resolves the target position (destination, or event venue through the `event` module's published service) and proxies the request to the routing engine through an adapter. Stores nothing.
+- Provides the public coordinates the client hands to an external map app for directions (no routing endpoint, ADR 013); arrival itself is confirmed by the arrival check.
 - Publishes stable destination identifiers used across journeys.
 
 ### Events (`modules.event`)
@@ -580,11 +580,23 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 
 ### ADR 012 In-app walking directions through a backend routing proxy
 
+**Status:** Superseded by ADR 013 (2026-11-10); kept for history.
+
 **Decision:** Directions run inside the app (team decision 2026-11-07) instead of opening an external map app. osmdroid draws the map but cannot compute routes, so the `destination` module exposes `POST /routes/walking` and calls an OSM-based routing engine (OSRM or GraphHopper, foot profile) through an adapter. The client sends its origin in the request body; the server resolves the target (destination or event venue) itself. Route following and off-route detection run on the device.
 
 **Reason:** A public routing server called from the app would receive the user's coordinates together with their IP and device. Proxying keeps the user anonymous to the engine and keeps one place for rate limits and log redaction. On-device routing was rejected because the offline graph makes the app much larger.
 
 **Consequences:** One new endpoint in the Location rate-limit group, no new table, no new module. The routing engine is an external technical system like the map tile provider; a self-hosted engine with a Hanoi OSM extract is preferred, and the adapter must allow switching. Origins are never stored, logged, cached, or sent to the AI runtime. The route never decides arrival; `arrival-checks` still does.
+
+### ADR 013 Directions open an external map app; arrival is detected on the device
+
+**Status:** Accepted 2026-11-10. Supersedes ADR 012.
+
+**Decision:** Hanoi Lens no longer draws or computes routes. "Chỉ đường" opens the user's installed map app (Google Maps or any app that handles an Android `geo:` intent) with the public coordinates of the heritage or event venue. The backend has no routing endpoint and no routing engine. After the user taps it, the Android app arms one time-limited on-device geofence (default 3 hours) around that destination only; when the device enters it, the app runs the normal arrival check (`POST /destinations/{destinationId}/arrival-checks`) and, on `INSIDE`, starts the visit automatically and unlocks the heritage. Stopping tracking, arrival, or expiry removes the geofence.
+
+**Reason:** In-app routing needed a routing engine, a proxy endpoint, and a map-following UI for a feature that users already get from the navigation app they trust. Detecting arrival on the device keeps the experience (automatic unlock) without a location trail.
+
+**Consequences:** `POST /routes/walking`, its error codes, the routing engine, and the screens P16/P16b disappear. Only public destination coordinates leave the app, and only to the map app the user chose; the user's position is never sent to Hanoi Lens for routing. No position history is kept: the geofence holds one circle, and the coordinates read at the moment of arrival are discarded after the arrival check. Background geofence delivery needs `ACCESS_BACKGROUND_LOCATION`: the app explains it first (P44b) and asks only when the user opens directions; if the user chooses "only while using the app", arrival is detected only while the app is open (decided 2026-11-10). The arrival check, not the map app, still decides arrival.
 
 ## 20. Implementation sequence
 
@@ -592,7 +604,7 @@ Scale the complete Spring Boot application horizontally first and tune its API a
 2. Complete the five-flow threat model and implement the JWT/refresh-token foundation plus the first ownership-denial tests.
 3. Implement destination and landmark endpoints with PostGIS nearby spatial queries.
 4. Build the Android mobile skeleton (Navigation, BottomNav XML, Retrofit networking, Room cache, and Keystore-backed token storage).
-5. Implement arrival checks and the visit lifecycle with raw-coordinate non-retention and cross-user authorization tests; add the walking-route proxy (`POST /routes/walking`, ADR 012) behind the routing-engine adapter.
+5. Implement arrival checks and the visit lifecycle with raw-coordinate non-retention and cross-user authorization tests; the Android client arms a time-limited on-device geofence for the destination when the user opens directions in an external map app, then calls the arrival check (ADR 013).
 6. Integrate CameraX photo capture and hardened S3 presigned uploads, including malicious-file, expiry, wrong-key, and ownership tests.
 7. Build scheduled ingestion and a deterministic parser for the first approved event source; validate, deduplicate, and queue drafts for administrator review.
 8. Implement landmark image classification (Model 1), historical RAG with citations (Model 2), the heritage-preview RAG entry, recognition-based landmark unlocks and stamps, and the on-site AI chat tab scoped to the heritage and its unlocked landmarks.

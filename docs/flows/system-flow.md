@@ -74,7 +74,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     GOTO[User wants to go] --> DIR{Directions requested?}
-    DIR -- Yes --> ROUTE[In-app walking directions on the device]
+    DIR -- Yes --> ROUTE[Open external map app, arm on-device geofence for the destination]
     DIR -- No --> GPS
     ROUTE --> GPS[Read GPS location on device]
     GPS --> CHECK["Arrival check near any heritage<br/>POST /destinations/id/arrival-checks"]

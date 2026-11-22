@@ -5,7 +5,7 @@
 | STT | Họ và tên | Mã sinh viên | Vai trò |
 |---|---|---|---|
 | 1 | Nguyễn Minh Hoàng | 2410315 | AI: Computer Vision|
-| 2 | Lê Bá Ninh | 23BA14224 | Hành trình, Sự kiện & Phần thưởng|
+| 2 | Lê Bá Ninh | 23BA14224 | Hành trình, Sự kiện & Tem|
 | 3 | Lê Hiền Anh | 2410042 | Khám phá, Bản đồ & Đến nơi|
 | 4 | Nguyễn Minh Lương | 23BA14184 | AI: RAG lịch sử|
 | 5 | Lương Quỳnh Anh | 23BA14008 | Camera, Ảnh, Album & Recap|

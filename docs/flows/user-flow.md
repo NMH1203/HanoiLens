@@ -64,7 +64,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     GOTO[Go to the heritage] --> DIR{Need directions?}
-    DIR -- Yes --> ROUTE[In-app walking directions]
+    DIR -- Yes --> ROUTE[Open directions in a map app, e.g. Google Maps]
     DIR -- No --> TRAVEL[Go to any heritage]
     ROUTE --> TRAVEL
     TRAVEL --> ARRIVE[GPS confirms arrival - silent check]
@@ -124,4 +124,4 @@ flowchart TD
 | — | Team request (2026-10-22): order of on-site pages | `Heritage unlocked → Heritage explore page → Visit map`; resuming a paused trip also opens the Heritage explore page; `Finish here → Stamp collection → All marked heritages unlocked?` |
 | — | Team request (2026-10-22): "Explore page" meant two different pages | Renamed to **Explore Hanoi (home)** (after sign-in, after pause, journal) and **Heritage explore page** (on site: after unlock, "Where next? → Explore site", "Continue exploring? → Yes") |
 | — | Team request (2026-10-22): on the visit map, AI chat is only reachable after a photo identifies a landmark | `Take photo → Identified? → Landmark info → Chat with AI → Where next? (Map / Explore site)`; the visit map no longer has a direct "Ask AI" branch. The heritage preview keeps its Ask AI entry |
-| — | Team decision (2026-11-06, ADR 011) | No marking step: going to any heritage unlocks it and collects its heritage stamp; recognition unlocks a landmark and its stamp; badge, gift and the "all marked unlocked?" check removed; heritage explore page has an Ask AI tab scoped to the heritage and its unlocked landmarks; directions open an external map app (changed 2026-11-07: in-app walking directions) |
+| — | Team decision (2026-11-06, ADR 011) | No marking step: going to any heritage unlocks it and collects its heritage stamp; recognition unlocks a landmark and its stamp; badge, gift and the "all marked unlocked?" check removed; heritage explore page has an Ask AI tab scoped to the heritage and its unlocked landmarks; directions open an external map app such as Google Maps and the app detects arrival on the device (ADR 013; the in-app walking directions of 2026-11-07 were dropped on 2026-11-10) |
