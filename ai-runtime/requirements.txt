@@ -1,0 +1,17 @@
+# 1. Khung Web API (Dùng trong main.py và routes_rag.py để mở cổng API nội bộ cho Backend gọi)
+fastapi>=0.115.0,<1.0.0
+
+# 2. Máy chủ chạy FastAPI (Dùng để khởi động server Python: uvicorn app.main:app)
+uvicorn[standard]>=0.30.0,<1.0.0
+
+# 3. Kiểm tra dữ liệu đầu vào/đầu ra (Dùng cho EmbedRequest, EmbedResponse, RagAnswerRequest...)
+pydantic>=2.9.0,<3.0.0
+
+# 4. Mô hình AI tạo Vector Embedding 768 chiều (Dùng trong embedder.py để biến câu văn Việt/Anh thành 768 con số nạp vào pgvector)
+sentence-transformers>=3.1.0,<4.0.0
+
+# 5. Thư viện gọi HTTP (Dùng trong generator.py để gọi tới LLM API sinh câu trả lời và dùng cho TestClient)
+httpx>=0.27.0,<1.0.0
+
+# 6. Khung chạy kiểm thử tự động (Dùng để chạy file tests/test_inference_contracts.py)
+pytest>=8.3.0,<9.0.0
