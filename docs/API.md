@@ -304,7 +304,7 @@ Returns full destination details, including cultural content, public geofence pr
 
 ### `GET /destinations/{destinationId}/landmarks`
 
-Lists published landmarks in the destination. Ordering is editorial, not a required route.
+Lists published landmarks in the destination, cursor-paginated (`cursor`, `limit`, default 20, max 50; `data` + `pagination` as in §2). Ordering is editorial, not a required route.
 
 ### `GET /landmarks/{landmarkId}`
 

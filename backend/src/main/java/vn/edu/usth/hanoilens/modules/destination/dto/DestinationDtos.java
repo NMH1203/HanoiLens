@@ -39,8 +39,8 @@ public final class DestinationDtos {
     public record DestinationRefDto(UUID id, String slug, String name, String district) {
     }
 
-    public record LandmarkDetail(UUID id, String name, String description, boolean isCheckpoint, GeoPoint position,
-            DestinationRefDto destination) {
+    public record LandmarkDetail(UUID id, UUID destinationId, String name, String description, boolean isCheckpoint,
+            GeoPoint position, DestinationRefDto destination) {
     }
 
     // ---- arrival checks ----------------------------------------------------------------------------

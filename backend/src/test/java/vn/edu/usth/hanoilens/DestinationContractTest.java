@@ -67,14 +67,19 @@ class DestinationContractTest extends IntegrationTestBase {
     }
 
     @Test
-    void listDestinationsRejectsInvalidParametersAsSpecified() throws Exception {
-        // openapi.yaml: area is an enum, limit is 1..50, sort is an enum; 400 uses ErrorResponse.
+    void listDestinationsRejectsInvalidParametersWithSpecifiedError() throws Exception {
+        // openapi.yaml: area and sort are enums, limit is 1..50, answered with the shared ErrorResponse (400).
+        // The requests themselves violate the spec, so only the error body is asserted (not request validity).
         mvc.perform(get("/v1/destinations").param("area", "MARS"))
-                .andExpect(status().isBadRequest()).andExpect(MATCHES_SPEC);
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("INVALID_AREA"))
+                .andExpect(jsonPath("$.error.requestId").isNotEmpty());
         mvc.perform(get("/v1/destinations").param("limit", "51"))
-                .andExpect(status().isBadRequest()).andExpect(MATCHES_SPEC);
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("INVALID_LIMIT"));
         mvc.perform(get("/v1/destinations").param("sort", "BOGUS"))
-                .andExpect(status().isBadRequest()).andExpect(MATCHES_SPEC);
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("INVALID_SORT"));
     }
 
     // ---- GET /destinations/{destinationId} ---------------------------------------------------------

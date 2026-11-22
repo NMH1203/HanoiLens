@@ -292,6 +292,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LandmarkPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/InternalError' }
