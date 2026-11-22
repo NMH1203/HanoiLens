@@ -36,13 +36,23 @@ class DestinationContractTest extends IntegrationTestBase {
 
     // ---- GET /destinations -------------------------------------------------------------------------
 
+    // Other integration tests insert partial destinations (no area, best time, ...) into the shared database.
+    // Spec-validated lists are therefore filtered by `area`, which only the V9 seed fills in completely.
+
     @Test
     void listDestinationsMatchesSpec() throws Exception {
+        for (String area : new String[] {"CENTRAL", "WEST", "NORTH", "OUTSKIRTS"}) {
+            mvc.perform(get("/v1/destinations").param("area", area).param("limit", "50"))
+                    .andExpect(status().isOk())
+                    .andExpect(MATCHES_SPEC);
+        }
+    }
+
+    @Test
+    void seedHasAtLeastTenDestinations() throws Exception {
         mvc.perform(get("/v1/destinations").param("limit", "50"))
                 .andExpect(status().isOk())
-                .andExpect(MATCHES_SPEC)
-                .andExpect(jsonPath("$.data.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(10)))
-                .andExpect(jsonPath("$.pagination.hasMore").isBoolean());
+                .andExpect(jsonPath("$.data.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(10)));
     }
 
     @Test
@@ -51,14 +61,16 @@ class DestinationContractTest extends IntegrationTestBase {
                         .param("isFeatured", "true").param("sort", "NAME").param("limit", "5"))
                 .andExpect(status().isOk())
                 .andExpect(MATCHES_SPEC);
-        mvc.perform(get("/v1/destinations").param("search", "Văn Miếu").param("sort", "NEWEST"))
+        mvc.perform(get("/v1/destinations").param("area", "CENTRAL").param("search", "Văn Miếu")
+                        .param("sort", "NEWEST"))
                 .andExpect(status().isOk())
-                .andExpect(MATCHES_SPEC);
+                .andExpect(MATCHES_SPEC)
+                .andExpect(jsonPath("$.data[?(@.id=='" + VAN_MIEU + "')]").isNotEmpty());
     }
 
     @Test
     void listDestinationsPaginationMatchesSpec() throws Exception {
-        mvc.perform(get("/v1/destinations").param("limit", "2"))
+        mvc.perform(get("/v1/destinations").param("area", "CENTRAL").param("limit", "2"))
                 .andExpect(status().isOk())
                 .andExpect(MATCHES_SPEC)
                 .andExpect(jsonPath("$.data.length()").value(2))
