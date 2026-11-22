@@ -105,6 +105,13 @@ FROM (VALUES
      'MORNING', 120,
      CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
      'POLYGON((105.869000 21.112000, 105.878000 21.112000, 105.878000 21.119000, 105.869000 21.119000, 105.869000 21.112000))'),
+    -- 9b. Nhà hát Lớn Hà Nội
+    (CAST('0193b6a0-0000-7000-8000-00000000000a' AS uuid), 'nha-hat-lon-ha-noi', 'Nhà hát Lớn Hà Nội', 'Hoàn Kiếm', 'CENTRAL',
+     TRUE, 'Hanoi Opera House, a French colonial landmark opened in 1911 and the stage of the 1945 August Revolution.',
+     'Built between 1901 and 1911 by the French colonial government on the model of the Palais Garnier in Paris. In August 1945 the square in front of it was a gathering place of the August Revolution, and the building itself was occupied by revolutionary forces.',
+     'A neoclassical building with a colonnaded facade, a domed foyer and a 900-seat horseshoe auditorium, set at the end of Tràng Tiền street with the Revolution Square (Quảng trường Cách mạng Tháng Tám) in front.',
+     'Architectural landmark of the French colonial period and a symbol of the 1945 August Revolution.',
+     'EVENING', 45,
      CAST(NULL AS numeric), CAST(NULL AS numeric), CAST(NULL AS integer),
      'POLYGON((105.856800 21.023600, 105.858600 21.023600, 105.858600 21.025100, 105.856800 21.025100, 105.856800 21.023600))'),
     -- 10. Nhà thờ Lớn Hà Nội
