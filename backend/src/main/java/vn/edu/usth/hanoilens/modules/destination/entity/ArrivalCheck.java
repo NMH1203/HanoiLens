@@ -44,8 +44,8 @@ public class ArrivalCheck {
     @Column(name = "consumed_at")
     private Instant consumedAt;
 
-    @Column(name = "journey_id")
-    private UUID journeyId;
+    @Column(name = "visit_id")
+    private UUID visitId;
 
     protected ArrivalCheck() {
     }
