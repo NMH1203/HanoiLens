@@ -1721,8 +1721,8 @@ components:
         estimatedMinutes: { type: integer }
         landmarkCount: { type: integer }
         geofence: { $ref: '#/components/schemas/Geofence' }
-        openingHours: { nullable: true, description: Free-form JSON; null when not surveyed. }
-        visitingWindows: { nullable: true, description: Free-form JSON; null when not surveyed. }
+        openingHours: { type: object, nullable: true, additionalProperties: true, description: Free-form JSON object; null when not surveyed. }
+        visitingWindows: { type: object, nullable: true, additionalProperties: true, description: Free-form JSON object; null when not surveyed. }
         aiFeatures:
           type: object
           properties:
