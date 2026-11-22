@@ -1599,6 +1599,14 @@ components:
       properties:
         id: { type: string }
         name: { type: string }
+    DestinationRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        district: { type: string }
 
     # ---- auth / profile ----
     RegisterRequest:
@@ -1693,18 +1701,33 @@ components:
         type: { type: string, enum: [CIRCLE] }
         center: { $ref: '#/components/schemas/GeoPoint' }
         radiusMeters: { type: integer, minimum: 1 }
+    # Flat on purpose: the contract validator rejects unknown properties, and `allOf` would make each
+    # branch reject the other branch's properties. Keep in sync with DestinationDtos.DestinationDetail.
     DestinationDetail:
-      allOf:
-        - $ref: '#/components/schemas/DestinationSummary'
-        - type: object
+      type: object
+      required: [id, slug, name, area, district, summary]
+      properties:
+        id: { type: string, example: dst_van_mieu }
+        slug: { type: string }
+        name: { type: string }
+        area: { $ref: '#/components/schemas/DestinationArea' }
+        district: { type: string }
+        summary: { type: string }
+        description: { type: string, nullable: true }
+        architecture: { type: string, nullable: true }
+        significance: { type: string, nullable: true }
+        coverImageUrl: { type: string, format: uri, nullable: true, description: Short-lived signed URL. }
+        bestTime: { type: string, example: EARLY_MORNING }
+        estimatedMinutes: { type: integer }
+        landmarkCount: { type: integer }
+        geofence: { $ref: '#/components/schemas/Geofence' }
+        openingHours: { nullable: true, description: Free-form JSON; null when not surveyed. }
+        visitingWindows: { nullable: true, description: Free-form JSON; null when not surveyed. }
+        aiFeatures:
+          type: object
           properties:
-            description: { type: string }
-            geofence: { $ref: '#/components/schemas/Geofence' }
-            aiFeatures:
-              type: object
-              properties:
-                historicalRagAvailable: { type: boolean }
-                landmarkRecognitionAvailable: { type: boolean }
+            historicalRagAvailable: { type: boolean }
+            landmarkRecognitionAvailable: { type: boolean }
     DestinationDetailEnvelope:
       type: object
       required: [data]
@@ -1719,9 +1742,10 @@ components:
         name: { type: string }
         summary: { type: string }
         description: { type: string }
+        isCheckpoint: { type: boolean }
         imageUrl: { type: string, format: uri, nullable: true }
         position: { $ref: '#/components/schemas/GeoPoint' }
-        destination: { $ref: '#/components/schemas/NamedRef' }
+        destination: { $ref: '#/components/schemas/DestinationRef' }
     LandmarkPage:
       type: object
       required: [data, pagination]
