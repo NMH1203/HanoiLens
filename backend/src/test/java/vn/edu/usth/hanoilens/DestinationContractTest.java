@@ -130,7 +130,7 @@ class DestinationContractTest extends IntegrationTestBase {
         mvc.perform(get("/v1/destinations/" + VAN_MIEU + "/landmarks"))
                 .andExpect(status().isOk())
                 .andExpect(MATCHES_SPEC)
-                .andExpect(jsonPath("$.data.length()").value(8))
+                .andExpect(jsonPath("$.data.length()").value(11)) // 8 from V9 + 3 from V12
                 .andExpect(jsonPath("$.pagination.hasMore").value(false));
     }
 
