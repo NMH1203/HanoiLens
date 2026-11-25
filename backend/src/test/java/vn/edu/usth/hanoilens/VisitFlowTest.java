@@ -43,9 +43,9 @@ class VisitFlowTest extends IntegrationTestBase {
         stampId = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO destinations (id, slug, name, district, geofence_type, center_lat, center_lng, radius_m,
-                                          status, summary, area, is_featured)
+                                          status, summary, area, is_featured, best_time, estimated_minutes)
                 VALUES (?, ?, 'Văn Miếu - Quốc Tử Giám', 'Đống Đa', 'CIRCLE', ?, ?, 250, 'PUBLISHED',
-                        'A historic complex.', 'CENTRAL', true)
+                        'A historic complex.', 'CENTRAL', true, 'MORNING', 60)
                 """, destinationId, "vm-" + destinationId, LAT, LNG);
         jdbc.update("INSERT INTO landmarks (id, destination_id, name, is_checkpoint) VALUES (?, ?, 'Khuê Văn Các', true)",
                 checkpointId, destinationId);

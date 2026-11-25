@@ -58,9 +58,9 @@ class ArrivalCheckTest extends IntegrationTestBase {
         destinationId = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO destinations (id, slug, name, district, geofence_type, center_lat, center_lng, radius_m,
-                                          status, summary, area, is_featured)
+                                          status, summary, area, is_featured, best_time, estimated_minutes)
                 VALUES (?, ?, 'Van Mieu - Quoc Tu Giam', 'Dong Da', 'CIRCLE', ?, ?, 250, 'PUBLISHED',
-                        'A historic complex.', 'CENTRAL', true)
+                        'A historic complex.', 'CENTRAL', true, 'MORNING', 60)
                 """, destinationId, "ac-" + destinationId, LAT, LNG);
         jdbc.update("INSERT INTO landmarks (id, destination_id, name, is_checkpoint) VALUES (?, ?, 'Khue Van Cac', true)",
                 UUID.randomUUID(), destinationId);
