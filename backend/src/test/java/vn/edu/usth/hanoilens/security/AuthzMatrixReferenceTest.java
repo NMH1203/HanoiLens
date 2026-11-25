@@ -35,18 +35,18 @@ class AuthzMatrixReferenceTest extends AuthorizationMatrixTestBase {
 
         jdbc.update("""
                 INSERT INTO destinations (id, slug, name, district, geofence_type, center_lat, center_lng, radius_m,
-                                          status, summary, area, is_featured)
+                                          status, summary, area, is_featured, best_time, estimated_minutes)
                 VALUES (?, ?, 'Văn Miếu - Quốc Tử Giám', 'Đống Đa', 'CIRCLE', ?, ?, 250, 'PUBLISHED',
-                        'Historic temple of literature.', 'CENTRAL', true)
+                        'Historic temple of literature.', 'CENTRAL', true, 'MORNING', 60)
                 """, destinationId, "authz-vm-" + destinationId, LAT, LNG);
         jdbc.update("INSERT INTO landmarks (id, destination_id, name, is_checkpoint) VALUES (?, ?, 'Khuê Văn Các', true)",
                 checkpointId, destinationId);
 
         jdbc.update("""
                 INSERT INTO destinations (id, slug, name, district, geofence_type, center_lat, center_lng, radius_m,
-                                          status, summary, area, is_featured)
+                                          status, summary, area, is_featured, best_time, estimated_minutes)
                 VALUES (?, ?, 'Hoàng Thành Thăng Long', 'Ba Đình', 'CIRCLE', 21.0341, 105.8400, 250, 'PUBLISHED',
-                        'Imperial citadel.', 'CENTRAL', true)
+                        'Imperial citadel.', 'CENTRAL', true, 'MORNING', 60)
                 """, foreignDestinationId, "authz-ht-" + foreignDestinationId);
         jdbc.update("INSERT INTO landmarks (id, destination_id, name, is_checkpoint) VALUES (?, ?, 'Đoan Môn', true)",
                 foreignLandmarkId, foreignDestinationId);
