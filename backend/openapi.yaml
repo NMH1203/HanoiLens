@@ -1321,11 +1321,38 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
+  /admin/events:
+    get:
+      tags: [Admin]
+      operationId: adminListEvents
+      summary: Review queue of imported events
+      description: Events with the given reviewStatus ordered by start time. Defaults to PENDING_REVIEW. Reads are not audit-logged; every change is.
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [PENDING_REVIEW, APPROVED, REJECTED, EXPIRED], default: PENDING_REVIEW }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: One page.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminEventPage' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
   /admin/events/{id}:
     patch:
       tags: [Admin]
       operationId: adminUpdateEvent
       summary: Correct normalized event data
+      description: Only a PENDING_REVIEW or APPROVED event can be corrected (409 INVALID_EVENT_STATE otherwise). Only the fields present change; destinationId null clears the link. Unknown fields are 422. A change that makes the title, start time and venue equal to another event is 409 DUPLICATE_EVENT.
       x-required-role: ADMIN
       x-rate-limit-group: ADMINISTRATION
       parameters:
@@ -1341,10 +1368,11 @@ paths:
           headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/EventEnvelope' }
+              schema: { $ref: '#/components/schemas/AdminEventEnvelope' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/Unprocessable' }
         '500': { $ref: '#/components/responses/InternalError' }
   /admin/events/{id}/publish:
@@ -1352,6 +1380,7 @@ paths:
       tags: [Admin]
       operationId: adminPublishEvent
       summary: Publish a reviewed event
+      description: Only a PENDING_REVIEW event that has not ended can be published (409 INVALID_EVENT_STATE or EVENT_ENDED).
       x-required-role: ADMIN
       x-rate-limit-group: ADMINISTRATION
       parameters:
@@ -1362,11 +1391,43 @@ paths:
           headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/EventEnvelope' }
+              schema: { $ref: '#/components/schemas/AdminEventEnvelope' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /admin/events/{id}/reject:
+    post:
+      tags: [Admin]
+      operationId: adminRejectEvent
+      summary: Reject an imported event
+      description: Only a PENDING_REVIEW event can be rejected (409 INVALID_EVENT_STATE). The optional reason is kept in the audit log only.
+      x-required-role: ADMIN
+      x-rate-limit-group: ADMINISTRATION
+      parameters:
+        - { $ref: '#/components/parameters/AdminId' }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                reason: { type: string, maxLength: 500 }
+      responses:
+        '200':
+          description: Rejected.
+          headers: { X-Request-Id: { $ref: '#/components/headers/XRequestId' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminEventEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
         '500': { $ref: '#/components/responses/InternalError' }
 
 components:
@@ -1812,6 +1873,29 @@ components:
       required: [data]
       properties:
         data: { $ref: '#/components/schemas/Event' }
+    AdminEvent:
+      description: An Event plus its review state. `status` stays the time phase (SCHEDULED, ONGOING, ENDED).
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          required: [reviewStatus]
+          properties:
+            reviewStatus: { type: string, enum: [PENDING_REVIEW, APPROVED, REJECTED, EXPIRED] }
+            reviewedAt: { type: string, format: date-time, nullable: true }
+            publishedAt: { type: string, format: date-time, nullable: true }
+    AdminEventEnvelope:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/AdminEvent' }
+    AdminEventPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/AdminEvent' }
+        pagination: { $ref: '#/components/schemas/Pagination' }
     EventPage:
       type: object
       required: [data, pagination]

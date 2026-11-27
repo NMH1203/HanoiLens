@@ -875,8 +875,10 @@ Administrative routes require a separate role and audit logging.
 | `POST` | `/admin/event-sources` | Register an approved source |
 | `POST` | `/admin/event-sources/{id}/imports` | Start an ingestion job |
 | `GET` | `/admin/event-imports/{id}` | Inspect job status and validation errors |
-| `PATCH` | `/admin/events/{id}` | Correct normalized event data |
-| `POST` | `/admin/events/{id}/publish` | Publish a reviewed event |
+| `GET` | `/admin/events?status=PENDING_REVIEW` | Review queue (`PENDING_REVIEW` default, `APPROVED`, `REJECTED`, `EXPIRED`); cursor pagination |
+| `PATCH` | `/admin/events/{id}` | Correct normalized event data (pending or published events only) |
+| `POST` | `/admin/events/{id}/publish` | Publish a reviewed event (`409` if not pending or already ended) |
+| `POST` | `/admin/events/{id}/reject` | Reject a pending event; optional `{ "reason" }` goes to the audit log |
 
 Imported content remains `PENDING_REVIEW` until a privileged administrator validates and publishes it. Event imports use deterministic source-specific parsers, not an NLP model.
 
