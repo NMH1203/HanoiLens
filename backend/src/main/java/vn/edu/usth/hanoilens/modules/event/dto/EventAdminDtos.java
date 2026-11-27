@@ -28,4 +28,11 @@ public final class EventAdminDtos {
     public record ImportView(UUID id, UUID sourceId, String status, int importedCount,
             List<ValidationError> validationErrors) {
     }
+
+    /** openapi {@code AdminEvent}: the Event fields plus the review state (PENDING_REVIEW | APPROVED | REJECTED | EXPIRED). */
+    public record AdminEventView(UUID id, String title, String summary, EventDtos.Venue venue, UUID destinationId,
+            java.time.Instant startsAt, java.time.Instant endsAt, String timezone, String sourceUrl,
+            java.time.Instant lastVerifiedAt, String status, String reviewStatus, java.time.Instant reviewedAt,
+            java.time.Instant publishedAt) {
+    }
 }
