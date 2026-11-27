@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.usth.hanoilens.modules.destination.DestinationApi;
 import vn.edu.usth.hanoilens.modules.destination.DestinationApi.PlaceRef;
 import vn.edu.usth.hanoilens.modules.event.dto.EventDtos.EventView;
-import vn.edu.usth.hanoilens.modules.event.dto.EventDtos.Position;
-import vn.edu.usth.hanoilens.modules.event.dto.EventDtos.Venue;
 import vn.edu.usth.hanoilens.modules.event.entity.CulturalEvent;
 import vn.edu.usth.hanoilens.modules.event.repository.CulturalEventQueryRepository;
 import vn.edu.usth.hanoilens.modules.event.repository.CulturalEventQueryRepository.Phase;
@@ -26,7 +24,6 @@ import vn.edu.usth.hanoilens.shared.PagedResponse;
 public class EventService {
 
     static final Duration DEFAULT_WINDOW = Duration.ofDays(30);
-    static final String TIMEZONE = "Asia/Ho_Chi_Minh";
     static final int NEARBY_DEFAULT_RADIUS_M = 5000;
     static final int NEARBY_MIN_RADIUS_M = 100;
     static final int NEARBY_MAX_RADIUS_M = 50000;
@@ -118,14 +115,7 @@ public class EventService {
     }
 
     private static EventView view(CulturalEvent e, Instant now, Map<UUID, PlaceRef> places) {
-        String phase = e.getStartsAt().isAfter(now) ? "SCHEDULED" : e.getEndsAt().isBefore(now) ? "ENDED" : "ONGOING";
-        PlaceRef place = e.getDestinationId() == null ? null : places.get(e.getDestinationId());
-        Venue venue = place == null
-                ? new Venue(e.getId(), e.getVenueName(), null, null)
-                : new Venue(place.id(), e.getVenueName(), place.district(),
-                        place.latitude() == null || place.longitude() == null ? null
-                                : new Position(place.latitude(), place.longitude()));
-        return new EventView(e.getId(), e.getTitle(), e.getDescription(), venue, e.getDestinationId(),
-                e.getStartsAt(), e.getEndsAt(), TIMEZONE, e.getSourceUrl(), e.getExtractedAt(), phase);
+        return EventViews.of(e.getId(), e.getTitle(), e.getDescription(), e.getVenueName(), e.getDestinationId(),
+                e.getStartsAt(), e.getEndsAt(), e.getSourceUrl(), e.getExtractedAt(), now, places);
     }
 }

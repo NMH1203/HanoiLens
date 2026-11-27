@@ -295,7 +295,7 @@ public class EventImportService {
     }
 
     /** Lower-case hex SHA-256 of the normalised title, start instant and venue (cultural_events.fingerprint). */
-    static String fingerprint(String title, Instant startsAt, String venue) {
+    public static String fingerprint(String title, Instant startsAt, String venue) {
         String key = normalise(title) + "|" + startsAt + "|" + normalise(venue);
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
