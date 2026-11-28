@@ -29,7 +29,9 @@ final class EventViews {
                 : new Venue(place.id(), venueName, place.district(),
                         place.latitude() == null || place.longitude() == null ? null
                                 : new Position(place.latitude(), place.longitude()));
-        return new EventView(id, title, description, venue, destinationId, startsAt, endsAt, TIMEZONE, sourceUrl,
+        // openapi Event.summary is a string, never null: imported events often have no description.
+        String summary = description == null ? "" : description;
+        return new EventView(id, title, summary, venue, destinationId, startsAt, endsAt, TIMEZONE, sourceUrl,
                 extractedAt, phase(startsAt, endsAt, now));
     }
 }
