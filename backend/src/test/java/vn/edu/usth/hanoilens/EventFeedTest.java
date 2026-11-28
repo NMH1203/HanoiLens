@@ -158,4 +158,19 @@ class EventFeedTest extends IntegrationTestBase {
         mvc.perform(get("/v1/events/" + UUID.randomUUID())).andExpect(status().isNotFound());
         mvc.perform(get("/v1/events/not-a-uuid")).andExpect(status().isNotFound());
     }
+
+    /** Contract (openapi Event.summary is a string): an event without a description still returns "summary": "". */
+    @Test
+    void summaryIsAlwaysAStringEvenWithoutADescription() throws Exception {
+        String marker = "NoDesc-" + UUID.randomUUID();
+        Instant now = Instant.now();
+        UUID id = event(marker, "APPROVED", now.plus(1, ChronoUnit.DAYS), now.plus(2, ChronoUnit.DAYS));
+        assertThat(jdbc.queryForObject("SELECT description FROM cultural_events WHERE id = ?", String.class, id)).isNull();
+
+        mvc.perform(get("/v1/events/" + id)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.summary").value(""));
+        String list = mvc.perform(get("/v1/events").param("search", marker)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(list).contains(id.toString()).doesNotContain("\"summary\":null");
+    }
 }
