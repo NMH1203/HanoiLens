@@ -48,7 +48,6 @@ class ApiContractTest extends IntegrationTestBase {
     }
 
     @Test
-    @Disabled("Contract drift: Event summary is null in response/seed data but required by openapi.yaml")
     void listEventsMatchesSpec() throws Exception {
         mvc.perform(get("/v1/events").param("limit", "10"))
                 .andExpect(status().isOk())
